@@ -24,6 +24,7 @@ import { PercentageCalculator, ScientificCalculator, PrimeChecker } from "@/page
 
 // Security
 import { PasswordGenerator, UuidGenerator, HashGenerator } from "@/pages/tools/SecurityTools";
+import { Md5Generator, Sha256Generator, SslCertDecoder, SamlDecoder, ImeiValidator } from "@/pages/tools/SecurityTools2";
 
 // Web Dev
 import { ColorPicker, CssGradient, ImageToBase64, MetaTagGenerator } from "@/pages/tools/WebDevTools";
@@ -94,6 +95,11 @@ function Router() {
       <Route path="/tools/hash-generator" component={HashGenerator} />
       <Route path="/tools/uuid-generator" component={UuidGenerator} />
       <Route path="/tools/password-generator" component={PasswordGenerator} />
+      <Route path="/tools/md5-generator" component={Md5Generator} />
+      <Route path="/tools/sha256-generator" component={Sha256Generator} />
+      <Route path="/tools/ssl-cert-decoder" component={SslCertDecoder} />
+      <Route path="/tools/saml-decoder" component={SamlDecoder} />
+      <Route path="/tools/imei-validator" component={ImeiValidator} />
 
       {/* Web Dev */}
       <Route path="/tools/color-picker" component={ColorPicker} />

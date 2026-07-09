@@ -5,7 +5,7 @@ import {
   Palette, Blend, ImagePlus, Tag, ReceiptText, TrendingDown, PiggyBank,
   Braces, FileJson, GitCompare, ListTree, FileSpreadsheet,
   Terminal, KeyRound, Fingerprint, Timer, GitBranch, Sparkles, Globe,
-  FileCode2, Paintbrush, Settings2, Wand2
+  FileCode2, Paintbrush, Settings2, Wand2, ShieldCheck, FileSignature, Smartphone
 } from "lucide-react";
 
 export type CategorySlug = "finance" | "converters" | "code" | "text" | "math" | "security" | "webdev" | "data" | "devtools" | "formatters";
@@ -120,4 +120,11 @@ export const TOOLS: Tool[] = [
   { name: "JSON to Go Struct", slug: "json-to-go-struct", category: "formatters", description: "Generate Go structs from JSON data", icon: FileCode2 },
   { name: "JSON to Java Class", slug: "json-to-java-class", category: "formatters", description: "Generate Java classes from JSON data", icon: FileCode2 },
   { name: "Regex Visualizer", slug: "regex-visualizer", category: "formatters", description: "Turn regex patterns into plain English explanations", icon: Wand2, popular: true },
+
+  // Security (batch 2)
+  { name: "MD5 Hash Generator", slug: "md5-generator", category: "security", description: "Generate the MD5 digest of any text", icon: Hash },
+  { name: "SHA-256 Hash Generator", slug: "sha256-generator", category: "security", description: "Generate a SHA-256 digest using Web Crypto", icon: Hash, popular: true },
+  { name: "SSL Certificate Decoder", slug: "ssl-cert-decoder", category: "security", description: "Decode PEM certificates and inspect subject, issuer, and validity", icon: ShieldCheck, popular: true },
+  { name: "SAML Decoder", slug: "saml-decoder", category: "security", description: "Decode base64 SAMLRequest/SAMLResponse into readable XML", icon: FileSignature },
+  { name: "IMEI Validator", slug: "imei-validator", category: "security", description: "Validate a 15-digit IMEI using the Luhn check-digit algorithm", icon: Smartphone },
 ];
