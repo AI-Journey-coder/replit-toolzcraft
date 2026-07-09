@@ -4,10 +4,11 @@ import {
   FlaskConical, Diff, Minimize2, Database, Type, AlignLeft, AlignJustify,
   Palette, Blend, ImagePlus, Tag, ReceiptText, TrendingDown, PiggyBank,
   Braces, FileJson, GitCompare, ListTree, FileSpreadsheet,
-  Terminal, KeyRound, Fingerprint, Timer, GitBranch, Sparkles, Globe
+  Terminal, KeyRound, Fingerprint, Timer, GitBranch, Sparkles, Globe,
+  FileCode2, Paintbrush, Settings2, Wand2
 } from "lucide-react";
 
-export type CategorySlug = "finance" | "converters" | "code" | "text" | "math" | "security" | "webdev" | "data" | "devtools";
+export type CategorySlug = "finance" | "converters" | "code" | "text" | "math" | "security" | "webdev" | "data" | "devtools" | "formatters";
 
 export interface Category {
   name: string;
@@ -35,6 +36,7 @@ export const CATEGORIES: Category[] = [
   { name: "Web Dev", slug: "webdev", icon: AppWindow, description: "Color pickers, gradients, and meta tags" },
   { name: "Data Tools", slug: "data", icon: FileJson, description: "JSON, CSV, YAML, and XML converters & validators" },
   { name: "Developer Tools", slug: "devtools", icon: Terminal, description: "JWT, cURL, CRON, semver, and API developer utilities" },
+  { name: "Formatters & Codegen", slug: "formatters", icon: Paintbrush, description: "Language formatters and JSON-to-code generators" },
 ];
 
 export const TOOLS: Tool[] = [
@@ -106,4 +108,16 @@ export const TOOLS: Tool[] = [
   { name: "Semver Calculator", slug: "semver-calculator", category: "devtools", description: "Parse, compare, and bump semantic versions", icon: GitBranch },
   { name: "NanoID Generator", slug: "nanoid-generator", category: "devtools", description: "Generate compact, URL-friendly unique IDs", icon: Sparkles },
   { name: "cURL Converter", slug: "curl-converter", category: "devtools", description: "Convert curl commands to fetch, Python, or Node.js", icon: Terminal, popular: true },
+
+  // Formatters & Codegen
+  { name: "HTML Formatter", slug: "html-formatter", category: "formatters", description: "Beautify and indent HTML code", icon: FileCode2, popular: true },
+  { name: "CSS Formatter", slug: "css-formatter", category: "formatters", description: "Beautify and format CSS code", icon: Paintbrush },
+  { name: "XML Formatter", slug: "xml-formatter", category: "formatters", description: "Beautify and indent XML documents", icon: FileCode2 },
+  { name: "YAML Formatter", slug: "yaml-formatter", category: "formatters", description: "Beautify and format YAML documents", icon: Settings2 },
+  { name: "TOML Formatter", slug: "toml-formatter", category: "formatters", description: "Beautify and format TOML configuration files", icon: Settings2 },
+  { name: "JSON5 Formatter", slug: "json5-formatter", category: "formatters", description: "Format JSON5 with comments and trailing commas", icon: FileJson },
+  { name: "JSON to Python Dict", slug: "json-to-python-dict", category: "formatters", description: "Convert JSON to Python dictionary syntax", icon: FileCode2 },
+  { name: "JSON to Go Struct", slug: "json-to-go-struct", category: "formatters", description: "Generate Go structs from JSON data", icon: FileCode2 },
+  { name: "JSON to Java Class", slug: "json-to-java-class", category: "formatters", description: "Generate Java classes from JSON data", icon: FileCode2 },
+  { name: "Regex Visualizer", slug: "regex-visualizer", category: "formatters", description: "Turn regex patterns into plain English explanations", icon: Wand2, popular: true },
 ];

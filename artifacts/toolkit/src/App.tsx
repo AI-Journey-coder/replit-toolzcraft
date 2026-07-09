@@ -40,6 +40,12 @@ import {
   CronParser, SemverCalculator, NanoIdGenerator, CurlConverter,
 } from "@/pages/tools/DevTools";
 
+// Formatters & Codegen
+import {
+  HtmlFormatter, CssFormatter, XmlFormatter, YamlFormatter, TomlFormatter,
+  Json5Formatter, JsonToPythonDict, JsonToGoStruct, JsonToJavaClass, RegexVisualizer,
+} from "@/pages/tools/FormatterTools";
+
 const queryClient = new QueryClient();
 
 function Router() {
@@ -116,6 +122,18 @@ function Router() {
       <Route path="/tools/semver-calculator" component={SemverCalculator} />
       <Route path="/tools/nanoid-generator" component={NanoIdGenerator} />
       <Route path="/tools/curl-converter" component={CurlConverter} />
+
+      {/* Formatters & Codegen */}
+      <Route path="/tools/html-formatter" component={HtmlFormatter} />
+      <Route path="/tools/css-formatter" component={CssFormatter} />
+      <Route path="/tools/xml-formatter" component={XmlFormatter} />
+      <Route path="/tools/yaml-formatter" component={YamlFormatter} />
+      <Route path="/tools/toml-formatter" component={TomlFormatter} />
+      <Route path="/tools/json5-formatter" component={Json5Formatter} />
+      <Route path="/tools/json-to-python-dict" component={JsonToPythonDict} />
+      <Route path="/tools/json-to-go-struct" component={JsonToGoStruct} />
+      <Route path="/tools/json-to-java-class" component={JsonToJavaClass} />
+      <Route path="/tools/regex-visualizer" component={RegexVisualizer} />
 
       <Route component={NotFound} />
     </Switch>
