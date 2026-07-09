@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "ToolKit Pro"
+version = "1.0.0"
+id = "artifacts/toolkit"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25391
+
+[services.development]
+run = "pnpm --filter @workspace/toolkit run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/toolkit", "run", "build" ]
+publicDir = "artifacts/toolkit/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25391"
+BASE_PATH = "/"
