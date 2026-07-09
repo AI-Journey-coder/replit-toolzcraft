@@ -2,10 +2,12 @@ import {
   AppWindow, Calculator, Code2, Coins, FileText, Lock, Scale,
   Hash, Key, Percent, TrendingUp, Thermometer, Zap, Square,
   FlaskConical, Diff, Minimize2, Database, Type, AlignLeft, AlignJustify,
-  Palette, Blend, ImagePlus, Tag, ReceiptText, TrendingDown, PiggyBank
+  Palette, Blend, ImagePlus, Tag, ReceiptText, TrendingDown, PiggyBank,
+  Braces, FileJson, GitCompare, ListTree, FileSpreadsheet,
+  Terminal, KeyRound, Fingerprint, Timer, GitBranch, Sparkles, Globe
 } from "lucide-react";
 
-export type CategorySlug = "finance" | "converters" | "code" | "text" | "math" | "security" | "webdev";
+export type CategorySlug = "finance" | "converters" | "code" | "text" | "math" | "security" | "webdev" | "data" | "devtools";
 
 export interface Category {
   name: string;
@@ -31,6 +33,8 @@ export const CATEGORIES: Category[] = [
   { name: "Math Tools", slug: "math", icon: Calculator, description: "Percentage, scientific, and prime calculators" },
   { name: "Security", slug: "security", icon: Lock, description: "Hash generators, UUIDs, and passwords" },
   { name: "Web Dev", slug: "webdev", icon: AppWindow, description: "Color pickers, gradients, and meta tags" },
+  { name: "Data Tools", slug: "data", icon: FileJson, description: "JSON, CSV, YAML, and XML converters & validators" },
+  { name: "Developer Tools", slug: "devtools", icon: Terminal, description: "JWT, cURL, CRON, semver, and API developer utilities" },
 ];
 
 export const TOOLS: Tool[] = [
@@ -80,4 +84,26 @@ export const TOOLS: Tool[] = [
   { name: "CSS Gradient", slug: "css-gradient", category: "webdev", description: "Build linear or radial gradients visually", icon: Blend },
   { name: "Image to Base64", slug: "image-to-base64", category: "webdev", description: "Convert images to Base64 encoded strings", icon: ImagePlus },
   { name: "Meta Tag Generator", slug: "meta-tag-generator", category: "webdev", description: "Generate SEO and social sharing meta tags", icon: Tag },
+
+  // Data Tools
+  { name: "JSON Validator", slug: "json-validator", category: "data", description: "Validate JSON with detailed error messages", icon: Braces, popular: true },
+  { name: "JSON Diff", slug: "json-diff", category: "data", description: "Compare two JSON documents structurally", icon: GitCompare },
+  { name: "JSON Tree Viewer", slug: "json-tree-viewer", category: "data", description: "Explore JSON data as a collapsible tree", icon: ListTree },
+  { name: "JSON Schema Generator", slug: "json-schema-generator", category: "data", description: "Generate JSON schema from sample JSON data", icon: FileJson },
+  { name: "JSON to CSV", slug: "json-to-csv", category: "data", description: "Convert JSON arrays to CSV format", icon: FileSpreadsheet },
+  { name: "CSV to JSON", slug: "csv-to-json", category: "data", description: "Convert CSV data to JSON format", icon: FileSpreadsheet, popular: true },
+  { name: "JSON to YAML", slug: "json-to-yaml", category: "data", description: "Convert JSON data to YAML format", icon: FileJson },
+  { name: "YAML to JSON", slug: "yaml-to-json", category: "data", description: "Convert YAML to JSON format", icon: FileJson },
+  { name: "JSON to XML", slug: "json-to-xml", category: "data", description: "Convert JSON data to XML format", icon: FileJson },
+  { name: "XML to JSON", slug: "xml-to-json", category: "data", description: "Convert XML documents to JSON format", icon: FileJson },
+
+  // Developer Tools
+  { name: "JWT Decoder", slug: "jwt-decoder", category: "devtools", description: "Decode and inspect JSON Web Tokens", icon: KeyRound, popular: true },
+  { name: "JWT Builder", slug: "jwt-builder", category: "devtools", description: "Encode and sign JSON Web Tokens", icon: KeyRound },
+  { name: "HTTP Status Lookup", slug: "http-status-lookup", category: "devtools", description: "Look up HTTP status codes and their meanings", icon: Globe, popular: true },
+  { name: "User Agent Parser", slug: "user-agent-parser", category: "devtools", description: "Parse user agent strings into components", icon: Fingerprint },
+  { name: "CRON Parser", slug: "cron-parser", category: "devtools", description: "Parse and explain CRON expressions", icon: Timer },
+  { name: "Semver Calculator", slug: "semver-calculator", category: "devtools", description: "Parse, compare, and bump semantic versions", icon: GitBranch },
+  { name: "NanoID Generator", slug: "nanoid-generator", category: "devtools", description: "Generate compact, URL-friendly unique IDs", icon: Sparkles },
+  { name: "cURL Converter", slug: "curl-converter", category: "devtools", description: "Convert curl commands to fetch, Python, or Node.js", icon: Terminal, popular: true },
 ];

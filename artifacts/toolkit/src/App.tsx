@@ -28,6 +28,18 @@ import { PasswordGenerator, UuidGenerator, HashGenerator } from "@/pages/tools/S
 // Web Dev
 import { ColorPicker, CssGradient, ImageToBase64, MetaTagGenerator } from "@/pages/tools/WebDevTools";
 
+// Data Tools
+import {
+  JsonValidator, JsonDiff, JsonTreeViewer, JsonSchemaGenerator,
+  JsonToCsv, CsvToJson, JsonToYaml, YamlToJson, JsonToXml, XmlToJson,
+} from "@/pages/tools/DataTools";
+
+// Developer Tools
+import {
+  JwtDecoder, JwtBuilder, HttpStatusLookup, UserAgentParser,
+  CronParser, SemverCalculator, NanoIdGenerator, CurlConverter,
+} from "@/pages/tools/DevTools";
+
 const queryClient = new QueryClient();
 
 function Router() {
@@ -82,6 +94,28 @@ function Router() {
       <Route path="/tools/css-gradient" component={CssGradient} />
       <Route path="/tools/image-to-base64" component={ImageToBase64} />
       <Route path="/tools/meta-tag-generator" component={MetaTagGenerator} />
+
+      {/* Data Tools */}
+      <Route path="/tools/json-validator" component={JsonValidator} />
+      <Route path="/tools/json-diff" component={JsonDiff} />
+      <Route path="/tools/json-tree-viewer" component={JsonTreeViewer} />
+      <Route path="/tools/json-schema-generator" component={JsonSchemaGenerator} />
+      <Route path="/tools/json-to-csv" component={JsonToCsv} />
+      <Route path="/tools/csv-to-json" component={CsvToJson} />
+      <Route path="/tools/json-to-yaml" component={JsonToYaml} />
+      <Route path="/tools/yaml-to-json" component={YamlToJson} />
+      <Route path="/tools/json-to-xml" component={JsonToXml} />
+      <Route path="/tools/xml-to-json" component={XmlToJson} />
+
+      {/* Developer Tools */}
+      <Route path="/tools/jwt-decoder" component={JwtDecoder} />
+      <Route path="/tools/jwt-builder" component={JwtBuilder} />
+      <Route path="/tools/http-status-lookup" component={HttpStatusLookup} />
+      <Route path="/tools/user-agent-parser" component={UserAgentParser} />
+      <Route path="/tools/cron-parser" component={CronParser} />
+      <Route path="/tools/semver-calculator" component={SemverCalculator} />
+      <Route path="/tools/nanoid-generator" component={NanoIdGenerator} />
+      <Route path="/tools/curl-converter" component={CurlConverter} />
 
       <Route component={NotFound} />
     </Switch>
