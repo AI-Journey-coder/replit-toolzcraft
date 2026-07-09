@@ -1,0 +1,451 @@
+The app should be multi page app where each tool/utility has it's own dedicated page.
+The USP of the webapp is save no user data, execute as much as possible on the client side, privacy is of the utmost importance.
+Privacy page content in quotes below
+"
+1. Explicit User Data Handling & Processing
+
+At ToolzCraft, we follow a strict zero-retention, fully client-side design pattern. Here is exactly how your files, inputs, and coordinates are handled:
+
+    Media Compressors & Converters: When you select a photo, image, HEIC asset, or document, it is loaded natively into your browser's private memory thread using standard Web APIs (such as HTML5 Canvas and File Reader). The pixels work entirely inside your local device cache; they are never transmitted or saved on any remote servers.
+    Mathematical & Day-to-Day Calculators: All amortization rows, compound interest formulas, and text formatted elements process strictly offline via client JS calculators.
+    Secure In-Transit Proxies: For utilities that convert database schema dialects or conduct receipt parsing via Gemini/OCR models, the structural scripts or image files are secure-channeled over encrypted SSL / TLS 1.3 protocol paths, handled directly in RAM on volatile, stateless serverless nodes, and instantly obliterated upon execution. No backups, session histories, or diagnostic directories are ever provisioned on disk.
+
+2. GDPR Consent & User Data Erasure
+
+Under GDPR guidelines (Articles 5 and 25), ToolzCraft complies with the strict parameters of data minimization and privacy by default. Since no client user tables, files, or message databases are logged to disk, we hold no user records to erase. If you sign into your subscription tier via Google SSO or Phone verification, your user object details (email or phone) reside solely in volatile standard storage configurations and can be expunged instantly by clicking the "Log Out Profile" option.
+3. California Consumer Privacy Act (CCPA)
+
+We never sell, rent, lease, or distribute dry operational inputs, contact sheets in vCard spreadsheets, or WhatsApp patterns telemetry to marketing brokers. 0% of your metrics are processed for tracking monetization or advertisement aggregators.
+4. SOC 2 Type II Cybersecurity Architecture
+
+Our system is hosted inside sandboxed containers governed under secure Kubernetes nodes with automatic security patches:
+
+    In-Transit Enforcements: Standard TLS 1.3 protocol encryption shields every transaction.
+    Least Privilege Bounds: Express routers and feedback collectors restrict write access metrics.
+"
+
+It should have configuration to add Google AdSense.
+I want to 
+- add login feature that lets user use their Google, Microsoft or other email accounts and directly let login
+- add an admin page that only accessed by new.ai.journey@gmail.com 
+	- manage users & their roles
+	- controls the tools mapping with thier categories
+	- lets control subscriptions
+	- add coupons & discounts
+	- lets decide tools visibility to users
+	- change my logo
+	- Tweak live parameters to simulate platform overheads. Our algorithm models free user thresholds, CPM values, CTR, CPC clicks, and output conversion metrics instantly to give you solid advice on appropriate pricing tags
+	- monitor traffic
+- let users have their favourite tools shown on their favourite page
+- Use google apis for AI features like OCR, document analysis 
+- Firebase for DB
+
+Add below tools
+
+Developer & Code Tools  (38)
+•	API Response Viewer  —  Format and analyze API responses
+•	API Tester  —  Test and debug API endpoints
+•	cURL Converter  —  Convert curl commands to JS fetch, Python requests, etc.
+•	Webhook Tester  —  Construct and preview HTTP requests
+•	HTTP Status Code Lookup  —  Look up HTTP error codes and status codes
+•	HTTP Reference  —  HTTP headers, MIME types, HTTP methods reference
+•	CORS Tester  —  Test CORS headers and security headers
+•	OpenAPI Validator  —  Validate OpenAPI/Swagger specs
+•	OpenAPI Generator  —  Generate OpenAPI specs
+•	OpenAPI Diff  —  Diff two OpenAPI specs
+•	OpenAPI to TypeScript  —  Generate TypeScript types from OpenAPI/Swagger
+•	GraphQL Formatter  —  Beautify GraphQL queries and schemas
+•	GraphQL Schema Viewer  —  View and explore GraphQL schemas
+•	GraphQL to REST Converter  —  Convert GraphQL queries to REST
+•	Swagger Validator  —  Validate Swagger API specifications
+•	Postman to OpenAPI  —  Convert Postman collections to OpenAPI
+•	OpenAPI to Postman  —  Convert OpenAPI specs to Postman collections
+•	WSDL to OpenAPI  —  Convert WSDL definitions to OpenAPI
+•	Regex Tester  —  Test and debug regular expressions with live matching
+•	Regex Visualizer / Explainer  —  Turn patterns into railroad diagrams or plain English
+•	JSONPath Tester  —  Test JSONPath expressions against JSON data
+•	JWT Decoder  —  Decode and inspect JSON Web Tokens
+•	JWT Builder  —  Encode and build JSON Web Tokens
+•	SAML Decoder  —  Decode SAML responses and assertions
+•	SSL Certificate Decoder  —  Decode PEM certificates and show details
+•	UUID Generator  —  Generate random UUIDs/GUIDs instantly
+•	NanoID Generator  —  Generate compact, URL-friendly unique IDs
+•	CRON Expression Parser  —  Parse and generate CRON expressions
+•	Semver Calculator  —  Parse, compare, and bump semantic versions
+•	User Agent Parser  —  Parse user agent strings into components
+•	IP Address Lookup  —  IP address lookup, DNS lookup, WHOIS lookup
+•	DNS Record Reference  —  Reference for A, AAAA, CNAME, and other record types
+•	IMEI Validator  —  Validate IMEI device identifiers
+•	Speed Test  —  Test internet connection speed
+•	Dockerfile & Compose Builder  —  Build Dockerfile and docker-compose configurations
+•	PyTest Assert Generator  —  Generate PyTest assertion statements
+•	Database Documentation Generator  —  Auto-generate documentation from database schemas
+•	SQL Migration Script Generator  —  Generate SQL migration scripts
+
+Code Formatters & Beautifiers  (27)
+•	JavaScript Formatter  —  Beautify and format JavaScript code
+•	TypeScript Formatter  —  Beautify and format TypeScript code
+•	Python Formatter  —  Beautify and format Python code
+•	Java Formatter  —  Beautify and format Java code
+•	Kotlin Formatter  —  Beautify and format Kotlin code
+•	Go Formatter  —  Format Go code with gofmt-style indentation
+•	Rust Formatter  —  Format Rust code with rustfmt-style indentation
+•	PHP Formatter  —  Beautify and format PHP code
+•	C/C++ Formatter  —  Beautify and format C and C++ code
+•	CSS Formatter  —  Beautify and format CSS code
+•	HTML Formatter  —  Beautify and indent HTML code
+•	SQL Formatter  —  Format and beautify SQL queries with dialect awareness
+•	DDL Formatter  —  Format DDL (Data Definition Language) statements
+•	GraphQL Formatter  —  Beautify GraphQL queries and schemas
+•	TOML Formatter  —  Beautify and format TOML configuration files
+•	YAML Formatter  —  Beautify and format YAML documents
+•	XML Formatter  —  Beautify and indent XML documents
+•	JSON Formatter  —  Format and beautify JSON data instantly
+•	JSON5 Formatter  —  Format JSON5 with comments and trailing commas
+•	Protobuf Formatter  —  Format Protocol Buffer definition files
+•	Terraform HCL Formatter  —  Format Terraform configuration files
+•	HTML Minifier  —  Compress HTML to reduce file size
+•	CSS Minifier  —  Compress CSS to reduce file size
+•	JavaScript Minifier  —  Compress JavaScript to reduce file size
+•	XML Minifier  —  Compress XML to reduce file size
+•	SVG Minifier  —  Compress SVG files to reduce size
+•	SVG Optimizer  —  Remove metadata and clean up vector paths
+
+Code Converters & Transpilers  (18)
+•	C++ to Java  —  Convert C++ code to Java
+•	C++ to Python  —  Convert C++ code to Python
+•	Java to C#  —  Convert Java code to C#
+•	Java to Python  —  Convert Java code to Python
+•	JavaScript to Python  —  Convert JavaScript code to Python
+•	Go to Python  —  Convert Go code to Python
+•	PHP to JavaScript  —  Convert PHP code to JavaScript
+•	Python to Java  —  Convert Python code to Java
+•	Python to JavaScript  —  Convert Python code to JavaScript
+•	TypeScript to JavaScript  —  Convert TypeScript to plain JavaScript
+•	JSON to Python Dict  —  Convert JSON to Python dictionary syntax
+•	JSON to Go Struct  —  Generate Go structs from JSON data
+•	JSON to Java Class  —  Generate Java classes from JSON data
+•	Curl to C#  —  Convert curl to C# code
+•	Curl to Java  —  Convert curl to Java code
+•	Curl to NodeJS  —  Convert curl to Node.js code
+•	Curl to Python  —  Convert curl to Python code
+•	Curl to Postman  —  Convert curl commands to Postman collections
+
+JSON & Data Format Tools  (40)
+•	JSON Validator  —  Validate and lint JSON with detailed error messages
+•	JSON Editor  —  Edit JSON interactively with a visual editor
+•	JSON Diff  —  Compare two JSON documents structurally
+•	JSON Tree Viewer  —  Explore JSON data as a collapsible tree
+•	JSON Table Viewer  —  View JSON arrays as sortable tables
+•	JSON Minifier  —  Compress JSON by removing whitespace
+•	JSON Schema Generator  —  Generate JSON schema from JSON data
+•	JSON Schema Validator  —  Validate JSON data against a JSON schema
+•	JSON Mock Data Synthesizer  —  Synthesize mock data from JSON schemas
+•	JSON to CSV  —  Convert JSON arrays to CSV format
+•	JSON to XML  —  Convert JSON data to XML format
+•	JSON to YAML  —  Convert JSON data to YAML format
+•	JSON to TOML  —  Convert JSON to TOML format
+•	YAML to JSON  —  Convert YAML to JSON format
+•	YAML to XML  —  Convert YAML to XML
+•	YAML to Properties  —  Convert YAML to .properties format
+•	YAML Diff  —  Compare two YAML documents line-by-line
+•	XML to JSON  —  Convert XML documents to JSON format
+•	XML to CSV  —  Convert XML to CSV format
+•	XML to YAML  —  Convert XML to YAML
+•	CSV to JSON  —  Convert CSV data to JSON format
+•	CSV to XML  —  Convert CSV to XML
+•	INI to JSON  —  Convert INI config files to JSON
+•	TOML to JSON  —  Convert TOML to JSON
+•	TOML to YAML  —  Convert TOML to YAML
+•	Properties to JSON  —  Convert .properties files to JSON
+•	Properties to YAML  —  Convert .properties files to YAML
+•	SOAP XML to JSON  —  Convert SOAP XML responses to JSON
+•	Fixed Width to JSON  —  Convert fixed-width files to JSON
+•	Fixed Width to CSV  —  Convert fixed-width files to CSV
+•	Avro to JSON Schema  —  Convert Avro schemas to JSON Schema
+•	Protobuf to JSON Schema  —  Convert Protobuf definitions to JSON Schema
+•	JSON Schema to XSD  —  Convert JSON Schema to XSD
+•	XSD to JSON Schema  —  Convert XSD to JSON Schema
+•	COBOL Copybook Parser  —  Parse COBOL copybook definitions
+•	COBOL Copybook to JSON  —  Convert COBOL copybook to JSON
+•	COBOL Copybook to XML  —  Convert COBOL copybook to XML
+•	ER Diagram to SQL  —  Generate SQL from ER diagrams
+•	SQL to ER Diagram  —  Generate ER diagrams from SQL
+•	SQL to JSON Schema  —  Parse CREATE TABLE statements to JSON schema
+
+SQL & Database Converters  (21)
+•	MySQL to PostgreSQL  —  Convert MySQL SQL to PostgreSQL
+•	MySQL to SQL Server  —  Convert MySQL SQL to SQL Server
+•	MySQL to Oracle  —  Convert MySQL SQL to Oracle
+•	MySQL to DB2  —  Convert MySQL SQL to DB2
+•	PostgreSQL to MySQL  —  Convert PostgreSQL SQL to MySQL
+•	SQL Server to MySQL  —  Convert SQL Server SQL to MySQL
+•	SQL Server to PostgreSQL  —  Convert SQL Server SQL to PostgreSQL
+•	SQL Server to Oracle  —  Convert SQL Server SQL to Oracle
+•	SQL Server to DB2  —  Convert SQL Server SQL to DB2
+•	Oracle to MySQL  —  Convert Oracle SQL to MySQL
+•	Oracle to PostgreSQL  —  Convert Oracle SQL to PostgreSQL
+•	Oracle to SQL Server  —  Convert Oracle SQL to SQL Server
+•	Oracle to DB2  —  Convert Oracle SQL to DB2
+•	DB2 to MySQL  —  Convert DB2 SQL to MySQL
+•	DB2 to PostgreSQL  —  Convert DB2 SQL to PostgreSQL
+•	DB2 to SQL Server  —  Convert DB2 SQL to SQL Server
+•	DB2 to Oracle  —  Convert DB2 SQL to Oracle
+•	DDL Beautifier  —  Beautify DDL statements
+•	Schema Compare  —  Compare database schemas
+•	Index Compare  —  Compare database indexes
+•	Table Compare  —  Compare database table structures
+
+Hashing, Encryption & Security  (16)
+•	Hash Generator  —  Generate MD5, SHA-1, SHA-256, and SHA-512 hashes
+•	MD5 Hash Generator  —  Generate MD5 hashes from text input
+•	SHA-256 Hash Generator  —  Generate SHA-256 hashes from text input
+•	HMAC Generator  —  Generate HMAC message authentication codes
+•	Bcrypt Generator  —  Generate bcrypt-style password hashes
+•	Hash Identifier  —  Identify hash algorithms from hash strings
+•	SRI Hash Generator  —  Generate Subresource Integrity hashes
+•	AES Encryption / Decryption  —  Encrypt and decrypt text with AES-GCM
+•	RSA Key Generator  —  Generate RSA public/private key pairs
+•	PGP Key Generator  —  Generate PGP key pairs
+•	SSH Key Generator  —  Generate SSH key pairs
+•	Password Generator  —  Generate strong, random passwords
+•	Passphrase Generator  —  Generate memorable random passphrases
+•	Password Strength Checker  —  Check entropy and password strength
+•	TOTP Generator  —  Generate time-based one-time passwords
+•	Random Number Generator  —  Generate cryptographically secure random numbers
+
+Encoding & Decoding  (17)
+•	Base64 Encoder / Decoder  —  Encode and decode Base64 strings
+•	Base64 to Image / Image to Base64  —  Convert between Base64 and image files
+•	Base32 Encoder / Decoder  —  Encode and decode Base32 strings
+•	Base58 Encoder / Decoder  —  Encode and decode Base58 (Bitcoin) strings
+•	URL Encoder / Decoder  —  Encode and decode URL components
+•	HTML Entity Encoder / Decoder  —  Encode and decode HTML entities
+•	Unicode Escape / Unescape  —  Escape and unescape Unicode sequences
+•	Punycode Converter  —  Encode and decode internationalized domain names
+•	ROT13 Encoder / Decoder  —  Apply ROT13 cipher to text
+•	Caesar Cipher  —  Encrypt and decrypt text with a configurable shift
+•	EBCDIC to ASCII  —  Convert EBCDIC encoded text to ASCII
+•	ASCII to Hex Converter  —  Convert ASCII characters to hex codes and back
+•	Hex to Text Converter  —  Convert between hexadecimal and text
+•	Binary to Text Converter  —  Convert between binary and text
+•	UTF-8 Byte Viewer  —  View UTF-8 byte sequences for any text
+•	Morse Code Translator  —  Convert text to and from Morse code
+•	Braille Translator  —  Convert text to Braille Unicode characters
+
+Number & Data Converters  (13)
+•	Number Base Converter  —  Convert between binary, octal, decimal, and hex
+•	Arbitrary Base Converter  —  Convert between bases 2 to 36
+•	Roman Numeral Converter  —  Convert between Roman numerals and Arabic numbers
+•	Number to Words  —  Convert numbers to English words
+•	IP Address Converter  —  Convert between IP formats (decimal, binary, hex)
+•	IP to Decimal Converter  —  Convert IP addresses to decimal
+•	Byte Converter  —  Convert between bytes, KB, MB, GB, and TB
+•	Unix Timestamp Converter  —  Convert between epoch timestamps and readable dates
+•	Roman Numeral Converter  —  Convert between Roman numerals and Arabic numbers
+•	Molecular Weight Calculator  —  Calculate molecular weights from chemical formulas
+•	GCD & LCM Calculator  —  Calculate greatest common divisor and least common multiple
+•	Prime Number Checker / Fibonacci Generator  —  Check primality and generate Fibonacci sequences
+•	Unit Converters  —  Temperature, length, weight, speed, energy, data rate, angle, area, volume, pressure
+
+Calculators & Finance  (25)
+•	Scientific Calculator  —  Full trig and log functions
+•	Mortgage Calculator  —  Calculate mortgage payments and amortization
+•	Loan Prepayment Break-Even  —  Calculate break-even for loan prepayment
+•	Commission Calculator  —  Calculate sales commissions
+•	GST Invoice Extractor  —  Extract GST data from invoices
+•	Tip Calculator  —  Calculate tips with per-person splitting
+•	Basic Break-Even  —  Calculate basic break-even point
+•	Revenue Break-Even  —  Calculate revenue break-even
+•	Startup Break-Even  —  Calculate startup break-even
+•	Ecommerce Break-Even  —  Calculate ecommerce break-even
+•	SaaS Break-Even  —  Calculate SaaS break-even
+•	Freelancer Break-Even  —  Calculate freelancer break-even
+•	Manufacturing Break-Even  —  Calculate manufacturing break-even
+•	Real Estate Break-Even  —  Calculate real estate break-even
+•	Rental Property Break-Even  —  Calculate rental property break-even
+•	Crypto Break-Even  —  Calculate crypto investment break-even
+•	Stock Break-Even  —  Calculate stock investment break-even
+•	Investment Break-Even  —  Calculate general investment break-even
+•	Google Ads Break-Even  —  Calculate Google Ads campaign break-even
+•	Employee Cost Break-Even  —  Calculate employee cost break-even
+•	Currency Converter  —  Convert between world currencies
+•	Bandwidth Calculator  —  Calculate bandwidth requirements
+•	Checksum Calculator  —  Calculate file checksums via drag-and-drop
+•	Chmod Calculator  —  Calculate Unix file permissions (rwx, octal, symbolic)
+•	CIDR Calculator  —  Calculate CIDR ranges, subnet masks, host counts
+
+Date, Time & Productivity  (9)
+•	Date Difference Calculator  —  Calculate difference between two dates
+•	Date Add/Subtract Utility  —  Add or subtract days from a date
+•	Workdays Calculator  —  Calculate working days between dates
+•	Leap Year Checker  —  Check if a year is a leap year
+•	Timezone Converter / World Clock  —  Convert between timezones and view world clock
+•	Countdown Timer / Stopwatch  —  Timer and stopwatch tools
+•	Time Format Converter  —  Convert between time formats
+•	Group Expense Splitter  —  Split expenses among a group
+•	Expense Categorizer  —  Categorize and analyze expenses
+
+Text & String Tools  (21)
+•	Word Counter  —  Count words, characters, sentences, paragraphs, and byte sizing
+•	Find and Replace  —  Find and replace text with regex support
+•	Text Diff  —  Compare two texts and highlight differences
+•	String Case Converter  —  Convert text between camelCase, snake_case, etc.
+•	Slug Generator  —  Generate URL-friendly slugs from text
+•	Lorem Ipsum Generator  —  Generate placeholder text for designs
+•	Text Reverse / Repeat / Whitespace Remover  —  Reverse, repeat, or strip whitespace from text
+•	Line Sorter & Deduplicator  —  Alphabetically organize and deduplicate lines
+•	CSV Column Extractor  —  Extract specific columns from CSV data
+•	Extract Emails & URLs  —  Extract email addresses and URLs from block text
+•	URL Parser  —  Parse and analyze URL components
+•	NATO Phonetic Alphabet  —  Convert text to NATO phonetic alphabet
+•	Text to Speech  —  Convert text to spoken audio in the browser
+•	Text to Handwriting  —  Convert text to handwriting-style output
+•	Text to ASCII Art  —  Convert text to ASCII art
+•	Image to ASCII Art  —  Convert images to ASCII art
+•	Zalgo / Upside Down / Fancy Text  —  Generate stylized and decorative text
+•	Readability Score  —  Check readability, link text, and focus order
+•	Token Counter  —  Count tokens for LLM context windows
+•	Prompt Formatter  —  Format and structure AI prompts
+•	Prompt to JSON Converter  —  Convert natural language prompts to JSON
+
+Markdown & Web Content  (14)
+•	Markdown Preview  —  Preview Markdown with live rendering
+•	Markdown to HTML  —  Convert Markdown to HTML
+•	HTML to Markdown  —  Convert HTML to Markdown
+•	Markdown README Guide  —  Guide for writing README.md files
+•	Changelog Formatter  —  Format and structure changelogs
+•	HTML Table Generator  —  Generate HTML tables visually
+•	HTML5 Boilerplate & SEO Template  —  Generate HTML5 boilerplate and SEO meta tags
+•	Heading Hierarchy Checker  —  Visualize proper nesting of HTML heading tags
+•	Responsive Design Tester  —  Preview HTML at multiple viewport sizes
+•	Font Preview  —  Preview text in web-safe and Google fonts
+•	Favicon Generator  —  Generate favicons from images
+•	Placeholder Image Generator  —  Generate placeholder images for designs
+•	Barcode Generator  —  Generate barcodes in various formats
+•	QR Code Generator / Reader  —  Generate and scan QR codes
+
+CSS & Design Tools  (28)
+•	CSS Gradient Generator  —  Generate CSS gradient code
+•	CSS Animation Builder  —  Build CSS animation code
+•	CSS Flexbox Builder  —  Build CSS flexbox layouts
+•	CSS Grid Layout Builder  —  Build CSS grid layouts
+•	CSS Box Shadow Generator  —  Generate CSS box shadow code
+•	CSS Border Radius Generator  —  Generate CSS border radius code
+•	CSS Text Shadow Generator  —  Generate CSS text shadow code
+•	CSS Filter Generator  —  Generate CSS filter effects
+•	CSS Glassmorphism Generator  —  Generate CSS glassmorphism effects
+•	CSS Scrollbar Generator  —  Generate custom CSS scrollbar styles
+•	CSS Transform Generator  —  Generate CSS transform code
+•	CSS Triangle Generator  —  Generate CSS triangle shapes
+•	CSS Clip Path Generator  —  Generate CSS clip-path shapes
+•	CSS to Tailwind Converter  —  Convert CSS to Tailwind utility classes
+•	Tailwind CSS Playground  —  Live Tailwind CSS playground
+•	Tailwind Color Picker  —  Pick and preview Tailwind colors
+•	Color Palette Generator  —  Generate color palettes
+•	Mesh Gradient Generator  —  Generate mesh gradient backgrounds
+•	Color Converter  —  Convert between HEX, RGB, and HSL color formats
+•	Color Math  —  Mix, blend, lighten, and darken colors
+•	Color Blindness Simulator  —  Simulate how colors appear with color vision deficiency
+•	WCAG Contrast Checker  —  Check color contrast for WCAG accessibility
+•	Color Safe Palette Generator  —  Generate accessible color palettes
+•	PX to REM Converter  —  Convert pixel values to REM units
+•	SVG to CSS Converter  —  Convert SVG to CSS background images
+•	SVG to PNG Converter  —  Convert SVG files to PNG
+•	PNG to JPG Converter  —  Convert PNG images to JPG
+•	WebP / AVIF Converter  —  Convert images to WebP and AVIF formats
+
+Web Standards & SEO  (12)
+•	CORS Header Generator  —  Generate CORS header configuration
+•	Meta Tag Generator  —  Generate HTML meta tags
+•	Open Graph Generator  —  Generate Open Graph meta tags
+•	Structured Data Generator  —  Generate JSON-LD structured data
+•	Sitemap Generator  —  Generate XML sitemaps
+•	.htaccess Generator  —  Generate Apache .htaccess rules
+•	.htpasswd Generator  —  Generate .htpasswd authentication files
+•	robots.txt Generator  —  Generate robots.txt files
+•	CSP Header Generator  —  Generate Content Security Policy headers
+•	ARIA Roles Reference  —  Reference for ARIA accessibility roles
+•	Accessibility (A11y) Tools  —  Accessibility checking and reference tools
+•	WCAG Reference  —  Web Content Accessibility Guidelines reference
+
+Files, PDF & OCR  (16)
+•	PDF Merge  —  Merge multiple PDF files into one
+•	PDF Split  —  Split PDF files into separate pages or ranges
+•	PDF Compress  —  Compress PDF file size
+•	PDF to Word  —  Convert PDF files to Word documents
+•	PDF to Excel  —  Convert PDF files to Excel spreadsheets
+•	Word to PDF  —  Convert Word documents to PDF
+•	CSV to Excel  —  Convert CSV files to Excel
+•	Excel to CSV  —  Convert Excel files to CSV
+•	Excel to JSON  —  Convert Excel files to JSON
+•	JSON to Excel  —  Convert JSON to Excel files
+•	OCR  —  Extract text from images using optical character recognition
+•	OCR Table Extractor  —  Extract tables from scanned documents via OCR
+•	Bank Statement OCR  —  Extract data from bank statements via OCR
+•	Receipt / Invoice OCR  —  Extract data from receipts and invoices via OCR
+•	Receipt to Excel Converter  —  Convert receipt/invoice data to Excel
+•	File Converter  —  General-purpose file format converter
+
+Image & Media  (17)
+•	Image Resizer / Cropper / Compressor  —  Resize, crop, and compress images
+•	Image Converter  —  Convert between image formats
+•	Background Remover  —  Remove backgrounds from images
+•	Screenshot Mockup Generator  —  Generate device mockups from screenshots
+•	Screenshot Cleaner  —  Clean up and enhance screenshots
+•	HEIC Converter  —  Convert HEIC images to other formats
+•	WebP Converter  —  Convert images to and from WebP format
+•	GIF to Frames Extractor  —  Extract frames from GIF animations
+•	Video to GIF Converter  —  Convert video clips to GIF animations
+•	Video Compression  —  Compress video files
+•	EXIF Viewer  —  View EXIF metadata from images
+•	EXIF Cleaner  —  Remove EXIF metadata from images
+•	Duplicate Photo Finder  —  Find and remove duplicate photos
+•	Duplicate Video Finder  —  Find and remove duplicate videos
+•	Similar Photo Finder  —  Find visually similar photos
+•	Color Picker from Image  —  Pick colors from images
+•	Color Palette from Image  —  Generate color palettes from images
+
+Contacts & Mobile  (23)
+•	Contact Cleaner  —  Clean up and standardize contacts
+•	Contact Duplicate Finder  —  Find and merge duplicate contacts
+•	Contact Merger  —  Merge contact entries
+•	Contact Account Merger  —  Merge contacts across accounts
+•	Contact Tagger  —  Tag and organize contacts
+•	Contact Group Creator  —  Create contact groups
+•	Contact Missing Data Finder  —  Find contacts with incomplete data
+•	Contact Backup  —  Back up contact data
+•	Contact Restore  —  Restore contacts from backup
+•	Contact Transfer Assistant  —  Transfer contacts between devices
+•	Bulk Contact Checker  —  Check large batches of contacts
+•	Contact Export to Excel  —  Export contacts to Excel
+•	Contact Import from Excel  —  Import contacts from Excel
+•	SMS Backup  —  Back up SMS messages
+•	SMS Restore  —  Restore SMS messages from backup
+•	SMS Export to Excel  —  Export SMS messages to Excel
+•	Call Log Analyzer  —  Analyze call logs for patterns
+•	Call Frequency Report  —  Generate call frequency reports
+•	Phone Migration Assistant  —  Assist with migrating data between phones
+•	Device Information Viewer  —  View detailed device information
+•	WhatsApp Link Generator  —  Generate WhatsApp chat links
+•	WhatsApp QR Generator  —  Generate WhatsApp QR codes for quick contact
+•	Storage Analyzer  —  Analyze device storage usage
+
+Chat & Group Analytics  (5)
+•	Chat Export Analyzer  —  Analyze exported chat logs
+•	Chat Statistics  —  Generate statistics from chat data
+•	Group Analyzer  —  Analyze group chat activity
+•	Most Active Member Finder  —  Identify most active group members
+•	Group Invite Validator  —  Validate group invite links
+
+Reference & Cheatsheets  (9)
+•	ASCII Table  —  ASCII character code reference
+•	HTML Entities Reference  —  HTML entity codes reference
+•	Unicode Table  —  Unicode character reference
+•	Unicode Character Lookup  —  Look up Unicode characters and code points
+•	Invisible Character Detector  —  Detect invisible Unicode characters in text
+•	HTTP Status Codes Reference  —  Complete HTTP status code reference
+•	HTTP Headers Reference  —  HTTP request and response headers reference
+•	MIME Types Reference  —  MIME type reference list
+•	Developer Reference Cheatsheets  —  Quick-reference cheatsheets for developers
+
