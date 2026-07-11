@@ -1,6 +1,6 @@
-# [Project name]
+# ToolzCraft
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A privacy-first browser utility platform with 73+ free tools across 11 categories — no login, no ads, 100% client-side.
 
 ## Run & Operate
 

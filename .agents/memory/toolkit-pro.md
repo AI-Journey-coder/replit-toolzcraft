@@ -1,6 +1,6 @@
 ---
-name: ToolKit Pro architecture
-description: Key patterns, file layout, and conventions for the ToolKit Pro React/Vite app at artifacts/toolkit
+name: ToolzCraft architecture
+description: Key patterns, file layout, and conventions for the ToolzCraft React/Vite app at artifacts/toolkit
 ---
 
 ## Tool registration pattern

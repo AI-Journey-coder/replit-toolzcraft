@@ -58,6 +58,9 @@ import {
   CsvToSql, SqlDialectConverter, SqlColumnMapper,
 } from "@/pages/tools/SqlTools";
 
+// Promo
+import { Promo } from "@/pages/Promo";
+
 const queryClient = new QueryClient();
 
 // Wrap every tool page with ToolShell automatically
@@ -69,6 +72,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/promo" component={Promo} />
       <Route path="/category/:slug" component={CategoryPage} />
 
       {/* Finance */}
