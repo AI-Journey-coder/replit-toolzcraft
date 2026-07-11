@@ -2,13 +2,15 @@ import { Link } from "wouter";
 import { CATEGORIES, TOOLS } from "@/lib/tools-registry";
 import { ToolCard } from "@/components/ToolCard";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
 import { useState } from "react";
+import { useScrollRestore } from "@/hooks/useScrollRestore";
+
+const POPULAR = TOOLS.filter(t => t.popular).slice(0, 8);
 
 export function Home() {
+  useScrollRestore("home");
   const [search, setSearch] = useState("");
-  const filteredTools = search 
+  const filteredTools = search
     ? TOOLS.filter(t => t.name.toLowerCase().includes(search.toLowerCase()) || t.description.toLowerCase().includes(search.toLowerCase()))
     : [];
 
@@ -21,17 +23,6 @@ export function Home() {
         <p className="text-muted-foreground text-lg">
           No login. No ads. Just instant, reliable utilities running directly in your browser.
         </p>
-        
-        <div className="relative max-w-xl mx-auto">
-          <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-          <Input 
-            type="search" 
-            placeholder="Search all tools..." 
-            className="pl-10 h-12 text-base rounded-full bg-muted/30 border-muted-foreground/20 focus-visible:ring-primary"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
       </section>
 
       {search ? (
@@ -39,9 +30,7 @@ export function Home() {
           <h2 className="text-2xl font-bold tracking-tight">Search Results</h2>
           {filteredTools.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredTools.map(tool => (
-                <ToolCard key={tool.slug} tool={tool} />
-              ))}
+              {filteredTools.map(tool => <ToolCard key={tool.slug} tool={tool} />)}
             </div>
           ) : (
             <div className="text-center py-12 text-muted-foreground font-mono">No tools found matching "{search}"</div>
@@ -50,9 +39,7 @@ export function Home() {
       ) : (
         <>
           <section className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold tracking-tight">Categories</h2>
-            </div>
+            <h2 className="text-2xl font-bold tracking-tight">Categories</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {CATEGORIES.map(category => {
                 const Icon = category.icon;
@@ -80,9 +67,7 @@ export function Home() {
           <section className="space-y-6">
             <h2 className="text-2xl font-bold tracking-tight">Popular Tools</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {TOOLS.slice(0, 8).map(tool => (
-                <ToolCard key={tool.slug} tool={tool} />
-              ))}
+              {POPULAR.map(tool => <ToolCard key={tool.slug} tool={tool} />)}
             </div>
           </section>
         </>

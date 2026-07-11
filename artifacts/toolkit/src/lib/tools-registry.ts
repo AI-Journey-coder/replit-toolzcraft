@@ -5,10 +5,11 @@ import {
   Palette, Blend, ImagePlus, Tag, ReceiptText, TrendingDown, PiggyBank,
   Braces, FileJson, GitCompare, ListTree, FileSpreadsheet,
   Terminal, KeyRound, Fingerprint, Timer, GitBranch, Sparkles, Globe,
-  FileCode2, Paintbrush, Settings2, Wand2, ShieldCheck, FileSignature, Smartphone
+  FileCode2, Paintbrush, Settings2, Wand2, ShieldCheck, FileSignature, Smartphone,
+  DollarSign, HardDrive, Flame, Gauge, Bolt
 } from "lucide-react";
 
-export type CategorySlug = "finance" | "converters" | "code" | "text" | "math" | "security" | "webdev" | "data" | "devtools" | "formatters";
+export type CategorySlug = "finance" | "converters" | "code" | "text" | "math" | "security" | "webdev" | "data" | "devtools" | "formatters" | "sql";
 
 export interface Category {
   name: string;
@@ -28,7 +29,7 @@ export interface Tool {
 
 export const CATEGORIES: Category[] = [
   { name: "Finance", slug: "finance", icon: Coins, description: "Calculators for loans, investments, and more" },
-  { name: "Converters", slug: "converters", icon: Scale, description: "Unit conversions for length, weight, temperature, and more" },
+  { name: "Converters", slug: "converters", icon: Scale, description: "Unit, currency, and measurement conversions" },
   { name: "Code Tools", slug: "code", icon: Code2, description: "Formatters, minifiers, and validators for code" },
   { name: "Text Tools", slug: "text", icon: FileText, description: "Word counters, case converters, and lorem ipsum" },
   { name: "Math Tools", slug: "math", icon: Calculator, description: "Percentage, scientific, and prime calculators" },
@@ -37,6 +38,7 @@ export const CATEGORIES: Category[] = [
   { name: "Data Tools", slug: "data", icon: FileJson, description: "JSON, CSV, YAML, and XML converters & validators" },
   { name: "Developer Tools", slug: "devtools", icon: Terminal, description: "JWT, cURL, CRON, semver, and API developer utilities" },
   { name: "Formatters & Codegen", slug: "formatters", icon: Paintbrush, description: "Language formatters and JSON-to-code generators" },
+  { name: "SQL Tools", slug: "sql", icon: Database, description: "CSV to SQL, dialect converters, and data type references" },
 ];
 
 export const TOOLS: Tool[] = [
@@ -49,12 +51,16 @@ export const TOOLS: Tool[] = [
   { name: "GST Calculator", slug: "gst-calculator", category: "finance", description: "Calculate GST inclusive and exclusive amounts", icon: Percent },
 
   // Converters
+  { name: "Currency Converter", slug: "currency-converter", category: "converters", description: "Live exchange rates for 50+ currencies worldwide", icon: DollarSign, popular: true },
   { name: "Length Converter", slug: "length-converter", category: "converters", description: "Convert between mm, cm, m, km, in, ft, yd, mi", icon: Scale, popular: true },
-  { name: "Weight Converter", slug: "weight-converter", category: "converters", description: "Convert between mg, g, kg, oz, lb, stone", icon: Scale },
+  { name: "Weight & Mass Converter", slug: "weight-converter", category: "converters", description: "Convert between mg, g, kg, oz, lb, stone, tons", icon: Scale },
   { name: "Temperature Converter", slug: "temperature-converter", category: "converters", description: "Convert between Celsius, Fahrenheit, and Kelvin", icon: Thermometer, popular: true },
-  { name: "Speed Converter", slug: "speed-converter", category: "converters", description: "Convert between m/s, km/h, mph, and knots", icon: Zap },
+  { name: "Speed Converter", slug: "speed-converter", category: "converters", description: "Convert between m/s, km/h, mph, knots, Mach", icon: Zap },
   { name: "Area Converter", slug: "area-converter", category: "converters", description: "Convert between mm², m², km², ft², acre, hectare", icon: Square },
   { name: "Volume Converter", slug: "volume-converter", category: "converters", description: "Convert between ml, L, tsp, cup, pt, gal, and more", icon: FlaskConical },
+  { name: "Data Storage Converter", slug: "data-storage-converter", category: "converters", description: "Convert between bits, bytes, KB, MB, GB, TB, KiB…", icon: HardDrive },
+  { name: "Energy Converter", slug: "energy-converter", category: "converters", description: "Convert between joules, calories, kWh, BTU, eV", icon: Bolt },
+  { name: "Pressure Converter", slug: "pressure-converter", category: "converters", description: "Convert between Pa, PSI, bar, atm, mmHg, inHg", icon: Gauge },
 
   // Code
   { name: "JSON Formatter", slug: "json-formatter", category: "code", description: "Format, minify, and validate JSON data", icon: Code2, popular: true },
@@ -120,6 +126,11 @@ export const TOOLS: Tool[] = [
   { name: "JSON to Go Struct", slug: "json-to-go-struct", category: "formatters", description: "Generate Go structs from JSON data", icon: FileCode2 },
   { name: "JSON to Java Class", slug: "json-to-java-class", category: "formatters", description: "Generate Java classes from JSON data", icon: FileCode2 },
   { name: "Regex Visualizer", slug: "regex-visualizer", category: "formatters", description: "Turn regex patterns into plain English explanations", icon: Wand2, popular: true },
+
+  // SQL Tools
+  { name: "CSV to SQL INSERT", slug: "csv-to-sql", category: "sql", description: "Convert CSV data to SQL INSERT statements for any dialect", icon: Database, popular: true },
+  { name: "SQL Dialect Converter", slug: "sql-dialect-converter", category: "sql", description: "Convert DDL/queries between PostgreSQL, MySQL, SQL Server, SQLite, Oracle", icon: GitCompare, popular: true },
+  { name: "SQL Data Type Reference", slug: "sql-column-mapper", category: "sql", description: "Cross-dialect data type equivalents for all major databases", icon: ListTree },
 
   // Security (batch 2)
   { name: "MD5 Hash Generator", slug: "md5-generator", category: "security", description: "Generate the MD5 digest of any text", icon: Hash },

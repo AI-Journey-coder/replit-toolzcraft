@@ -5,13 +5,19 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/Layout";
 import { Home } from "@/pages/Home";
 import { CategoryPage } from "@/pages/Category";
+import { ToolShell } from "@/components/ToolShell";
 import NotFound from "@/pages/not-found";
 
 // Finance
 import { EmiCalculator, SipCalculator, CompoundInterestCalculator, RoiCalculator, TipCalculator, GstCalculator } from "@/pages/tools/FinanceTools";
 
 // Converters
-import { LengthConverter, WeightConverter, TemperatureConverter, SpeedConverter, AreaConverter, VolumeConverter } from "@/pages/tools/ConverterTools";
+import {
+  LengthConverter, WeightConverter, TemperatureConverter,
+  SpeedConverter, AreaConverter, VolumeConverter,
+  DataStorageConverter, EnergyConverter, PressureConverter,
+} from "@/pages/tools/ConverterTools";
+import { CurrencyConverter } from "@/pages/tools/CurrencyConverter";
 
 // Code
 import { JsonFormatter, Base64Tool, UrlEncodeTool, RegexTester, CodeDiff, JsMinifier, SqlFormatter } from "@/pages/tools/CodeTools";
@@ -47,7 +53,17 @@ import {
   Json5Formatter, JsonToPythonDict, JsonToGoStruct, JsonToJavaClass, RegexVisualizer,
 } from "@/pages/tools/FormatterTools";
 
+// SQL Tools
+import {
+  CsvToSql, SqlDialectConverter, SqlColumnMapper,
+} from "@/pages/tools/SqlTools";
+
 const queryClient = new QueryClient();
+
+// Wrap every tool page with ToolShell automatically
+function T({ component: C }: { component: React.ComponentType }) {
+  return <ToolShell><C /></ToolShell>;
+}
 
 function Router() {
   return (
@@ -56,90 +72,99 @@ function Router() {
       <Route path="/category/:slug" component={CategoryPage} />
 
       {/* Finance */}
-      <Route path="/tools/emi-calculator" component={EmiCalculator} />
-      <Route path="/tools/sip-calculator" component={SipCalculator} />
-      <Route path="/tools/compound-interest" component={CompoundInterestCalculator} />
-      <Route path="/tools/roi-calculator" component={RoiCalculator} />
-      <Route path="/tools/tip-calculator" component={TipCalculator} />
-      <Route path="/tools/gst-calculator" component={GstCalculator} />
+      <Route path="/tools/emi-calculator">{() => <T component={EmiCalculator} />}</Route>
+      <Route path="/tools/sip-calculator">{() => <T component={SipCalculator} />}</Route>
+      <Route path="/tools/compound-interest">{() => <T component={CompoundInterestCalculator} />}</Route>
+      <Route path="/tools/roi-calculator">{() => <T component={RoiCalculator} />}</Route>
+      <Route path="/tools/tip-calculator">{() => <T component={TipCalculator} />}</Route>
+      <Route path="/tools/gst-calculator">{() => <T component={GstCalculator} />}</Route>
 
       {/* Converters */}
-      <Route path="/tools/length-converter" component={LengthConverter} />
-      <Route path="/tools/weight-converter" component={WeightConverter} />
-      <Route path="/tools/temperature-converter" component={TemperatureConverter} />
-      <Route path="/tools/speed-converter" component={SpeedConverter} />
-      <Route path="/tools/area-converter" component={AreaConverter} />
-      <Route path="/tools/volume-converter" component={VolumeConverter} />
+      <Route path="/tools/currency-converter">{() => <T component={CurrencyConverter} />}</Route>
+      <Route path="/tools/length-converter">{() => <T component={LengthConverter} />}</Route>
+      <Route path="/tools/weight-converter">{() => <T component={WeightConverter} />}</Route>
+      <Route path="/tools/temperature-converter">{() => <T component={TemperatureConverter} />}</Route>
+      <Route path="/tools/speed-converter">{() => <T component={SpeedConverter} />}</Route>
+      <Route path="/tools/area-converter">{() => <T component={AreaConverter} />}</Route>
+      <Route path="/tools/volume-converter">{() => <T component={VolumeConverter} />}</Route>
+      <Route path="/tools/data-storage-converter">{() => <T component={DataStorageConverter} />}</Route>
+      <Route path="/tools/energy-converter">{() => <T component={EnergyConverter} />}</Route>
+      <Route path="/tools/pressure-converter">{() => <T component={PressureConverter} />}</Route>
 
       {/* Code */}
-      <Route path="/tools/json-formatter" component={JsonFormatter} />
-      <Route path="/tools/base64" component={Base64Tool} />
-      <Route path="/tools/url-encode" component={UrlEncodeTool} />
-      <Route path="/tools/regex-tester" component={RegexTester} />
-      <Route path="/tools/code-diff" component={CodeDiff} />
-      <Route path="/tools/js-minifier" component={JsMinifier} />
-      <Route path="/tools/sql-formatter" component={SqlFormatter} />
+      <Route path="/tools/json-formatter">{() => <T component={JsonFormatter} />}</Route>
+      <Route path="/tools/base64">{() => <T component={Base64Tool} />}</Route>
+      <Route path="/tools/url-encode">{() => <T component={UrlEncodeTool} />}</Route>
+      <Route path="/tools/regex-tester">{() => <T component={RegexTester} />}</Route>
+      <Route path="/tools/code-diff">{() => <T component={CodeDiff} />}</Route>
+      <Route path="/tools/js-minifier">{() => <T component={JsMinifier} />}</Route>
+      <Route path="/tools/sql-formatter">{() => <T component={SqlFormatter} />}</Route>
 
       {/* Text */}
-      <Route path="/tools/word-counter" component={WordCounter} />
-      <Route path="/tools/case-converter" component={CaseConverter} />
-      <Route path="/tools/lorem-ipsum" component={LoremIpsum} />
-      <Route path="/tools/markdown-preview" component={MarkdownPreview} />
+      <Route path="/tools/word-counter">{() => <T component={WordCounter} />}</Route>
+      <Route path="/tools/case-converter">{() => <T component={CaseConverter} />}</Route>
+      <Route path="/tools/lorem-ipsum">{() => <T component={LoremIpsum} />}</Route>
+      <Route path="/tools/markdown-preview">{() => <T component={MarkdownPreview} />}</Route>
 
       {/* Math */}
-      <Route path="/tools/percentage-calculator" component={PercentageCalculator} />
-      <Route path="/tools/scientific-calculator" component={ScientificCalculator} />
-      <Route path="/tools/prime-checker" component={PrimeChecker} />
+      <Route path="/tools/percentage-calculator">{() => <T component={PercentageCalculator} />}</Route>
+      <Route path="/tools/scientific-calculator">{() => <T component={ScientificCalculator} />}</Route>
+      <Route path="/tools/prime-checker">{() => <T component={PrimeChecker} />}</Route>
 
       {/* Security */}
-      <Route path="/tools/hash-generator" component={HashGenerator} />
-      <Route path="/tools/uuid-generator" component={UuidGenerator} />
-      <Route path="/tools/password-generator" component={PasswordGenerator} />
-      <Route path="/tools/md5-generator" component={Md5Generator} />
-      <Route path="/tools/sha256-generator" component={Sha256Generator} />
-      <Route path="/tools/ssl-cert-decoder" component={SslCertDecoder} />
-      <Route path="/tools/saml-decoder" component={SamlDecoder} />
-      <Route path="/tools/imei-validator" component={ImeiValidator} />
+      <Route path="/tools/hash-generator">{() => <T component={HashGenerator} />}</Route>
+      <Route path="/tools/uuid-generator">{() => <T component={UuidGenerator} />}</Route>
+      <Route path="/tools/password-generator">{() => <T component={PasswordGenerator} />}</Route>
+      <Route path="/tools/md5-generator">{() => <T component={Md5Generator} />}</Route>
+      <Route path="/tools/sha256-generator">{() => <T component={Sha256Generator} />}</Route>
+      <Route path="/tools/ssl-cert-decoder">{() => <T component={SslCertDecoder} />}</Route>
+      <Route path="/tools/saml-decoder">{() => <T component={SamlDecoder} />}</Route>
+      <Route path="/tools/imei-validator">{() => <T component={ImeiValidator} />}</Route>
 
       {/* Web Dev */}
-      <Route path="/tools/color-picker" component={ColorPicker} />
-      <Route path="/tools/css-gradient" component={CssGradient} />
-      <Route path="/tools/image-to-base64" component={ImageToBase64} />
-      <Route path="/tools/meta-tag-generator" component={MetaTagGenerator} />
+      <Route path="/tools/color-picker">{() => <T component={ColorPicker} />}</Route>
+      <Route path="/tools/css-gradient">{() => <T component={CssGradient} />}</Route>
+      <Route path="/tools/image-to-base64">{() => <T component={ImageToBase64} />}</Route>
+      <Route path="/tools/meta-tag-generator">{() => <T component={MetaTagGenerator} />}</Route>
 
       {/* Data Tools */}
-      <Route path="/tools/json-validator" component={JsonValidator} />
-      <Route path="/tools/json-diff" component={JsonDiff} />
-      <Route path="/tools/json-tree-viewer" component={JsonTreeViewer} />
-      <Route path="/tools/json-schema-generator" component={JsonSchemaGenerator} />
-      <Route path="/tools/json-to-csv" component={JsonToCsv} />
-      <Route path="/tools/csv-to-json" component={CsvToJson} />
-      <Route path="/tools/json-to-yaml" component={JsonToYaml} />
-      <Route path="/tools/yaml-to-json" component={YamlToJson} />
-      <Route path="/tools/json-to-xml" component={JsonToXml} />
-      <Route path="/tools/xml-to-json" component={XmlToJson} />
+      <Route path="/tools/json-validator">{() => <T component={JsonValidator} />}</Route>
+      <Route path="/tools/json-diff">{() => <T component={JsonDiff} />}</Route>
+      <Route path="/tools/json-tree-viewer">{() => <T component={JsonTreeViewer} />}</Route>
+      <Route path="/tools/json-schema-generator">{() => <T component={JsonSchemaGenerator} />}</Route>
+      <Route path="/tools/json-to-csv">{() => <T component={JsonToCsv} />}</Route>
+      <Route path="/tools/csv-to-json">{() => <T component={CsvToJson} />}</Route>
+      <Route path="/tools/json-to-yaml">{() => <T component={JsonToYaml} />}</Route>
+      <Route path="/tools/yaml-to-json">{() => <T component={YamlToJson} />}</Route>
+      <Route path="/tools/json-to-xml">{() => <T component={JsonToXml} />}</Route>
+      <Route path="/tools/xml-to-json">{() => <T component={XmlToJson} />}</Route>
 
       {/* Developer Tools */}
-      <Route path="/tools/jwt-decoder" component={JwtDecoder} />
-      <Route path="/tools/jwt-builder" component={JwtBuilder} />
-      <Route path="/tools/http-status-lookup" component={HttpStatusLookup} />
-      <Route path="/tools/user-agent-parser" component={UserAgentParser} />
-      <Route path="/tools/cron-parser" component={CronParser} />
-      <Route path="/tools/semver-calculator" component={SemverCalculator} />
-      <Route path="/tools/nanoid-generator" component={NanoIdGenerator} />
-      <Route path="/tools/curl-converter" component={CurlConverter} />
+      <Route path="/tools/jwt-decoder">{() => <T component={JwtDecoder} />}</Route>
+      <Route path="/tools/jwt-builder">{() => <T component={JwtBuilder} />}</Route>
+      <Route path="/tools/http-status-lookup">{() => <T component={HttpStatusLookup} />}</Route>
+      <Route path="/tools/user-agent-parser">{() => <T component={UserAgentParser} />}</Route>
+      <Route path="/tools/cron-parser">{() => <T component={CronParser} />}</Route>
+      <Route path="/tools/semver-calculator">{() => <T component={SemverCalculator} />}</Route>
+      <Route path="/tools/nanoid-generator">{() => <T component={NanoIdGenerator} />}</Route>
+      <Route path="/tools/curl-converter">{() => <T component={CurlConverter} />}</Route>
 
       {/* Formatters & Codegen */}
-      <Route path="/tools/html-formatter" component={HtmlFormatter} />
-      <Route path="/tools/css-formatter" component={CssFormatter} />
-      <Route path="/tools/xml-formatter" component={XmlFormatter} />
-      <Route path="/tools/yaml-formatter" component={YamlFormatter} />
-      <Route path="/tools/toml-formatter" component={TomlFormatter} />
-      <Route path="/tools/json5-formatter" component={Json5Formatter} />
-      <Route path="/tools/json-to-python-dict" component={JsonToPythonDict} />
-      <Route path="/tools/json-to-go-struct" component={JsonToGoStruct} />
-      <Route path="/tools/json-to-java-class" component={JsonToJavaClass} />
-      <Route path="/tools/regex-visualizer" component={RegexVisualizer} />
+      <Route path="/tools/html-formatter">{() => <T component={HtmlFormatter} />}</Route>
+      <Route path="/tools/css-formatter">{() => <T component={CssFormatter} />}</Route>
+      <Route path="/tools/xml-formatter">{() => <T component={XmlFormatter} />}</Route>
+      <Route path="/tools/yaml-formatter">{() => <T component={YamlFormatter} />}</Route>
+      <Route path="/tools/toml-formatter">{() => <T component={TomlFormatter} />}</Route>
+      <Route path="/tools/json5-formatter">{() => <T component={Json5Formatter} />}</Route>
+      <Route path="/tools/json-to-python-dict">{() => <T component={JsonToPythonDict} />}</Route>
+      <Route path="/tools/json-to-go-struct">{() => <T component={JsonToGoStruct} />}</Route>
+      <Route path="/tools/json-to-java-class">{() => <T component={JsonToJavaClass} />}</Route>
+      <Route path="/tools/regex-visualizer">{() => <T component={RegexVisualizer} />}</Route>
+
+      {/* SQL Tools */}
+      <Route path="/tools/csv-to-sql">{() => <T component={CsvToSql} />}</Route>
+      <Route path="/tools/sql-dialect-converter">{() => <T component={SqlDialectConverter} />}</Route>
+      <Route path="/tools/sql-column-mapper">{() => <T component={SqlColumnMapper} />}</Route>
 
       <Route component={NotFound} />
     </Switch>
