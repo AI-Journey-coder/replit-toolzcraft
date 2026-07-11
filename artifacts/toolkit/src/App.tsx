@@ -6,6 +6,7 @@ import { Layout } from "@/components/Layout";
 import { Home } from "@/pages/Home";
 import { CategoryPage } from "@/pages/Category";
 import { ToolShell } from "@/components/ToolShell";
+import { Promo } from "@/pages/Promo";
 import NotFound from "@/pages/not-found";
 
 // Finance
@@ -24,6 +25,7 @@ import { JsonFormatter, Base64Tool, UrlEncodeTool, RegexTester, CodeDiff, JsMini
 
 // Text
 import { WordCounter, CaseConverter, LoremIpsum, MarkdownPreview } from "@/pages/tools/TextTools";
+import { TextDiff, FindReplace, LineSorter, SlugGenerator, ExtractEmailsUrls, UrlParser, TokenCounter, NatoPhonetic, TextTransform } from "@/pages/tools/TextTools2";
 
 // Math
 import { PercentageCalculator, ScientificCalculator, PrimeChecker } from "@/pages/tools/MathTools";
@@ -31,6 +33,7 @@ import { PercentageCalculator, ScientificCalculator, PrimeChecker } from "@/page
 // Security
 import { PasswordGenerator, UuidGenerator, HashGenerator } from "@/pages/tools/SecurityTools";
 import { Md5Generator, Sha256Generator, SslCertDecoder, SamlDecoder, ImeiValidator } from "@/pages/tools/SecurityTools2";
+import { PasswordStrengthChecker, AesEncryptDecrypt, HmacGenerator, RandomNumberGenerator, PassphraseGenerator } from "@/pages/tools/SecurityTools3";
 
 // Web Dev
 import { ColorPicker, CssGradient, ImageToBase64, MetaTagGenerator } from "@/pages/tools/WebDevTools";
@@ -54,16 +57,26 @@ import {
 } from "@/pages/tools/FormatterTools";
 
 // SQL Tools
-import {
-  CsvToSql, SqlDialectConverter, SqlColumnMapper,
-} from "@/pages/tools/SqlTools";
+import { CsvToSql, SqlDialectConverter, SqlColumnMapper } from "@/pages/tools/SqlTools";
 
-// Promo
-import { Promo } from "@/pages/Promo";
+// Encoding & Ciphers
+import {
+  NumberBaseConverter, ArbitraryBaseConverter, RomanNumeralConverter, NumberToWords,
+  UnixTimestampConverter, Rot13Caesar, MorseCodeTranslator, IpAddressConverter,
+} from "@/pages/tools/EncodingTools";
+
+// Date & Time
+import {
+  DateDifferenceCalculator, TimezoneConverter, WorkdaysCalculator,
+  LeapYearChecker, CountdownTimer, ChmodCalculator, CidrCalculator,
+} from "@/pages/tools/DateTimeTools";
+
+// CSS & Design + Web Standards
+import { QrCodeGenerator, CssBoxShadow, WcagContrastChecker, PxToRem, HtmlTableGenerator, OpenGraphGenerator } from "@/pages/tools/WebTools2";
+import { RobotsTxtGenerator, CorsHeaderGenerator, CspHeaderGenerator, HtaccessGenerator, GcdLcmCalculator, BandwidthCalculator } from "@/pages/tools/WebTools3";
 
 const queryClient = new QueryClient();
 
-// Wrap every tool page with ToolShell automatically
 function T({ component: C }: { component: React.ComponentType }) {
   return <ToolShell><C /></ToolShell>;
 }
@@ -109,11 +122,21 @@ function Router() {
       <Route path="/tools/case-converter">{() => <T component={CaseConverter} />}</Route>
       <Route path="/tools/lorem-ipsum">{() => <T component={LoremIpsum} />}</Route>
       <Route path="/tools/markdown-preview">{() => <T component={MarkdownPreview} />}</Route>
+      <Route path="/tools/text-diff">{() => <T component={TextDiff} />}</Route>
+      <Route path="/tools/find-replace">{() => <T component={FindReplace} />}</Route>
+      <Route path="/tools/line-sorter">{() => <T component={LineSorter} />}</Route>
+      <Route path="/tools/slug-generator">{() => <T component={SlugGenerator} />}</Route>
+      <Route path="/tools/extract-emails-urls">{() => <T component={ExtractEmailsUrls} />}</Route>
+      <Route path="/tools/url-parser">{() => <T component={UrlParser} />}</Route>
+      <Route path="/tools/token-counter">{() => <T component={TokenCounter} />}</Route>
+      <Route path="/tools/nato-phonetic">{() => <T component={NatoPhonetic} />}</Route>
+      <Route path="/tools/text-transform">{() => <T component={TextTransform} />}</Route>
 
       {/* Math */}
       <Route path="/tools/percentage-calculator">{() => <T component={PercentageCalculator} />}</Route>
       <Route path="/tools/scientific-calculator">{() => <T component={ScientificCalculator} />}</Route>
       <Route path="/tools/prime-checker">{() => <T component={PrimeChecker} />}</Route>
+      <Route path="/tools/gcd-lcm-calculator">{() => <T component={GcdLcmCalculator} />}</Route>
 
       {/* Security */}
       <Route path="/tools/hash-generator">{() => <T component={HashGenerator} />}</Route>
@@ -124,12 +147,18 @@ function Router() {
       <Route path="/tools/ssl-cert-decoder">{() => <T component={SslCertDecoder} />}</Route>
       <Route path="/tools/saml-decoder">{() => <T component={SamlDecoder} />}</Route>
       <Route path="/tools/imei-validator">{() => <T component={ImeiValidator} />}</Route>
+      <Route path="/tools/password-strength-checker">{() => <T component={PasswordStrengthChecker} />}</Route>
+      <Route path="/tools/aes-encrypt-decrypt">{() => <T component={AesEncryptDecrypt} />}</Route>
+      <Route path="/tools/hmac-generator">{() => <T component={HmacGenerator} />}</Route>
+      <Route path="/tools/random-number-generator">{() => <T component={RandomNumberGenerator} />}</Route>
+      <Route path="/tools/passphrase-generator">{() => <T component={PassphraseGenerator} />}</Route>
 
       {/* Web Dev */}
       <Route path="/tools/color-picker">{() => <T component={ColorPicker} />}</Route>
       <Route path="/tools/css-gradient">{() => <T component={CssGradient} />}</Route>
       <Route path="/tools/image-to-base64">{() => <T component={ImageToBase64} />}</Route>
       <Route path="/tools/meta-tag-generator">{() => <T component={MetaTagGenerator} />}</Route>
+      <Route path="/tools/qr-code-generator">{() => <T component={QrCodeGenerator} />}</Route>
 
       {/* Data Tools */}
       <Route path="/tools/json-validator">{() => <T component={JsonValidator} />}</Route>
@@ -152,6 +181,9 @@ function Router() {
       <Route path="/tools/semver-calculator">{() => <T component={SemverCalculator} />}</Route>
       <Route path="/tools/nanoid-generator">{() => <T component={NanoIdGenerator} />}</Route>
       <Route path="/tools/curl-converter">{() => <T component={CurlConverter} />}</Route>
+      <Route path="/tools/chmod-calculator">{() => <T component={ChmodCalculator} />}</Route>
+      <Route path="/tools/cidr-calculator">{() => <T component={CidrCalculator} />}</Route>
+      <Route path="/tools/bandwidth-calculator">{() => <T component={BandwidthCalculator} />}</Route>
 
       {/* Formatters & Codegen */}
       <Route path="/tools/html-formatter">{() => <T component={HtmlFormatter} />}</Route>
@@ -169,6 +201,36 @@ function Router() {
       <Route path="/tools/csv-to-sql">{() => <T component={CsvToSql} />}</Route>
       <Route path="/tools/sql-dialect-converter">{() => <T component={SqlDialectConverter} />}</Route>
       <Route path="/tools/sql-column-mapper">{() => <T component={SqlColumnMapper} />}</Route>
+
+      {/* Encoding & Ciphers */}
+      <Route path="/tools/number-base-converter">{() => <T component={NumberBaseConverter} />}</Route>
+      <Route path="/tools/arbitrary-base-converter">{() => <T component={ArbitraryBaseConverter} />}</Route>
+      <Route path="/tools/roman-numeral-converter">{() => <T component={RomanNumeralConverter} />}</Route>
+      <Route path="/tools/number-to-words">{() => <T component={NumberToWords} />}</Route>
+      <Route path="/tools/unix-timestamp-converter">{() => <T component={UnixTimestampConverter} />}</Route>
+      <Route path="/tools/rot13-caesar">{() => <T component={Rot13Caesar} />}</Route>
+      <Route path="/tools/morse-code">{() => <T component={MorseCodeTranslator} />}</Route>
+      <Route path="/tools/ip-address-converter">{() => <T component={IpAddressConverter} />}</Route>
+
+      {/* Date & Time */}
+      <Route path="/tools/date-difference">{() => <T component={DateDifferenceCalculator} />}</Route>
+      <Route path="/tools/timezone-converter">{() => <T component={TimezoneConverter} />}</Route>
+      <Route path="/tools/workdays-calculator">{() => <T component={WorkdaysCalculator} />}</Route>
+      <Route path="/tools/leap-year-checker">{() => <T component={LeapYearChecker} />}</Route>
+      <Route path="/tools/countdown-timer">{() => <T component={CountdownTimer} />}</Route>
+
+      {/* CSS & Design */}
+      <Route path="/tools/css-box-shadow">{() => <T component={CssBoxShadow} />}</Route>
+      <Route path="/tools/wcag-contrast-checker">{() => <T component={WcagContrastChecker} />}</Route>
+      <Route path="/tools/px-to-rem">{() => <T component={PxToRem} />}</Route>
+      <Route path="/tools/html-table-generator">{() => <T component={HtmlTableGenerator} />}</Route>
+
+      {/* Web Standards */}
+      <Route path="/tools/open-graph-generator">{() => <T component={OpenGraphGenerator} />}</Route>
+      <Route path="/tools/robots-txt-generator">{() => <T component={RobotsTxtGenerator} />}</Route>
+      <Route path="/tools/cors-header-generator">{() => <T component={CorsHeaderGenerator} />}</Route>
+      <Route path="/tools/csp-header-generator">{() => <T component={CspHeaderGenerator} />}</Route>
+      <Route path="/tools/htaccess-generator">{() => <T component={HtaccessGenerator} />}</Route>
 
       <Route component={NotFound} />
     </Switch>

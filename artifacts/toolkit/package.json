@@ -80,11 +80,13 @@
   },
   "dependencies": {
     "@iarna/toml": "^2.2.5",
+    "@types/qrcode": "^1.5.6",
     "fast-xml-parser": "^5.9.3",
     "js-beautify": "^2.0.3",
     "js-yaml": "^5.2.1",
     "json5": "^2.2.3",
     "marked": "^18.0.5",
-    "node-forge": "^1.4.0"
+    "node-forge": "^1.4.0",
+    "qrcode": "^1.5.4"
   }
 }
