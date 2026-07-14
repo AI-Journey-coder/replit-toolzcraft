@@ -114,6 +114,11 @@ import { UnicodeTableBrowser, UnicodeCharLookup, InvisibleCharDetector, Develope
 
 // Image Tools
 import { ExifViewer, ColorPickerFromImage, ColorPaletteFromImage, SvgToPngConverter, ImageResizer } from "@/pages/tools/ImageTools";
+// PDF Tools
+import { MergePdf, SplitPdf, ImagesToPdf, RotatePdf, WatermarkPdf, PdfPageNumbers, PdfMetadata } from "@/pages/tools/PdfTools";
+import { PdfToImages, PdfTextExtractor } from "@/pages/tools/PdfTools2";
+// OCR & Documents
+import { ImageOcr, PdfOcr } from "@/pages/tools/OcrTools";
 
 const queryClient = new QueryClient();
 
@@ -389,6 +394,21 @@ function Router() {
       <Route path="/tools/color-palette-from-image">{() => <T component={ColorPaletteFromImage} />}</Route>
       <Route path="/tools/svg-to-png">{() => <T component={SvgToPngConverter} />}</Route>
       <Route path="/tools/image-resizer">{() => <T component={ImageResizer} />}</Route>
+
+      {/* PDF Tools */}
+      <Route path="/tools/merge-pdf">{() => <T component={MergePdf} />}</Route>
+      <Route path="/tools/split-pdf">{() => <T component={SplitPdf} />}</Route>
+      <Route path="/tools/images-to-pdf">{() => <T component={ImagesToPdf} />}</Route>
+      <Route path="/tools/pdf-to-images">{() => <T component={PdfToImages} />}</Route>
+      <Route path="/tools/rotate-pdf">{() => <T component={RotatePdf} />}</Route>
+      <Route path="/tools/watermark-pdf">{() => <T component={WatermarkPdf} />}</Route>
+      <Route path="/tools/pdf-page-numbers">{() => <T component={PdfPageNumbers} />}</Route>
+      <Route path="/tools/pdf-metadata">{() => <T component={PdfMetadata} />}</Route>
+      <Route path="/tools/pdf-text-extract">{() => <T component={PdfTextExtractor} />}</Route>
+
+      {/* OCR & Documents */}
+      <Route path="/tools/image-ocr">{() => <T component={ImageOcr} />}</Route>
+      <Route path="/tools/pdf-ocr">{() => <T component={PdfOcr} />}</Route>
 
       <Route component={NotFound} />
     </Switch>

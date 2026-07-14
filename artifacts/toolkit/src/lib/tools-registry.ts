@@ -18,7 +18,8 @@ import {
 export type CategorySlug =
   | "finance" | "converters" | "code" | "text" | "math" | "security"
   | "webdev" | "data" | "devtools" | "formatters" | "sql"
-  | "encoding" | "datetime" | "cssdesign" | "webstandards" | "reference" | "image";
+  | "encoding" | "datetime" | "cssdesign" | "webstandards" | "reference" | "image"
+  | "pdf" | "ocr";
 
 export interface Category {
   name: string;
@@ -54,6 +55,8 @@ export const CATEGORIES: Category[] = [
   { name: "Web Standards", slug: "webstandards", icon: Globe, description: "robots.txt, CORS, CSP, .htaccess, and Open Graph generators" },
   { name: "Reference", slug: "reference", icon: BookOpen, description: "ASCII table, Unicode, ARIA roles, WCAG, and cheatsheets" },
   { name: "Image Tools", slug: "image", icon: Image, description: "EXIF viewer, color picker from image, SVG to PNG, and resizer" },
+  { name: "PDF Tools", slug: "pdf", icon: FileInput, description: "Merge, split, rotate, watermark, and convert PDFs — all in your browser" },
+  { name: "OCR & Documents", slug: "ocr", icon: ScanLine, description: "Extract text from images and scanned PDFs with in-browser OCR" },
 ];
 
 export const TOOLS: Tool[] = [
@@ -317,4 +320,19 @@ export const TOOLS: Tool[] = [
   { name: "Color Palette from Image", slug: "color-palette-from-image", category: "image", description: "Extract dominant color palette from any image", icon: Palette },
   { name: "SVG to PNG Converter", slug: "svg-to-png", category: "image", description: "Convert SVG code to PNG at any scale", icon: Image },
   { name: "Image Resizer", slug: "image-resizer", category: "image", description: "Resize and compress images in the browser", icon: Image, popular: true },
+
+  // ── PDF Tools ──────────────────────────────────────────────────────────────
+  { name: "Merge PDF", slug: "merge-pdf", category: "pdf", description: "Combine multiple PDFs into one file, in order", icon: Layers, popular: true },
+  { name: "Split PDF", slug: "split-pdf", category: "pdf", description: "Extract selected pages or ranges into a new PDF", icon: Rows, popular: true },
+  { name: "Images to PDF", slug: "images-to-pdf", category: "pdf", description: "Convert JPG and PNG images into a single PDF", icon: ImagePlus },
+  { name: "PDF to Images", slug: "pdf-to-images", category: "pdf", description: "Render each PDF page as a downloadable PNG", icon: Image },
+  { name: "Rotate PDF", slug: "rotate-pdf", category: "pdf", description: "Rotate all pages by 90, 180, or 270 degrees", icon: RefreshCw },
+  { name: "Watermark PDF", slug: "watermark-pdf", category: "pdf", description: "Stamp a text watermark across every page", icon: FileSignature },
+  { name: "PDF Page Numbers", slug: "pdf-page-numbers", category: "pdf", description: "Add page numbers in any corner or center", icon: Hash },
+  { name: "PDF Metadata Editor", slug: "pdf-metadata", category: "pdf", description: "View and edit PDF title, author, and keywords", icon: Tag },
+  { name: "PDF Text Extractor", slug: "pdf-text-extract", category: "pdf", description: "Extract selectable text from PDFs page by page", icon: FileSearch },
+
+  // ── OCR & Documents ────────────────────────────────────────────────────────
+  { name: "Image to Text (OCR)", slug: "image-ocr", category: "ocr", description: "Extract text from photos and screenshots in 12 languages", icon: ScanLine, popular: true },
+  { name: "PDF OCR", slug: "pdf-ocr", category: "ocr", description: "Recognize text in scanned PDFs, page by page", icon: FileSearch, popular: true },
 ];

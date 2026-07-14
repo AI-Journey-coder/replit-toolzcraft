@@ -44,6 +44,8 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 - Sign-in (phone OTP or Google) via Firebase; optional — tools work anonymously.
 - Admin page at `/admin` (admins only): manage users (role/plan/disable), enable/disable or mark tools premium, premium packages (fee/period), usage stats, API keys (hashed, shown once).
 - Anonymous usage tracking: every tool visit posts to `/api/usage` for admin stats.
+- PDF Tools category (9 tools, pdf-lib + pdfjs-dist, all client-side): merge, split, images-to-PDF, PDF-to-images, rotate, watermark, page numbers, metadata editor, text extractor.
+- OCR & Documents category (tesseract.js, client-side, 12 languages): image OCR and scanned-PDF OCR (20 pages/run).
 
 ## User preferences
 
