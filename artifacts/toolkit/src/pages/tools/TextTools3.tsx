@@ -154,7 +154,7 @@ function fleschKincaid(text: string) {
   const sentences = text.split(/[.!?]+/).filter(s => s.trim()).length || 1;
   const words: string[] = text.match(/\b\w+\b/g) ?? [];
   const wordCount = words.length || 1;
-  const syllables = words.reduce((sum: number, w: string) => sum + countSyllables(w), 0);
+  const syllables = words.reduce<number>((sum, w) => sum + countSyllables(w), 0);
   const score = 206.835 - 1.015 * (wordCount / sentences) - 84.6 * (syllables / wordCount);
   return { score: Math.max(0, Math.min(100, score)), sentences, words: wordCount, syllables, avgWordsPerSentence: +(wordCount / sentences).toFixed(1), avgSyllablesPerWord: +(syllables / wordCount).toFixed(2) };
 }

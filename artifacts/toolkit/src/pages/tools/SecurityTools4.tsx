@@ -153,8 +153,8 @@ export function SriHashGenerator() {
 
 // ─── TOTP Generator ────────────────────────────────────────────────────────────
 async function hmacSha1(key: Uint8Array, data: Uint8Array): Promise<Uint8Array> {
-  const k = await crypto.subtle.importKey("raw", key.buffer as BufferSource, { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
-  const sig = await crypto.subtle.sign("HMAC", k, data.buffer as BufferSource);
+  const k = await crypto.subtle.importKey("raw", key, { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", k, data);
   return new Uint8Array(sig);
 }
 function base32ToBytes(s: string): Uint8Array {
