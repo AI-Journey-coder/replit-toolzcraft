@@ -1,1 +1,2 @@
 - [ToolzCraft architecture](toolkit-pro.md) — key patterns: ToolShell centralized in App.tsx, tools-registry.ts as source of truth, all tools client-side only
+- [Firebase auth setup](firebase-auth.md) — pnpm drizzle peer-variant conflict fix, Express 5 type augmentation, recaptcha/auth-context lifecycle rules

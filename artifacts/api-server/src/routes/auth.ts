@@ -36,6 +36,10 @@ router.post("/auth/sync", requireAuth, async (req, res) => {
       set: { ...values, lastLoginAt: new Date() },
     })
     .returning();
+  if (user!.disabled) {
+    res.status(403).json({ message: "Account is disabled" });
+    return;
+  }
   res.json(toApiUser(user!));
 });
 
@@ -48,6 +52,10 @@ router.get("/me", requireAuth, async (req, res) => {
     .limit(1);
   if (!user) {
     res.status(401).json({ message: "User not found; call /auth/sync first" });
+    return;
+  }
+  if (user.disabled) {
+    res.status(403).json({ message: "Account is disabled" });
     return;
   }
   res.json(toApiUser(user));

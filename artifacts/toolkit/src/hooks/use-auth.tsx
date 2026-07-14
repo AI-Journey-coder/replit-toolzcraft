@@ -24,21 +24,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    return watchAuth(async (fb) => {
+    let version = 0;
+    const unsubscribe = watchAuth(async (fb) => {
+      const current = ++version;
       setFirebaseUser(fb);
       if (fb) {
         try {
           const token = await fb.getIdToken();
-          setUser(await syncUser(token));
+          const synced = await syncUser(token);
+          if (current !== version) return;
+          setUser(synced);
         } catch (err) {
+          if (current !== version) return;
           console.error("Failed to sync user", err);
           setUser(null);
         }
       } else {
         setUser(null);
       }
-      setLoading(false);
+      if (current === version) setLoading(false);
     });
+    return () => {
+      version++;
+      unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {

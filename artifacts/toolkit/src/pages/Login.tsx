@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,10 @@ export function Login() {
   const [confirmation, setConfirmation] = useState<ConfirmationResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    return () => resetRecaptcha();
+  }, []);
 
   if (user) {
     navigate("/");
@@ -63,6 +67,7 @@ export function Login() {
     setBusy(true);
     try {
       await confirmation.confirm(code.trim());
+      resetRecaptcha();
       navigate("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid code");

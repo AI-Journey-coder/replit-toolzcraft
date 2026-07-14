@@ -22,7 +22,17 @@ A privacy-first browser utility platform with 73+ free tools across 11 categorie
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/toolkit` — the ToolzCraft web app (React + Vite). Tools registry: `src/lib/tools-registry.ts` (source of truth); routes in `src/App.tsx`.
+- `artifacts/api-server` — Express 5 API (proxied at `/api`). Auth: `src/lib/firebase.ts` (firebase-admin), `src/middlewares/auth.ts` (requireAuth), `src/routes/auth.ts` (`/auth/sync`, `/me`).
+- `lib/db/src/schema/users.ts` — users, usage_events, tool_settings, premium_packages tables.
+- `lib/api-spec/openapi.yaml` — API contract (codegen via Orval).
+- `artifacts/toolkit/src/lib/firebase.ts`, `src/hooks/use-auth.tsx`, `src/pages/Login.tsx` — client-side Firebase auth (phone OTP + Google).
+
+## Auth
+
+- Firebase Authentication (user's own Firebase project). Secrets: `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID` (client), `FIREBASE_SERVICE_ACCOUNT_JSON` (server).
+- Flow: client signs in with Firebase (phone OTP or Google popup) → sends ID token as Bearer → server verifies with firebase-admin → upserts user row on `/auth/sync`. Disabled users get 403.
+- Phone and Google providers must be enabled in the Firebase console; the Replit dev domain must be in Firebase authorized domains for popup/recaptcha to work.
 
 ## Architecture decisions
 
