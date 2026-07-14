@@ -8,6 +8,7 @@ import { CategoryPage } from "@/pages/Category";
 import { ToolShell } from "@/components/ToolShell";
 import { Promo } from "@/pages/Promo";
 import { Login } from "@/pages/Login";
+import { Admin } from "@/pages/Admin";
 import NotFound from "@/pages/not-found";
 import { AuthProvider } from "@/hooks/use-auth";
 
@@ -126,6 +127,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/promo" component={Promo} />
       <Route path="/login" component={Login} />
+      <Route path="/admin" component={Admin} />
       <Route path="/category/:slug" component={CategoryPage} />
 
       {/* Finance */}

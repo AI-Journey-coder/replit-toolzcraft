@@ -116,6 +116,13 @@ function AuthButtons() {
 
   return (
     <div className="flex items-center gap-2">
+      {user.role === "admin" && (
+        <Link href="/admin">
+          <Button variant="ghost" size="sm" className="text-xs font-mono text-muted-foreground hover:text-foreground" data-testid="link-admin">
+            Admin
+          </Button>
+        </Link>
+      )}
       <span className="hidden md:flex items-center gap-1.5 text-xs font-mono text-muted-foreground" data-testid="text-username">
         <UserRound className="h-3.5 w-3.5" />
         {user.displayName || user.phoneNumber || user.email || "Account"}

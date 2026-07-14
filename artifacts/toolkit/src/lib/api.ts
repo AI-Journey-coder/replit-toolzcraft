@@ -16,6 +16,33 @@ export interface ApiUser {
   plan: string;
 }
 
+export async function authedFetch<T>(
+  idToken: string,
+  path: string,
+  init?: RequestInit,
+): Promise<T> {
+  const res = await fetch(apiUrl(path), {
+    ...init,
+    headers: {
+      ...(init?.headers ?? {}),
+      Authorization: `Bearer ${idToken}`,
+      ...(init?.body ? { "Content-Type": "application/json" } : {}),
+    },
+  });
+  if (!res.ok) {
+    let message = `Request failed: ${res.status}`;
+    try {
+      const data = await res.json();
+      if (data?.message) message = data.message;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(message);
+  }
+  if (res.status === 204) return undefined as T;
+  return res.json();
+}
+
 export async function syncUser(idToken: string): Promise<ApiUser> {
   const res = await fetch(apiUrl("auth/sync"), {
     method: "POST",

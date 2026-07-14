@@ -1,7 +1,10 @@
+import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { ChevronLeft, Home } from "lucide-react";
 import { TOOLS, CATEGORIES } from "@/lib/tools-registry";
 import { Button } from "@/components/ui/button";
+import { apiUrl } from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
 
 interface ToolShellProps {
   children: React.ReactNode;
@@ -9,9 +12,30 @@ interface ToolShellProps {
 
 export function ToolShell({ children }: ToolShellProps) {
   const [location] = useLocation();
+  const { firebaseUser } = useAuth();
   const slug = location.replace("/tools/", "");
   const tool = TOOLS.find(t => t.slug === slug);
   const category = tool ? CATEGORIES.find(c => c.slug === tool.category) : undefined;
+
+  useEffect(() => {
+    if (!tool) return;
+    (async () => {
+      try {
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (firebaseUser) {
+          headers.Authorization = `Bearer ${await firebaseUser.getIdToken()}`;
+        }
+        await fetch(apiUrl("usage"), {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ toolSlug: tool.slug }),
+        });
+      } catch {
+        /* usage tracking is best-effort */
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tool?.slug]);
 
   const handleBack = (e: React.MouseEvent) => {
     e.preventDefault();

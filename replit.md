@@ -40,7 +40,10 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- 200+ free client-side browser tools across 11 categories.
+- Sign-in (phone OTP or Google) via Firebase; optional — tools work anonymously.
+- Admin page at `/admin` (admins only): manage users (role/plan/disable), enable/disable or mark tools premium, premium packages (fee/period), usage stats, API keys (hashed, shown once).
+- Anonymous usage tracking: every tool visit posts to `/api/usage` for admin stats.
 
 ## User preferences
 
@@ -48,7 +51,9 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- `artifacts/api-server/src/lib/tool-slugs.ts` is a generated whitelist of valid tool slugs (validates `/usage` and `/admin/tools/:slug`). When adding tools to the registry, regenerate it: `grep -oP 'slug: "\K[a-z0-9-]+' artifacts/toolkit/src/lib/tools-registry.ts | sort -u` (see the header comment in that file).
+- First user to sign in is auto-promoted to admin (`/auth/sync`, guarded by a Postgres advisory lock against concurrent sign-ins).
+- Public `POST /api/usage` is rate-limited in-memory (60/min per IP).
 
 ## Pointers
 

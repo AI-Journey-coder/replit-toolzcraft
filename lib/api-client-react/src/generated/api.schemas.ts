@@ -28,3 +28,111 @@ export interface User {
   plan: string;
 }
 
+export interface AdminUser {
+  id: number;
+  firebaseUid: string;
+  /** @nullable */
+  phoneNumber: string | null;
+  /** @nullable */
+  email: string | null;
+  /** @nullable */
+  displayName: string | null;
+  /** @nullable */
+  photoUrl: string | null;
+  role: string;
+  plan: string;
+  disabled: boolean;
+  createdAt: string;
+  lastLoginAt: string;
+}
+
+export interface ToolSetting {
+  toolSlug: string;
+  enabled: boolean;
+  premium: boolean;
+}
+
+export interface PremiumPackage {
+  id: number;
+  name: string;
+  /** @nullable */
+  description: string | null;
+  priceCents: number;
+  currency: string;
+  periodDays: number;
+  active: boolean;
+}
+
+export interface PremiumPackageInput {
+  name: string;
+  /** @nullable */
+  description?: string | null;
+  /** @minimum 0 */
+  priceCents: number;
+  currency: string;
+  /** @minimum 1 */
+  periodDays: number;
+  active: boolean;
+}
+
+export type UsageStatsTopToolsItem = {
+  toolSlug: string;
+  count: number;
+};
+
+export interface UsageStats {
+  totalUsers: number;
+  totalEvents: number;
+  eventsLast7Days: number;
+  topTools: UsageStatsTopToolsItem[];
+}
+
+export interface ApiKeyInfo {
+  id: number;
+  name: string;
+  keyPrefix: string;
+  active: boolean;
+  createdAt: string;
+  /** @nullable */
+  lastUsedAt: string | null;
+}
+
+export interface ApiKeyCreated {
+  id: number;
+  name: string;
+  keyPrefix: string;
+  active: boolean;
+  key: string;
+}
+
+export type RecordUsageBody = {
+  toolSlug: string;
+};
+
+export type AdminUpdateUserBodyRole = typeof AdminUpdateUserBodyRole[keyof typeof AdminUpdateUserBodyRole];
+
+
+export const AdminUpdateUserBodyRole = {
+  user: 'user',
+  admin: 'admin',
+} as const;
+
+export type AdminUpdateUserBody = {
+  role?: AdminUpdateUserBodyRole;
+  plan?: string;
+  disabled?: boolean;
+};
+
+export type AdminUpsertToolBody = {
+  enabled: boolean;
+  premium: boolean;
+};
+
+export type AdminCreateApiKeyBody = {
+  name: string;
+};
+
+export type AdminUpdateApiKeyBody = {
+  active: boolean;
+};
+

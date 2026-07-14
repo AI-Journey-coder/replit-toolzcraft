@@ -48,3 +48,261 @@ export const GetMeResponse = zod.object({
 })
 
 
+/**
+ * @summary List tool settings overrides (public)
+ */
+export const ListToolSettingsResponseItem = zod.object({
+  "toolSlug": zod.string(),
+  "enabled": zod.boolean(),
+  "premium": zod.boolean()
+})
+export const ListToolSettingsResponse = zod.array(ListToolSettingsResponseItem)
+
+
+/**
+ * @summary Record a tool usage event
+ */
+export const RecordUsageBody = zod.object({
+  "toolSlug": zod.string()
+})
+
+export const RecordUsageResponse = zod.void()
+
+
+/**
+ * @summary List all users
+ */
+export const AdminListUsersResponseItem = zod.object({
+  "id": zod.number(),
+  "firebaseUid": zod.string(),
+  "phoneNumber": zod.string().nullable(),
+  "email": zod.string().nullable(),
+  "displayName": zod.string().nullable(),
+  "photoUrl": zod.string().nullable(),
+  "role": zod.string(),
+  "plan": zod.string(),
+  "disabled": zod.boolean(),
+  "createdAt": zod.string(),
+  "lastLoginAt": zod.string()
+})
+export const AdminListUsersResponse = zod.array(AdminListUsersResponseItem)
+
+
+/**
+ * @summary Update a user's role, plan, or disabled state
+ */
+export const AdminUpdateUserParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AdminUpdateUserBody = zod.object({
+  "role": zod.enum(['user', 'admin']).optional(),
+  "plan": zod.string().optional(),
+  "disabled": zod.boolean().optional()
+})
+
+export const AdminUpdateUserResponse = zod.object({
+  "id": zod.number(),
+  "firebaseUid": zod.string(),
+  "phoneNumber": zod.string().nullable(),
+  "email": zod.string().nullable(),
+  "displayName": zod.string().nullable(),
+  "photoUrl": zod.string().nullable(),
+  "role": zod.string(),
+  "plan": zod.string(),
+  "disabled": zod.boolean(),
+  "createdAt": zod.string(),
+  "lastLoginAt": zod.string()
+})
+
+
+/**
+ * @summary List tool settings
+ */
+export const AdminListToolsResponseItem = zod.object({
+  "toolSlug": zod.string(),
+  "enabled": zod.boolean(),
+  "premium": zod.boolean()
+})
+export const AdminListToolsResponse = zod.array(AdminListToolsResponseItem)
+
+
+/**
+ * @summary Set enabled/premium for a tool
+ */
+export const AdminUpsertToolParams = zod.object({
+  "slug": zod.coerce.string()
+})
+
+export const AdminUpsertToolBody = zod.object({
+  "enabled": zod.boolean(),
+  "premium": zod.boolean()
+})
+
+export const AdminUpsertToolResponse = zod.object({
+  "toolSlug": zod.string(),
+  "enabled": zod.boolean(),
+  "premium": zod.boolean()
+})
+
+
+/**
+ * @summary List premium packages
+ */
+export const AdminListPackagesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullable(),
+  "priceCents": zod.number(),
+  "currency": zod.string(),
+  "periodDays": zod.number(),
+  "active": zod.boolean()
+})
+export const AdminListPackagesResponse = zod.array(AdminListPackagesResponseItem)
+
+
+/**
+ * @summary Create a premium package
+ */
+export const adminCreatePackageBodyPriceCentsMin = 0;
+
+
+
+
+export const AdminCreatePackageBody = zod.object({
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "priceCents": zod.number().min(adminCreatePackageBodyPriceCentsMin),
+  "currency": zod.string(),
+  "periodDays": zod.number().min(1),
+  "active": zod.boolean()
+})
+
+export const AdminCreatePackageResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullable(),
+  "priceCents": zod.number(),
+  "currency": zod.string(),
+  "periodDays": zod.number(),
+  "active": zod.boolean()
+})
+
+
+/**
+ * @summary Update a premium package
+ */
+export const AdminUpdatePackageParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const adminUpdatePackageBodyPriceCentsMin = 0;
+
+
+
+
+export const AdminUpdatePackageBody = zod.object({
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "priceCents": zod.number().min(adminUpdatePackageBodyPriceCentsMin),
+  "currency": zod.string(),
+  "periodDays": zod.number().min(1),
+  "active": zod.boolean()
+})
+
+export const AdminUpdatePackageResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullable(),
+  "priceCents": zod.number(),
+  "currency": zod.string(),
+  "periodDays": zod.number(),
+  "active": zod.boolean()
+})
+
+
+/**
+ * @summary Delete a premium package
+ */
+export const AdminDeletePackageParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AdminDeletePackageResponse = zod.void()
+
+
+/**
+ * @summary Usage statistics
+ */
+export const AdminGetStatsResponse = zod.object({
+  "totalUsers": zod.number(),
+  "totalEvents": zod.number(),
+  "eventsLast7Days": zod.number(),
+  "topTools": zod.array(zod.object({
+  "toolSlug": zod.string(),
+  "count": zod.number()
+}))
+})
+
+
+/**
+ * @summary List API keys
+ */
+export const AdminListApiKeysResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "keyPrefix": zod.string(),
+  "active": zod.boolean(),
+  "createdAt": zod.string(),
+  "lastUsedAt": zod.string().nullable()
+})
+export const AdminListApiKeysResponse = zod.array(AdminListApiKeysResponseItem)
+
+
+/**
+ * @summary Create a new API key (full key returned only once)
+ */
+export const AdminCreateApiKeyBody = zod.object({
+  "name": zod.string()
+})
+
+export const AdminCreateApiKeyResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "keyPrefix": zod.string(),
+  "active": zod.boolean(),
+  "key": zod.string()
+})
+
+
+/**
+ * @summary Enable or disable an API key
+ */
+export const AdminUpdateApiKeyParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AdminUpdateApiKeyBody = zod.object({
+  "active": zod.boolean()
+})
+
+export const AdminUpdateApiKeyResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "keyPrefix": zod.string(),
+  "active": zod.boolean(),
+  "createdAt": zod.string(),
+  "lastUsedAt": zod.string().nullable()
+})
+
+
+/**
+ * @summary Delete an API key
+ */
+export const AdminDeleteApiKeyParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AdminDeleteApiKeyResponse = zod.void()
+
+

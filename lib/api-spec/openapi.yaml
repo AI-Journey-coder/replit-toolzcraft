@@ -12,6 +12,10 @@ tags:
     description: Health operations
   - name: auth
     description: Authentication and user operations
+  - name: tools
+    description: Public tool settings and usage
+  - name: admin
+    description: Admin operations (require admin role)
 paths:
   /healthz:
     get:
@@ -67,6 +71,334 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /tool-settings:
+    get:
+      operationId: listToolSettings
+      tags: [tools]
+      summary: List tool settings overrides (public)
+      responses:
+        "200":
+          description: Tool settings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ToolSetting"
+  /usage:
+    post:
+      operationId: recordUsage
+      tags: [tools]
+      summary: Record a tool usage event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                toolSlug:
+                  type: string
+              required: [toolSlug]
+      responses:
+        "204":
+          description: Recorded
+  /admin/users:
+    get:
+      operationId: adminListUsers
+      tags: [admin]
+      summary: List all users
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminUser"
+        "403":
+          description: Not an admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /admin/users/{id}:
+    patch:
+      operationId: adminUpdateUser
+      tags: [admin]
+      summary: Update a user's role, plan, or disabled state
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  enum: [user, admin]
+                plan:
+                  type: string
+                disabled:
+                  type: boolean
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /admin/tools:
+    get:
+      operationId: adminListTools
+      tags: [admin]
+      summary: List tool settings
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Tool settings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ToolSetting"
+  /admin/tools/{slug}:
+    put:
+      operationId: adminUpsertTool
+      tags: [admin]
+      summary: Set enabled/premium for a tool
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                premium:
+                  type: boolean
+              required: [enabled, premium]
+      responses:
+        "200":
+          description: Upserted tool setting
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ToolSetting"
+  /admin/packages:
+    get:
+      operationId: adminListPackages
+      tags: [admin]
+      summary: List premium packages
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Packages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PremiumPackage"
+    post:
+      operationId: adminCreatePackage
+      tags: [admin]
+      summary: Create a premium package
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PremiumPackageInput"
+      responses:
+        "201":
+          description: Created package
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PremiumPackage"
+  /admin/packages/{id}:
+    patch:
+      operationId: adminUpdatePackage
+      tags: [admin]
+      summary: Update a premium package
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PremiumPackageInput"
+      responses:
+        "200":
+          description: Updated package
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PremiumPackage"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      operationId: adminDeletePackage
+      tags: [admin]
+      summary: Delete a premium package
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+  /admin/stats:
+    get:
+      operationId: adminGetStats
+      tags: [admin]
+      summary: Usage statistics
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsageStats"
+  /admin/api-keys:
+    get:
+      operationId: adminListApiKeys
+      tags: [admin]
+      summary: List API keys
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: API keys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiKeyInfo"
+    post:
+      operationId: adminCreateApiKey
+      tags: [admin]
+      summary: Create a new API key (full key returned only once)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+              required: [name]
+      responses:
+        "201":
+          description: Created key with full secret
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiKeyCreated"
+  /admin/api-keys/{id}:
+    patch:
+      operationId: adminUpdateApiKey
+      tags: [admin]
+      summary: Enable or disable an API key
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                active:
+                  type: boolean
+              required: [active]
+      responses:
+        "200":
+          description: Updated key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiKeyInfo"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      operationId: adminDeleteApiKey
+      tags: [admin]
+      summary: Delete an API key
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
 components:
   securitySchemes:
     bearerAuth:
@@ -116,3 +448,168 @@ components:
         - photoUrl
         - role
         - plan
+    AdminUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        firebaseUid:
+          type: string
+        phoneNumber:
+          type: [string, "null"]
+        email:
+          type: [string, "null"]
+        displayName:
+          type: [string, "null"]
+        photoUrl:
+          type: [string, "null"]
+        role:
+          type: string
+        plan:
+          type: string
+        disabled:
+          type: boolean
+        createdAt:
+          type: string
+        lastLoginAt:
+          type: string
+      required:
+        - id
+        - firebaseUid
+        - phoneNumber
+        - email
+        - displayName
+        - photoUrl
+        - role
+        - plan
+        - disabled
+        - createdAt
+        - lastLoginAt
+    ToolSetting:
+      type: object
+      properties:
+        toolSlug:
+          type: string
+        enabled:
+          type: boolean
+        premium:
+          type: boolean
+      required:
+        - toolSlug
+        - enabled
+        - premium
+    PremiumPackage:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: [string, "null"]
+        priceCents:
+          type: integer
+        currency:
+          type: string
+        periodDays:
+          type: integer
+        active:
+          type: boolean
+      required:
+        - id
+        - name
+        - description
+        - priceCents
+        - currency
+        - periodDays
+        - active
+    PremiumPackageInput:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: [string, "null"]
+        priceCents:
+          type: integer
+          minimum: 0
+        currency:
+          type: string
+        periodDays:
+          type: integer
+          minimum: 1
+        active:
+          type: boolean
+      required:
+        - name
+        - priceCents
+        - currency
+        - periodDays
+        - active
+    UsageStats:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalEvents:
+          type: integer
+        eventsLast7Days:
+          type: integer
+        topTools:
+          type: array
+          items:
+            type: object
+            properties:
+              toolSlug:
+                type: string
+              count:
+                type: integer
+            required:
+              - toolSlug
+              - count
+      required:
+        - totalUsers
+        - totalEvents
+        - eventsLast7Days
+        - topTools
+    ApiKeyInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        keyPrefix:
+          type: string
+        active:
+          type: boolean
+        createdAt:
+          type: string
+        lastUsedAt:
+          type: [string, "null"]
+      required:
+        - id
+        - name
+        - keyPrefix
+        - active
+        - createdAt
+        - lastUsedAt
+    ApiKeyCreated:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        keyPrefix:
+          type: string
+        active:
+          type: boolean
+        key:
+          type: string
+      required:
+        - id
+        - name
+        - keyPrefix
+        - active
+        - key
