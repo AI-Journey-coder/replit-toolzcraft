@@ -276,7 +276,7 @@ export function UrlParser() {
                   <table className="w-full text-xs">
                     <thead><tr className="bg-muted/60 text-muted-foreground"><th className="text-left px-3 py-2">Key</th><th className="text-left px-3 py-2">Value</th></tr></thead>
                     <tbody className="divide-y divide-border/50">
-                      {Object.entries(parsed.params).map(([k, v]) => (
+                      {Object.entries(parsed.params as Record<string, string>).map(([k, v]) => (
                         <tr key={k}><td className="px-3 py-2 font-mono text-primary">{k}</td><td className="px-3 py-2 font-mono">{v}</td></tr>
                       ))}
                     </tbody>
