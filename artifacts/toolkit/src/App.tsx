@@ -119,6 +119,8 @@ import { MergePdf, SplitPdf, ImagesToPdf, RotatePdf, WatermarkPdf, PdfPageNumber
 import { PdfToImages, PdfTextExtractor } from "@/pages/tools/PdfTools2";
 // OCR & Documents
 import { ImageOcr, PdfOcr } from "@/pages/tools/OcrTools";
+// AI Tools
+import { AiSummarizer, AiKeyPoints, AiDocumentQa, AiTranslator } from "@/pages/tools/AiTools";
 
 const queryClient = new QueryClient();
 
@@ -409,6 +411,12 @@ function Router() {
       {/* OCR & Documents */}
       <Route path="/tools/image-ocr">{() => <T component={ImageOcr} />}</Route>
       <Route path="/tools/pdf-ocr">{() => <T component={PdfOcr} />}</Route>
+
+      {/* AI Tools */}
+      <Route path="/tools/ai-summarizer">{() => <T component={AiSummarizer} />}</Route>
+      <Route path="/tools/ai-key-points">{() => <T component={AiKeyPoints} />}</Route>
+      <Route path="/tools/ai-document-qa">{() => <T component={AiDocumentQa} />}</Route>
+      <Route path="/tools/ai-translator">{() => <T component={AiTranslator} />}</Route>
 
       <Route component={NotFound} />
     </Switch>

@@ -36,7 +36,7 @@ A privacy-first browser utility platform with 73+ free tools across 11 categorie
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- AI is provider-agnostic by design (user wants portability): `artifacts/api-server/src/lib/ai.ts` uses the OpenAI SDK against Gemini's OpenAI-compatible endpoint. Switch providers with env only: `AI_PROVIDER=openai` + `OPENAI_API_KEY` (optional `AI_MODEL`). Default model `models/gemini-flash-latest` (secret: `GEMINI_API_KEY`).
 
 ## Product
 
@@ -46,6 +46,7 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 - Anonymous usage tracking: every tool visit posts to `/api/usage` for admin stats.
 - PDF Tools category (9 tools, pdf-lib + pdfjs-dist, all client-side): merge, split, images-to-PDF, PDF-to-images, rotate, watermark, page numbers, metadata editor, text extractor.
 - OCR & Documents category (tesseract.js, client-side, 12 languages): image OCR and scanned-PDF OCR (20 pages/run).
+- AI Tools category (server-side, anonymous, 10 req/min/IP): summarizer, key points, document Q&A, translator via `POST /api/ai/analyze` (60k char cap).
 
 ## User preferences
 

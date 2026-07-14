@@ -25,6 +25,8 @@ import type {
   AdminUpdateUserBody,
   AdminUpsertToolBody,
   AdminUser,
+  AiAnalysisInput,
+  AiAnalysisResult,
   ApiError,
   ApiKeyCreated,
   ApiKeyInfo,
@@ -437,6 +439,77 @@ export const useRecordUsage = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getRecordUsageMutationOptions(options));
+    }
+
+export const getAnalyzeDocumentUrl = () => {
+
+
+
+
+  return `/api/ai/analyze`
+}
+
+/**
+ * @summary Run an AI analysis task on document text
+ */
+export const analyzeDocument = async (aiAnalysisInput: AiAnalysisInput, options?: RequestInit): Promise<AiAnalysisResult> => {
+
+  return customFetch<AiAnalysisResult>(getAnalyzeDocumentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(aiAnalysisInput)
+  }
+);}
+
+
+
+
+
+export const getAnalyzeDocumentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof analyzeDocument>>, TError,{data: BodyType<AiAnalysisInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof analyzeDocument>>, TError,{data: BodyType<AiAnalysisInput>}, TContext> => {
+
+const mutationKey = ['analyzeDocument'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof analyzeDocument>>, {data: BodyType<AiAnalysisInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  analyzeDocument(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AnalyzeDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof analyzeDocument>>>
+    export type AnalyzeDocumentMutationBody = BodyType<AiAnalysisInput>
+    export type AnalyzeDocumentMutationError = ErrorType<void>
+
+    /**
+ * @summary Run an AI analysis task on document text
+ */
+export const useAnalyzeDocument = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof analyzeDocument>>, TError,{data: BodyType<AiAnalysisInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof analyzeDocument>>,
+        TError,
+        {data: BodyType<AiAnalysisInput>},
+        TContext
+      > => {
+      return useMutation(getAnalyzeDocumentMutationOptions(options));
     }
 
 export const getAdminListUsersUrl = () => {

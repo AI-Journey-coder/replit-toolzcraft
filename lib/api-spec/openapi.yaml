@@ -103,6 +103,30 @@ paths:
       responses:
         "204":
           description: Recorded
+  /ai/analyze:
+    post:
+      operationId: analyzeDocument
+      tags: [ai]
+      summary: Run an AI analysis task on document text
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiAnalysisInput"
+      responses:
+        "200":
+          description: Analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiAnalysisResult"
+        "400":
+          description: Invalid request
+        "429":
+          description: Rate limited
+        "502":
+          description: AI provider error
   /admin/users:
     get:
       operationId: adminListUsers
@@ -613,3 +637,29 @@ components:
         - keyPrefix
         - active
         - key
+    AiAnalysisInput:
+      type: object
+      properties:
+        task:
+          type: string
+          enum: [summarize, key-points, qa, translate]
+        text:
+          type: string
+          minLength: 1
+          maxLength: 60000
+        question:
+          type: string
+          maxLength: 2000
+        targetLanguage:
+          type: string
+          maxLength: 50
+      required:
+        - task
+        - text
+    AiAnalysisResult:
+      type: object
+      properties:
+        result:
+          type: string
+      required:
+        - result

@@ -47,3 +47,4 @@ description: Key patterns, file layout, and conventions for the ToolzCraft React
 - pdfjs-dist worker under Vite must use `import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url"` (see `src/lib/pdfjs.ts`) — `new URL(bare-specifier, import.meta.url)` breaks in production/base-path builds.
 - pdfjs-dist v6: `destroy()` lives on the loading task, not `PDFDocumentProxy` — use `doc.cleanup()`.
 - tesseract.js: reuse one worker (`createWorker(lang)`) across pages for multi-page OCR; `Tesseract.recognize()` per page re-initializes the engine each time.
+- Gemini API (July 2026): older model ids like `gemini-2.5-flash` return 404 ("no longer available to new users") for new API keys — use the `models/gemini-flash-latest` alias (id needs `models/` prefix on the OpenAI-compat endpoint).

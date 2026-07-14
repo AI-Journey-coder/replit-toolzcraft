@@ -105,6 +105,33 @@ export interface ApiKeyCreated {
   key: string;
 }
 
+export type AiAnalysisInputTask = typeof AiAnalysisInputTask[keyof typeof AiAnalysisInputTask];
+
+
+export const AiAnalysisInputTask = {
+  summarize: 'summarize',
+  'key-points': 'key-points',
+  qa: 'qa',
+  translate: 'translate',
+} as const;
+
+export interface AiAnalysisInput {
+  task: AiAnalysisInputTask;
+  /**
+     * @minLength 1
+     * @maxLength 60000
+     */
+  text: string;
+  /** @maxLength 2000 */
+  question?: string;
+  /** @maxLength 50 */
+  targetLanguage?: string;
+}
+
+export interface AiAnalysisResult {
+  result: string;
+}
+
 export type RecordUsageBody = {
   toolSlug: string;
 };

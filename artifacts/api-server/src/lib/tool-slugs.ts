@@ -2,6 +2,11 @@
 // grep -oP 'slug: "\K[a-z0-9-]+' artifacts/toolkit/src/lib/tools-registry.ts | sort -u
 export const KNOWN_TOOL_SLUGS = new Set<string>([
   "aes-encrypt-decrypt",
+  "ai",
+  "ai-document-qa",
+  "ai-key-points",
+  "ai-summarizer",
+  "ai-translator",
   "api-response-viewer",
   "arbitrary-base-converter",
   "area-converter",

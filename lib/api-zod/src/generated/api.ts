@@ -70,6 +70,29 @@ export const RecordUsageResponse = zod.void()
 
 
 /**
+ * @summary Run an AI analysis task on document text
+ */
+export const analyzeDocumentBodyTextMax = 60000;
+
+export const analyzeDocumentBodyQuestionMax = 2000;
+
+export const analyzeDocumentBodyTargetLanguageMax = 50;
+
+
+
+export const AnalyzeDocumentBody = zod.object({
+  "task": zod.enum(['summarize', 'key-points', 'qa', 'translate']),
+  "text": zod.string().min(1).max(analyzeDocumentBodyTextMax),
+  "question": zod.string().max(analyzeDocumentBodyQuestionMax).optional(),
+  "targetLanguage": zod.string().max(analyzeDocumentBodyTargetLanguageMax).optional()
+})
+
+export const AnalyzeDocumentResponse = zod.object({
+  "result": zod.string()
+})
+
+
+/**
  * @summary List all users
  */
 export const AdminListUsersResponseItem = zod.object({

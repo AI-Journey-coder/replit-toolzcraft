@@ -19,7 +19,7 @@ export type CategorySlug =
   | "finance" | "converters" | "code" | "text" | "math" | "security"
   | "webdev" | "data" | "devtools" | "formatters" | "sql"
   | "encoding" | "datetime" | "cssdesign" | "webstandards" | "reference" | "image"
-  | "pdf" | "ocr";
+  | "pdf" | "ocr" | "ai";
 
 export interface Category {
   name: string;
@@ -57,6 +57,7 @@ export const CATEGORIES: Category[] = [
   { name: "Image Tools", slug: "image", icon: Image, description: "EXIF viewer, color picker from image, SVG to PNG, and resizer" },
   { name: "PDF Tools", slug: "pdf", icon: FileInput, description: "Merge, split, rotate, watermark, and convert PDFs — all in your browser" },
   { name: "OCR & Documents", slug: "ocr", icon: ScanLine, description: "Extract text from images and scanned PDFs with in-browser OCR" },
+  { name: "AI Tools", slug: "ai", icon: Sparkles, description: "AI-powered document analysis: summarize, extract, translate, and Q&A" },
 ];
 
 export const TOOLS: Tool[] = [
@@ -335,4 +336,10 @@ export const TOOLS: Tool[] = [
   // ── OCR & Documents ────────────────────────────────────────────────────────
   { name: "Image to Text (OCR)", slug: "image-ocr", category: "ocr", description: "Extract text from photos and screenshots in 12 languages", icon: ScanLine, popular: true },
   { name: "PDF OCR", slug: "pdf-ocr", category: "ocr", description: "Recognize text in scanned PDFs, page by page", icon: FileSearch, popular: true },
+
+  // ── AI Tools ───────────────────────────────────────────────────────────────
+  { name: "AI Document Summarizer", slug: "ai-summarizer", category: "ai", description: "Summarize any document text into a short overview with key bullets", icon: Sparkles, popular: true },
+  { name: "AI Key Points Extractor", slug: "ai-key-points", category: "ai", description: "Extract names, dates, figures, and decisions from any text", icon: List },
+  { name: "AI Document Q&A", slug: "ai-document-qa", category: "ai", description: "Ask questions about a document and get answers from its text", icon: FileSearch, popular: true },
+  { name: "AI Document Translator", slug: "ai-translator", category: "ai", description: "Translate document text into 18 languages with AI", icon: Languages },
 ];
