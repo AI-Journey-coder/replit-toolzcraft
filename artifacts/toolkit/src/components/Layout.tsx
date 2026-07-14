@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Moon, Sun, Search } from "lucide-react";
+import { Moon, Sun, Search, LogIn, LogOut, UserRound } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LogoWordmark } from "@/components/Logo";
 import { TOOLS } from "@/lib/tools-registry";
+import { useAuth } from "@/hooks/use-auth";
 
 function formatDate(d: Date): string {
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
@@ -80,6 +81,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-9 w-9" data-testid="button-theme-toggle">
               {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </Button>
+            <AuthButtons />
           </div>
         </div>
       </header>
@@ -93,6 +95,34 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <p>ToolzCraft &copy; {new Date().getFullYear()}. Precision instruments for the web. &nbsp;·&nbsp; {formatDate(new Date())}</p>
         </div>
       </footer>
+    </div>
+  );
+}
+
+function AuthButtons() {
+  const { user, loading, configured, signOut } = useAuth();
+
+  if (!configured || loading) return null;
+
+  if (!user) {
+    return (
+      <Link href="/login">
+        <Button variant="outline" size="sm" className="text-xs font-mono" data-testid="button-login">
+          <LogIn className="h-3.5 w-3.5 mr-1" /> Sign in
+        </Button>
+      </Link>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="hidden md:flex items-center gap-1.5 text-xs font-mono text-muted-foreground" data-testid="text-username">
+        <UserRound className="h-3.5 w-3.5" />
+        {user.displayName || user.phoneNumber || user.email || "Account"}
+      </span>
+      <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => void signOut()} title="Sign out" data-testid="button-logout">
+        <LogOut className="h-4 w-4" />
+      </Button>
     </div>
   );
 }

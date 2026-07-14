@@ -5,13 +5,6 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
-
-export interface ApiError {
-  message: string;
-}
 
 export interface User {
   id: number;
@@ -27,4 +20,3 @@ export interface User {
   role: string;
   plan: string;
 }
-

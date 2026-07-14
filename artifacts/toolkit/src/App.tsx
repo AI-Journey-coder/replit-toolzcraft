@@ -7,7 +7,9 @@ import { Home } from "@/pages/Home";
 import { CategoryPage } from "@/pages/Category";
 import { ToolShell } from "@/components/ToolShell";
 import { Promo } from "@/pages/Promo";
+import { Login } from "@/pages/Login";
 import NotFound from "@/pages/not-found";
+import { AuthProvider } from "@/hooks/use-auth";
 
 // Finance
 import { EmiCalculator, SipCalculator, CompoundInterestCalculator, RoiCalculator, TipCalculator, GstCalculator } from "@/pages/tools/FinanceTools";
@@ -123,6 +125,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/promo" component={Promo} />
+      <Route path="/login" component={Login} />
       <Route path="/category/:slug" component={CategoryPage} />
 
       {/* Finance */}
@@ -394,11 +397,13 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Layout>
-            <Router />
-          </Layout>
-        </WouterRouter>
+        <AuthProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Layout>
+              <Router />
+            </Layout>
+          </WouterRouter>
+        </AuthProvider>
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>

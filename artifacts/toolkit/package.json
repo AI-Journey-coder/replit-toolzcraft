@@ -87,6 +87,7 @@
     "@types/turndown": "^5.0.6",
     "bcryptjs": "^3.0.3",
     "fast-xml-parser": "^5.9.3",
+    "firebase": "^12.16.0",
     "js-beautify": "^2.0.3",
     "js-yaml": "^5.2.1",
     "jsbarcode": "^3.12.3",

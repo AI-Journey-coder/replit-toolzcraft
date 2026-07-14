@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication and user operations
 paths:
   /healthz:
     get:
@@ -24,7 +26,53 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /auth/sync:
+    post:
+      operationId: syncUser
+      tags: [auth]
+      summary: Sync the authenticated Firebase user into the database
+      description: Upserts the user record from the verified Firebase ID token
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: The synced user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get the current authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: The current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +81,38 @@ components:
           type: string
       required:
         - status
-
+    ApiError:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        firebaseUid:
+          type: string
+        phoneNumber:
+          type: [string, "null"]
+        email:
+          type: [string, "null"]
+        displayName:
+          type: [string, "null"]
+        photoUrl:
+          type: [string, "null"]
+        role:
+          type: string
+        plan:
+          type: string
+      required:
+        - id
+        - firebaseUid
+        - phoneNumber
+        - email
+        - displayName
+        - photoUrl
+        - role
+        - plan
