@@ -310,7 +310,7 @@ export function DnsRecordReference() {
 }
 
 // ─── OpenAPI Validator ────────────────────────────────────────────────────────
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 
 export function OpenApiValidator() {
   const [input, setInput] = useState(`openapi: "3.0.0"
