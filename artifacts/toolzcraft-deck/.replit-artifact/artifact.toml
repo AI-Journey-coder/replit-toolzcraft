@@ -1,0 +1,31 @@
+kind = "slides"
+previewPath = "/toolzcraft-deck/"
+title = "ToolzCraft Deck"
+version = "1.0.0"
+id = "artifacts/toolzcraft-deck"
+router = "path"
+
+[[integratedSkills]]
+name = "slides"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/toolzcraft-deck/" ]
+localPort = 23791
+
+[services.development]
+run = "pnpm --filter @workspace/toolzcraft-deck run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/toolzcraft-deck", "run", "build" ]
+publicDir = "artifacts/toolzcraft-deck/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23791"
+BASE_PATH = "/toolzcraft-deck/"

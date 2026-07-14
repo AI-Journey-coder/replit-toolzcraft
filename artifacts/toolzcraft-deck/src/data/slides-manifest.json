@@ -1,0 +1,50 @@
+[
+  {
+    "id": "8f2a1c34-5b6d-4e7f-9a0b-1c2d3e4f5a6b",
+    "position": 1,
+    "filepath": "src/pages/slides/TitleSlide.tsx",
+    "title": "ToolzCraft",
+    "description": "Title slide: tagline, 250+ free browser tools, 100+ API tools, live URL.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e",
+    "position": 2,
+    "filepath": "src/pages/slides/ApproachSlide.tsx",
+    "title": "The Approach",
+    "description": "Privacy-first principles: client-side tools, optional sign-in, free with premium options.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "3c4d5e6f-7a8b-4c9d-a0e1-2f3a4b5c6d7e",
+    "position": 3,
+    "filepath": "src/pages/slides/CatalogSlide.tsx",
+    "title": "Tool Catalog",
+    "description": "250+ tools across 11 categories.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "4d5e6f7a-8b9c-4d0e-b1f2-3a4b5c6d7e8f",
+    "position": 4,
+    "filepath": "src/pages/slides/DocumentToolkitSlide.tsx",
+    "title": "Document Toolkit",
+    "description": "PDF suite (9 tools) and OCR in 12 languages, all client-side.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "5e6f7a8b-9c0d-4e1f-c2a3-4b5c6d7e8f9a",
+    "position": 5,
+    "filepath": "src/pages/slides/AiAnalysisSlide.tsx",
+    "title": "AI Document Analysis",
+    "description": "Summarizer, key points, Q&A, translator; Gemini-powered and provider-portable.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "6f7a8b9c-0d1e-4f2a-d3b4-5c6d7e8f9a0b",
+    "position": 6,
+    "filepath": "src/pages/slides/PlatformSlide.tsx",
+    "title": "Platform & Admin",
+    "description": "Firebase auth, admin console, usage analytics, Replit Autoscale deployment.",
+    "speakerNotes": ""
+  }
+]
