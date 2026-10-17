@@ -96,7 +96,7 @@ overrides:
   "@tailwindcss/oxide>@tailwindcss/oxide-linux-arm64-gnu": "-"
   "@tailwindcss/oxide>@tailwindcss/oxide-linux-arm64-musl": "-"
   "@tailwindcss/oxide>@tailwindcss/oxide-linux-x64-musl": "-"
-  esbuild: "0.27.3"
+  esbuild: "0.28.2"
   "esbuild>@esbuild/aix-ppc64": '-'
   "esbuild>@esbuild/android-arm": '-'
   "esbuild>@esbuild/android-arm64": '-'
@@ -151,10 +151,10 @@ overrides:
   'uuid@<11.1.1': '11.1.1'
   'esbuild@<0.28.1': '0.28.2'
   'js-yaml@>=4 <5': '4.3.2'
-  'js-yaml@>=5 <5.2.2': '5.2.2'
-  'fast-uri@>=3 <3.1.6': '3.1.6'
-  'brace-expansion@>=2 <3': '2.1.4'
-  'brace-expansion@>=4 <5.0.9': '5.0.9'
+  'js-yaml@>=5 <5.4.1': '5.4.1'
+  'fast-uri@>=3 <3.1.8': '3.1.8'
+  'brace-expansion@>=2 <3': '2.1.7'
+  'brace-expansion@>=4 <5.0.12': '5.0.12'
   'postcss@<8.5.23': '8.5.23'
   'pdfjs-dist@>=5.6.83 <6.2.108': '6.2.108'
   'nanoid@<3.3.18': '3.3.18'
@@ -163,3 +163,13 @@ overrides:
   'orval@<8.22.0': '8.22.0'
   'qs@<6.16.0': '6.16.0'
   'baseline-browser-mapping@>=2 <2.11.0': '2.11.0'
+
+  '@grpc/grpc-js@>=1.14 <1.14.5': '1.14.5'
+  '@grpc/grpc-js@<1.13.6': '1.13.6'
+  '@fastify/busboy@<3.2.2': '3.2.2'
+  'source-map-js@<1.2.2': '1.2.2'
+  'proxy-addr@<2.0.8': '2.0.8'
+  'markdown-it@<14.3.1': '14.3.1'
+  'dompurify@<3.4.16': '3.4.16'
+  'postcss-selector-parser@<7.1.6': '7.1.6'
+  'fast-copy@>=4 <4.1.0': '4.1.0'
