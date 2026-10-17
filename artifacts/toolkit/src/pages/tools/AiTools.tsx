@@ -1,3 +1,5 @@
+import {Link} from 'wouter';
+import { getAuth } from 'firebase/auth';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -8,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Copy, Sparkles } from "lucide-react";
 import { apiUrl } from "@/lib/api";
 
-const MAX_CHARS = 60000;
+const MAX_CHARS = 6000;
 
 type Task = "summarize" | "key-points" | "qa" | "translate";
 
@@ -18,12 +20,17 @@ async function analyze(body: {
   question?: string;
   targetLanguage?: string;
 }): Promise<string> {
+  if (import.meta.env.VITE_ENABLE_AI !== "true") throw new Error("AI analysis is unavailable in this preview. Browser-only tools remain available.");
+  const user=getAuth().currentUser;
+  if(!user)throw new Error("Sign in to use AI tools.");
+  const token=await user.getIdToken();
   const res = await fetch(apiUrl("/ai/analyze"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify(body),
   });
   const data = await res.json().catch(() => null);
+  if(res.status===402 && data?.code==='SUBSCRIPTION_REQUIRED')throw new Error('SUBSCRIPTION_REQUIRED');
   if (!res.ok) {
     throw new Error(data?.message ?? `Request failed: ${res.status}`);
   }
@@ -92,6 +99,7 @@ function ResultBox({ result, error, busy }: { result: string; error: string; bus
       </div>
     );
   }
+  if(error==='SUBSCRIPTION_REQUIRED')return <div role="alert" className="rounded-xl border p-4"><p>Your AI credits are used. Check your plan and next renewal date.</p><Link href="/subscriptions" className="inline-block mt-3 underline text-primary">View subscription and credits</Link></div>;
   if (error) {
     return <p className="text-sm text-destructive" data-testid="text-error">{error}</p>;
   }
@@ -231,3 +239,5 @@ export function AiTranslator() {
     </Card>
   );
 }
+
+

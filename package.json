@@ -3,16 +3,30 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
+    "preinstall": "node scripts/check-package-manager.cjs",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "typecheck:libs": "tsc --build",
-    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
+    "dev:local": "pnpm --filter @workspace/toolkit dev:local",
+    "build:local": "pnpm --filter @workspace/toolkit build",
+    "test:new-tools": "node scripts/check-new-tools.cjs",
+    "test:media": "node scripts/check-media.cjs",
+    "check:publication": "node scripts/check-publication.cjs",
+    "test:release": "node --test scripts/check-server.test.mjs scripts/check-security.test.cjs scripts/check-razorpay.test.cjs scripts/check-image-compression.test.cjs scripts/check-time-quota.test.cjs scripts/check-break-even-pdf.test.cjs scripts/check-billing.test.cjs scripts/check-billing-postgres.test.cjs scripts/check-usability.test.cjs scripts/check-ev-charging.test.cjs",
+    "serve:production": "node deploy/server.mjs",
+    "db:migrate": "node scripts/database.cjs migrate",
+    "test:adopted-tools": "node scripts/check-adopted-tools.cjs",
+    "test:razorpay": "node --test scripts/check-razorpay.test.cjs",
+    "webhook:local": "node scripts/webhook-local.cjs",
+    "test:webhook-local": "node scripts/webhook-local.cjs --self-test",
+    "test:document-workflows": "node --test scripts/check-document-workflows.test.cjs scripts/check-workflow-route.test.cjs"
   },
   "private": true,
   "dependencies": {
     "@replit/connectors-sdk": "^0.4.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "prettier": "^3.9.4",
     "typescript": "~5.9.3"
   }

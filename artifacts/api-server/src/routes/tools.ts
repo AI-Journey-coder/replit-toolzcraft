@@ -35,6 +35,7 @@ router.get("/tool-settings", async (_req, res) => {
 });
 
 router.post("/usage", async (req, res) => {
+  if(process.env.ENABLE_USAGE_TRACKING!=="true"){res.status(204).end();return;}
   const parsed = RecordUsageBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ message: "toolSlug is required" });

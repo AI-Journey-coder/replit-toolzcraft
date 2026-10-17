@@ -1,0 +1,8 @@
+{
+  "projectId": "toolzcraft-062026",
+  "platform": "cloud-run",
+  "siteUrl": "https://toolzcraft.com",
+  "domainRegistrar": "GoDaddy",
+  "region": "asia-southeast1",
+  "serviceName": "toolzcraft"
+}

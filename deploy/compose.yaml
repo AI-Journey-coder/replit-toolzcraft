@@ -1,0 +1,29 @@
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        VITE_SITE_URL: ${VITE_SITE_URL:?Set public HTTPS URL}
+        VITE_OPERATOR_NAME: ${VITE_OPERATOR_NAME:?Set operator name}
+        VITE_CONTACT_EMAIL: ${VITE_CONTACT_EMAIL:?Set contact email}
+        VITE_OPERATOR_JURISDICTION: ${VITE_OPERATOR_JURISDICTION:-}
+        VITE_OPERATOR_ADDRESS: ${VITE_OPERATOR_ADDRESS:-}
+        VITE_DEFAULT_LOGO: ${VITE_DEFAULT_LOGO:-original}
+    restart: unless-stopped
+    read_only: true
+    security_opt: [no-new-privileges:true]
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?Set hostname without https}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [web]
+volumes:
+  caddy_data:
+  caddy_config:

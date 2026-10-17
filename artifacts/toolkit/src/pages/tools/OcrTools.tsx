@@ -134,31 +134,71 @@ export function PdfOcr() {
   const [status, setStatus] = useState("");
   const [pct, setPct] = useState(0);
   const [error, setError] = useState("");
+  const activeRun = useRef<{ cancel: () => void } | null>(null);
+  useEffect(() => () => activeRun.current?.cancel(), []);
+
+  const cancel = () => {
+    activeRun.current?.cancel();
+    activeRun.current = null;
+    setBusy(false);
+    setPct(0);
+    setStatus("OCR cancelled. Text from completed pages is kept.");
+  };
 
   const run = async () => {
-    if (!file) return;
+    if (!file || activeRun.current) return;
     setBusy(true);
     setError("");
     setText("");
     setPct(0);
+    setStatus("Loading PDF and OCR engine…");
     let worker: Awaited<ReturnType<typeof createOcrWorker>> | null = null;
     let doc: Awaited<ReturnType<Awaited<ReturnType<typeof getPdfjs>>["getDocument"]>["promise"]> | null = null;
+    let loadingTask: ReturnType<Awaited<ReturnType<typeof getPdfjs>>["getDocument"]> | null = null;
+    let renderTask: { cancel: () => void } | null = null;
+    let canvas: HTMLCanvasElement | null = null;
+    let cancelled = false;
+    const stop = () => {
+      cancelled = true;
+      renderTask?.cancel();
+      void worker?.terminate().catch(() => {});
+      worker = null;
+      void loadingTask?.destroy().catch(() => {});
+      loadingTask = null;
+      if (canvas) { canvas.width = 0; canvas.height = 0; }
+    };
+    const job = { cancel: stop };
+    activeRun.current = job;
     try {
       const pdfjs = await getPdfjs();
-      doc = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
-      worker = await createOcrWorker(lang, setPct);
+      if (cancelled) return;
+      const data = await file.arrayBuffer();
+      if (cancelled) return;
+      loadingTask = pdfjs.getDocument({ data });
+      doc = await loadingTask.promise;
+      if (cancelled) return;
+      worker = await createOcrWorker(lang, (value) => { if (!cancelled) setPct(value); });
+      // Worker initialization cannot be interrupted through Tesseract's public API.
+      // Dispose a late worker immediately instead of starting recognition.
+      if (cancelled) return;
       const maxPages = Math.min(doc.numPages, 20);
       const parts: string[] = [];
       for (let i = 1; i <= maxPages; i++) {
         setStatus(`Page ${i} of ${maxPages}`);
         setPct(0);
         const page = await doc.getPage(i);
+        if (cancelled) return;
         const viewport = page.getViewport({ scale: 2 });
-        const canvas = document.createElement("canvas");
+        canvas = document.createElement("canvas");
         canvas.width = viewport.width;
         canvas.height = viewport.height;
-        await page.render({ canvasContext: canvas.getContext("2d")!, viewport, canvas }).promise;
+        const rendering = page.render({ canvasContext: canvas.getContext("2d")!, viewport, canvas });
+        renderTask = rendering;
+        await rendering.promise;
+        renderTask = null;
+        if (cancelled) return;
         const result = await worker.recognize(canvas);
+        if (cancelled) return;
         canvas.width = 0;
         canvas.height = 0;
         page.cleanup();
@@ -170,12 +210,16 @@ export function PdfOcr() {
         setText(parts.join("\n\n"));
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "PDF OCR failed");
+      if (!cancelled) setError(e instanceof Error ? e.message : "PDF OCR failed");
     } finally {
       await worker?.terminate().catch(() => {});
-      await doc?.cleanup().catch(() => {});
-      setBusy(false);
-      setStatus("");
+      await loadingTask?.destroy().catch(() => {});
+      if (canvas) { canvas.width = 0; canvas.height = 0; }
+      if (activeRun.current === job) {
+        activeRun.current = null;
+        setBusy(false);
+        setStatus("");
+      }
     }
   };
 
@@ -189,11 +233,11 @@ export function PdfOcr() {
         <div className="grid gap-3 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="pdfocr-file">PDF file</Label>
-            <Input id="pdfocr-file" type="file" accept="application/pdf" onChange={(e) => { setFile(e.target.files?.[0] ?? null); setText(""); }} data-testid="input-pdfocr-file" />
+            <Input id="pdfocr-file" type="file" accept="application/pdf" disabled={busy} onChange={(e) => { setFile(e.target.files?.[0] ?? null); setText(""); setStatus(""); setError(""); }} data-testid="input-pdfocr-file" />
           </div>
           <div className="space-y-2">
             <Label>Language</Label>
-            <Select value={lang} onValueChange={setLang}>
+            <Select value={lang} onValueChange={setLang} disabled={busy}>
               <SelectTrigger data-testid="select-pdfocr-lang"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {OCR_LANGUAGES.map((l) => (
@@ -206,15 +250,17 @@ export function PdfOcr() {
         {busy && (
           <div className="space-y-1">
             <Progress value={pct} />
-            <p className="text-xs text-muted-foreground font-mono">{status} — {pct}%</p>
+            <p role="status" className="text-xs text-muted-foreground font-mono">{status} — {pct}%</p>
           </div>
         )}
+        {!busy && status && <p role="status" className="text-sm text-muted-foreground">{status}</p>}
         {error && <p className="text-sm text-destructive">{error}</p>}
         <div className="flex gap-2">
           <Button onClick={run} disabled={!file || busy} data-testid="button-pdfocr">
             {busy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <ScanLine className="h-4 w-4 mr-1" />}
             Run OCR
           </Button>
+          {busy && <Button variant="outline" onClick={cancel} data-testid="button-pdfocr-cancel">Cancel OCR</Button>}
           {text && !busy && (
             <Button variant="outline" onClick={() => navigator.clipboard.writeText(text).catch(() => {})} data-testid="button-pdfocr-copy">
               <Copy className="h-4 w-4 mr-1" /> Copy

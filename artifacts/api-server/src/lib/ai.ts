@@ -28,7 +28,7 @@ let model = "";
 function getClient(): { client: OpenAI; model: string } {
   if (!client) {
     const config = resolveProvider();
-    client = new OpenAI({ apiKey: config.apiKey, baseURL: config.baseURL });
+    client = new OpenAI({ apiKey: config.apiKey, baseURL: config.baseURL, timeout: 25000, maxRetries: 1 });
     model = config.model;
   }
   return { client, model };
@@ -41,12 +41,15 @@ export async function completeChat(
   const { client, model } = getClient();
   const response = await client.chat.completions.create({
     model,
+    max_tokens: 2048,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
     ],
   });
+  if(response.choices[0]?.finish_reason!=='stop')throw new Error('Incomplete AI response; shorten the input');
   const text = response.choices[0]?.message?.content;
   if (!text) throw new Error("AI provider returned an empty response");
   return text.trim();
 }
+

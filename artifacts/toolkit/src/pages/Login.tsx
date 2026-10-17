@@ -16,7 +16,8 @@ import { useAuth } from "@/hooks/use-auth";
 
 export function Login() {
   const [, navigate] = useLocation();
-  const { user } = useAuth();
+  const { user, error: authError } = useAuth();
+  const phoneEnabled=import.meta.env.VITE_ENABLE_PHONE_AUTH==="true";
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [confirmation, setConfirmation] = useState<ConfirmationResult | null>(null);
@@ -94,10 +95,10 @@ export function Login() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><LogIn className="h-5 w-5" /> Sign in</CardTitle>
-          <CardDescription>Sign in with your mobile number or Google account</CardDescription>
+          <CardDescription>Sign in with your Google account</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {!confirmation ? (
+          {phoneEnabled&&<><p className="text-sm">By requesting a code, you agree to Google processing your phone number for authentication and spam prevention. SMS may incur carrier charges.</p>{!confirmation ? (
             <div className="space-y-3">
               <Label htmlFor="phone">Mobile number (with country code)</Label>
               <div className="flex gap-2">
@@ -143,11 +144,12 @@ export function Login() {
             </div>
           </div>
 
+          </>}
           <Button variant="outline" className="w-full" onClick={googleSignIn} disabled={busy} data-testid="button-google-signin">
             Continue with Google
           </Button>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {(error||authError) && <p role="alert" className="text-sm text-destructive">{error||authError}</p>}
           <div id="recaptcha-container" />
         </CardContent>
       </Card>

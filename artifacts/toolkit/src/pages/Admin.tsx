@@ -1,3 +1,4 @@
+import {OperationsTab} from "./admin/OperationsTab";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,6 +24,7 @@ interface AdminUser {
   disabled: boolean;
   createdAt: string;
   lastLoginAt: string;
+  access:{remaining:number|null;unlimited:boolean;creditOverride:boolean};
 }
 interface ToolSetting {
   toolSlug: string;
@@ -83,13 +85,15 @@ export function Admin() {
         <h1 className="text-2xl font-bold">Admin</h1>
       </div>
       <Tabs defaultValue="users">
-        <TabsList className="flex-wrap">
+        <TabsList className="flex-wrap h-auto gap-1">
+          <TabsTrigger value="operations">Billing & operations</TabsTrigger>
           <TabsTrigger value="users" data-testid="tab-users">Users</TabsTrigger>
           <TabsTrigger value="tools" data-testid="tab-tools">Tools</TabsTrigger>
-          <TabsTrigger value="packages" data-testid="tab-packages">Packages</TabsTrigger>
+          <TabsTrigger value="packages" data-testid="tab-packages">Legacy packages</TabsTrigger>
           <TabsTrigger value="stats" data-testid="tab-stats">Usage</TabsTrigger>
           <TabsTrigger value="apikeys" data-testid="tab-apikeys">API Keys</TabsTrigger>
         </TabsList>
+        <TabsContent value="operations"><OperationsTab /></TabsContent>
         <TabsContent value="users"><UsersTab /></TabsContent>
         <TabsContent value="tools"><ToolsTab /></TabsContent>
         <TabsContent value="packages"><PackagesTab /></TabsContent>
@@ -105,6 +109,7 @@ function UsersTab() {
   const { toast } = useToast();
   const { user: me } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [filter,setFilter]=useState('');
 
   const load = useCallback(async () => {
     setUsers(await authedFetch<AdminUser[]>(await getToken(), "admin/users"));
@@ -128,23 +133,23 @@ function UsersTab() {
 
   return (
     <Card>
-      <CardHeader><CardTitle>Users ({users.length})</CardTitle></CardHeader>
+      <CardHeader><CardTitle>Users ({users.length})</CardTitle><CardDescription>Activate accounts and manage AI credits. Administrators have unlimited credits; rate and request limits still apply.</CardDescription><Input aria-label="Search users" placeholder="Search name or email" value={filter} onChange={e=>setFilter(e.target.value)}/></CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>User</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead>Plan</TableHead>
+              <TableHead>AI credits</TableHead>
               <TableHead>Last login</TableHead>
               <TableHead>Active</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((u) => (
+            {users.filter(u=>[u.displayName,u.email,u.phoneNumber].some(v=>v?.toLowerCase().includes(filter.toLowerCase()))).map((u) => (
               <TableRow key={u.id} data-testid={`row-user-${u.id}`}>
                 <TableCell className="font-mono text-xs">
-                  {u.displayName || u.email || u.phoneNumber || `#${u.id}`}
+                  {u.displayName || u.email || u.phoneNumber || `#${u.id}`}<div className="text-muted-foreground">{u.email}</div>
                   {me?.id === u.id && <Badge variant="secondary" className="ml-2">you</Badge>}
                 </TableCell>
                 <TableCell>
@@ -160,19 +165,12 @@ function UsersTab() {
                   </Button>
                 </TableCell>
                 <TableCell>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
-                    onClick={() => update(u.id, { plan: u.plan === "free" ? "premium" : "free" })}
-                    data-testid={`button-plan-${u.id}`}
-                  >
-                    {u.plan}
-                  </Button>
+                  <UserCredits user={u} getToken={getToken} onSaved={load}/>
                 </TableCell>
                 <TableCell className="font-mono text-xs">{new Date(u.lastLoginAt).toLocaleString()}</TableCell>
                 <TableCell>
                   <Switch
+                    aria-label={`Activate ${u.email||u.id}`}
                     checked={!u.disabled}
                     disabled={me?.id === u.id}
                     onCheckedChange={(v) => update(u.id, { disabled: !v })}
@@ -187,6 +185,14 @@ function UsersTab() {
       </CardContent>
     </Card>
   );
+}
+
+function UserCredits({user,getToken,onSaved}:{user:AdminUser;getToken:()=>Promise<string>;onSaved:()=>Promise<void>}){
+ const [value,setValue]=useState('');const [reason,setReason]=useState('');const [busy,setBusy]=useState(false);const [message,setMessage]=useState('');
+ if(user.role==='admin')return <Badge>Unlimited</Badge>;
+ async function save(reset=false){const n=Number(value);if(!reason.trim()||(!reset&&(!value.trim()||!Number.isInteger(n)||n<0||n>1000000))){setMessage('Enter a whole number from 0 to 1,000,000 and a reason.');return;}
+ setBusy(true);setMessage('');try{await authedFetch(await getToken(),'admin/users/'+user.id+'/credits',{method:'PUT',body:JSON.stringify({remaining:reset?null:n,reason})});await onSaved();setMessage('Saved');setValue('');setReason('');}catch(e){setMessage(e instanceof Error?e.message:'Could not save');}finally{setBusy(false);}}
+ return <div className="min-w-56 space-y-2"><strong>{user.access?.remaining??0} remaining</strong><p className="text-xs text-muted-foreground">{user.access?.creditOverride?'Manual balance · no automatic renewal':'Trial / paid plan allowance'}</p><details><summary className="cursor-pointer text-primary">Edit credits</summary><div className="mt-2 space-y-2"><Input aria-label={'Credits for '+user.email} type="number" min={0} max={1000000} step={1} value={value} disabled={busy} onChange={e=>setValue(e.target.value)} placeholder="Set available balance"/><Input aria-label={'Reason for '+user.email} value={reason} maxLength={300} disabled={busy} onChange={e=>setReason(e.target.value)} placeholder="Reason (required)"/><p className="text-xs">Replaces the available balance until reset. Paid invoices are unchanged.</p><div className="flex flex-wrap gap-2"><Button size="sm" disabled={busy} onClick={()=>void save()}>Set credits</Button><Button size="sm" variant="outline" disabled={busy||!user.access?.creditOverride} onClick={()=>void save(true)}>Use plan allowance</Button></div></div></details>{message&&<p role="status" className="text-xs">{message}</p>}</div>;
 }
 
 function ToolsTab() {
@@ -330,7 +336,7 @@ function PackagesTab() {
       <Card>
         <CardHeader>
           <CardTitle>New package</CardTitle>
-          <CardDescription>Set the fee and billing period for a premium package.</CardDescription>
+          <CardDescription>Legacy records only. These do not change Razorpay pricing or grant subscription access.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-5">
           <div className="space-y-1">
