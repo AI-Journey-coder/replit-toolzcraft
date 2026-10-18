@@ -46,12 +46,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-[100dvh] flex flex-col font-sans">
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex h-14 w-full items-center justify-between gap-3 px-4 md:px-6">
+        <div className="flex min-h-14 w-full flex-wrap items-center justify-between gap-2 px-4 py-2 md:px-6">
           <div className="flex items-center gap-2"><Button variant="ghost" className="lg:hidden" aria-expanded={sidebarOpen} aria-controls="mobile-tool-directory" onClick={()=>setSidebarOpen(v=>!v)}>Tools</Button><Link href="/" aria-label="ToolzCraft home" className="hover:opacity-80 transition-opacity">
             <LogoWordmark />
           </Link></div>
 
-          <div className="flex items-center gap-2"><Link href="/my-tools" className="text-sm hover:underline">My tools</Link> <Link href="/subscriptions" className="text-sm font-medium text-primary hover:underline" data-testid="link-subscriptions">Subscriptions</Link>
+          <div className="flex max-w-full flex-wrap items-center gap-2"><Link href="/my-tools" className="text-sm hover:underline">My tools</Link> <Link href="/subscriptions" className="text-sm font-medium text-primary hover:underline" data-testid="link-subscriptions">Subscriptions</Link>
             <div className="relative hidden md:block w-72">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
