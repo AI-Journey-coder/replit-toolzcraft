@@ -15,7 +15,7 @@ jobs:
           POSTGRES_DB: toolzcraft_test
         ports: ["5432:5432"]
         options: >-
-          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgresql://postgres:test-only@localhost:5432/toolzcraft_test
       BILLING_TEST_DATABASE_URL: postgresql://postgres:test-only@localhost:5432/toolzcraft_test
@@ -44,3 +44,18 @@ jobs:
         with:
           name: release-test-results
           path: test-results/
+
+  api-container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f Dockerfile.api -t toolzcraft-api:test .
+      - name: Verify API container starts without development dependencies
+        run: |
+          docker run -d --name api-test -p 127.0.0.1:5080:8080 -e DATABASE_URL=postgresql://test:test@127.0.0.1:5432/test -e APP_ORIGIN=https://staging.example.com -e FIREBASE_PROJECT_ID=container-smoke-test toolzcraft-api:test
+          trap 'docker logs api-test; docker rm -f api-test' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:5080/api/healthz; then exit 0; fi
+            sleep 2
+          done
+          exit 1

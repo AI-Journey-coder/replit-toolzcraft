@@ -28,7 +28,7 @@ let model = "";
 function getClient(): { client: OpenAI; model: string } {
   if (!client) {
     const config = resolveProvider();
-    client = new OpenAI({ apiKey: config.apiKey, baseURL: config.baseURL, timeout: 25000, maxRetries: 1 });
+    client = new OpenAI({ apiKey: config.apiKey, baseURL: config.baseURL, timeout: 25000, maxRetries: 0 });
     model = config.model;
   }
   return { client, model };
