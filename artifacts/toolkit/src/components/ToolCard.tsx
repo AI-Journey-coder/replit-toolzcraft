@@ -18,6 +18,7 @@ export function ToolCard({ tool }: ToolCardProps) {
           </div>
           <div className="flex-1 space-y-1">
             <CardTitle className="text-base">{tool.name}</CardTitle>
+            {tool.category==='ai'&&<p className="text-xs font-semibold text-primary">Backend · 3 free AI credits</p>}
             <CardDescription className="text-xs line-clamp-2">{tool.description}</CardDescription>
           </div>
         </CardHeader>
@@ -28,3 +29,4 @@ export function ToolCard({ tool }: ToolCardProps) {
     </Link>
   );
 }
+

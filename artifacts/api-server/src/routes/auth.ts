@@ -1,5 +1,6 @@
+import { initialRole } from '../lib/security';
 import { Router, type IRouter } from "express";
-import { count, eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db, usersTable } from "@workspace/db";
 import { SyncUserResponse } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/auth";
@@ -28,23 +29,10 @@ router.post("/auth/sync", requireAuth, async (req, res) => {
     displayName: (fb.name as string | undefined) ?? null,
     photoUrl: (fb.picture as string | undefined) ?? null,
   };
-  const user = await db.transaction(async (tx) => {
-    // Advisory lock serializes concurrent first sign-ins so exactly one
-    // account can ever be auto-promoted to admin.
-    await tx.execute(sql`select pg_advisory_xact_lock(874230911)`);
-    const [{ n: userCount }] = (await tx
-      .select({ n: count() })
-      .from(usersTable)) as [{ n: number }];
-    const [row] = await tx
-      .insert(usersTable)
-      .values(userCount === 0 ? { ...values, role: "admin" } : values)
-      .onConflictDoUpdate({
-        target: usersTable.firebaseUid,
-        set: { ...values, lastLoginAt: new Date() },
-      })
-      .returning();
-    return row!;
-  });
+  const [user] = await db.insert(usersTable)
+    .values({...values,role:initialRole(fb.uid)})
+    .onConflictDoUpdate({target:usersTable.firebaseUid,set:{...values,lastLoginAt:new Date()}})
+    .returning();
   if (user!.disabled) {
     res.status(403).json({ message: "Account is disabled" });
     return;

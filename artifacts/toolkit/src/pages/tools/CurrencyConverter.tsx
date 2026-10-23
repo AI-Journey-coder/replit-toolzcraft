@@ -1,3 +1,5 @@
+import {preferredDate} from '@/lib/display-units';
+import { usePreferences } from '@/hooks/use-preferences';
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -62,7 +64,8 @@ interface RatesResult {
 
 export function CurrencyConverter() {
   const [amount, setAmount] = useState("1");
-  const [base, setBase] = useState("USD");
+  const {preferences}=usePreferences();
+  const [base, setBase] = useState(preferences.currency);
   const [ratesData, setRatesData] = useState<RatesResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -129,7 +132,7 @@ export function CurrencyConverter() {
 
           {ratesData && (
             <p className="text-xs text-muted-foreground font-mono">
-              Rates updated: {formatDate(ratesData.updatedAt)}
+              Rates updated: {preferredDate(new Date(ratesData.updatedAt),preferences.dateFormat)}
             </p>
           )}
 

@@ -1,4 +1,7 @@
-import { useEffect } from "react";
+import {ToolTerms} from '@/components/ToolTerms';
+import { usePreferences } from '@/hooks/use-preferences';
+import { ToolGuide } from "@/components/ToolGuide";
+import { useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { ChevronLeft, Home } from "lucide-react";
 import { TOOLS, CATEGORIES } from "@/lib/tools-registry";
@@ -11,14 +14,16 @@ interface ToolShellProps {
 }
 
 export function ToolShell({ children }: ToolShellProps) {
+  const content=useRef<HTMLDivElement>(null);
   const [location] = useLocation();
+  const {preferences,toggleFavorite}=usePreferences();
   const { firebaseUser } = useAuth();
   const slug = location.replace("/tools/", "");
   const tool = TOOLS.find(t => t.slug === slug);
   const category = tool ? CATEGORIES.find(c => c.slug === tool.category) : undefined;
 
   useEffect(() => {
-    if (!tool) return;
+    if (!tool || import.meta.env.VITE_ENABLE_USAGE_TRACKING !== "true") return;
     (async () => {
       try {
         const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -45,7 +50,7 @@ export function ToolShell({ children }: ToolShellProps) {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="w-full max-w-6xl mx-auto space-y-4 animate-in fade-in duration-300">
       <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
         <Link href="/">
           <span className="flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer">
@@ -79,7 +84,13 @@ export function ToolShell({ children }: ToolShellProps) {
         Back
       </Button>
 
-      {children}
+      {tool?.category === "ai" && <p className="rounded-lg border p-4 text-sm">Backend · 3 free AI credits per account, shared across AI tools. <Link href="/subscriptions" className="underline">View subscriptions</Link>. Submitting sends your text to our server and configured AI provider. Avoid confidential information. AI output can be incorrect; check it against your source.</p>}
+      {tool&&<Button variant="outline" aria-pressed={preferences.favorites.includes(tool.slug)} onClick={()=>toggleFavorite(tool.slug)}>{preferences.favorites.includes(tool.slug)?'★ Saved to favourites':'☆ Add to favourites'}</Button>}
+      {tool&&<ToolTerms content={content} name={tool.name}/>}
+      <div ref={content} className="space-y-4">{children}
+      {tool && <ToolGuide tool={tool} />}</div>
     </div>
   );
 }
+
+

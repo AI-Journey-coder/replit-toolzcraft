@@ -1,3 +1,4 @@
+import {NumberControl} from '@/components/NumberControl';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -102,7 +103,7 @@ function BreakEvenCard({ title, fields, calc }: { title: string; fields: Array<{
           {fields.map(f => (
             <div key={f.key}>
               <Label>{f.label} {f.unit && <span className="text-muted-foreground">({f.unit})</span>}</Label>
-              <Input type="number" min={0} step={0.01} value={f.value} onChange={e => f.setter(+e.target.value)} />
+              <NumberControl label={f.label} min={0} step={1} value={f.value} onChange={f.setter}/>
             </div>
           ))}
         </div>
@@ -147,23 +148,23 @@ export function SaasBreakEven() {
   const [cac, setCac] = useState(200);
   const [churn, setChurn] = useState(5);
   const ltv = churn > 0 ? mrr / (churn / 100) : 0;
-  const breakEvenCustomers = fixed > 0 ? Math.ceil(fixed / mrr) : 0;
+  const breakEvenCustomers = mrr > 0 ? Math.ceil(fixed / mrr) : null;
   const ltvCacRatio = cac > 0 ? ltv / cac : 0;
 
   return <BreakEvenCard
-    title="SaaS Break-Even"
+    title="Software as a Service (SaaS) Break-Even"
     fields={[
       { label: "Monthly Fixed Costs", key: "fixed", value: fixed, setter: setFixed, unit: "$" },
-      { label: "MRR per Customer", key: "mrr", value: mrr, setter: setMrr, unit: "$" },
-      { label: "CAC (Customer Acquisition Cost)", key: "cac", value: cac, setter: setCac, unit: "$" },
-      { label: "Monthly Churn Rate", key: "churn", value: churn, setter: setChurn, unit: "%" },
+      { label: "Monthly subscription income per customer", key: "mrr", value: mrr, setter: setMrr, unit: "$" },
+      { label: "Cost to gain one customer", key: "cac", value: cac, setter: setCac, unit: "$" },
+      { label: "Customers leaving each month", key: "churn", value: churn, setter: setChurn, unit: "%" },
     ]}
     calc={() => ({
-      label: `Break-even: ${breakEvenCustomers} paying customers`,
+      label: fixed<0||mrr<=0||cac<0||churn<0||churn>100?"Enter positive subscription income, non-negative costs and a customer loss rate from 0 to 100%.":`Break-even: ${breakEvenCustomers} paying customers`,
       extra: [
-        `Customer LTV: ${fmtCur(ltv)}`,
-        `LTV:CAC Ratio: ${fmt(ltvCacRatio)}x ${ltvCacRatio >= 3 ? "✓ Healthy" : "⚠ Low"}`,
-        `CAC Payback: ${mrr > 0 ? Math.ceil(cac / mrr) : "∞"} months`,
+        `Estimated lifetime revenue per customer: ${churn>0?fmtCur(ltv):"No finite estimate when nobody leaves"}`,
+        `Lifetime revenue ÷ customer acquisition cost: ${fmt(ltvCacRatio)}x (before service costs)`,
+        `Months to recover customer acquisition cost: ${mrr > 0 ? Math.ceil(cac / mrr) : "∞"} months`,
       ],
     })}
   />;

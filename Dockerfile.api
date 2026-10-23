@@ -1,0 +1,19 @@
+# Build the API independently from the public website. Never pass secrets at build time.
+FROM node:22-bookworm-slim AS build
+WORKDIR /workspace
+RUN corepack enable && corepack prepare pnpm@10.34.5 --activate
+COPY . .
+RUN pnpm install --frozen-lockfile
+RUN pnpm --filter @workspace/api-server build
+RUN pnpm --filter @workspace/api-server --prod deploy --legacy /runtime
+# dist is ignored by Git; copy the generated bundle explicitly.
+RUN cp -r artifacts/api-server/dist /runtime/dist
+
+FROM node:22-bookworm-slim AS api
+WORKDIR /app
+ENV NODE_ENV=production PORT=8080
+COPY --from=build --chown=node:node /runtime ./
+USER node
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s CMD node -e "fetch('http://127.0.0.1:'+process.env.PORT+'/api/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+CMD ["node", "dist/index.mjs"]

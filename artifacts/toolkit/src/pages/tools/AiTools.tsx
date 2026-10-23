@@ -1,3 +1,6 @@
+import {Link} from 'wouter';
+import {Source} from './DocumentWorkflows';
+import { getAuth } from 'firebase/auth';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -8,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Copy, Sparkles } from "lucide-react";
 import { apiUrl } from "@/lib/api";
 
-const MAX_CHARS = 60000;
+const MAX_CHARS = 6000;
 
 type Task = "summarize" | "key-points" | "qa" | "translate";
 
@@ -18,12 +21,17 @@ async function analyze(body: {
   question?: string;
   targetLanguage?: string;
 }): Promise<string> {
+  if (import.meta.env.VITE_ENABLE_AI !== "true") throw new Error("AI analysis is unavailable in this preview. Browser-only tools remain available.");
+  const user=getAuth().currentUser;
+  if(!user)throw new Error("Sign in to use AI tools.");
+  const token=await user.getIdToken();
   const res = await fetch(apiUrl("/ai/analyze"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify(body),
   });
   const data = await res.json().catch(() => null);
+  if(res.status===402 && data?.code==='SUBSCRIPTION_REQUIRED')throw new Error('SUBSCRIPTION_REQUIRED');
   if (!res.ok) {
     throw new Error(data?.message ?? `Request failed: ${res.status}`);
   }
@@ -38,11 +46,12 @@ function useAiTool() {
 
   const run = async (body: Omit<Parameters<typeof analyze>[0], "text">) => {
     if (!text.trim()) return;
+    if (text.length > MAX_CHARS) { setError("Shorten the document to 6,000 characters before continuing. Nothing has been sent."); return; }
     setBusy(true);
     setError("");
     setResult("");
     try {
-      setResult(await analyze({ ...body, text: text.slice(0, MAX_CHARS) }));
+      setResult(await analyze({ ...body, text }));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Analysis failed");
     } finally {
@@ -92,6 +101,7 @@ function ResultBox({ result, error, busy }: { result: string; error: string; bus
       </div>
     );
   }
+  if(error==='SUBSCRIPTION_REQUIRED')return <div role="alert" className="rounded-xl border p-4"><p>Your AI credits are used. Check your plan and next renewal date.</p><Link href="/subscriptions" className="inline-block mt-3 underline text-primary">View subscription and credits</Link></div>;
   if (error) {
     return <p className="text-sm text-destructive" data-testid="text-error">{error}</p>;
   }
@@ -117,15 +127,19 @@ function ResultBox({ result, error, busy }: { result: string; error: string; bus
 // ─── AI Summarizer ────────────────────────────────────────────────────────────
 export function AiSummarizer() {
   const t = useAiTool();
+  const [consent, setConsent] = useState(false);
   return (
     <Card>
       <CardHeader>
         <CardTitle>AI Document Summarizer</CardTitle>
-        <CardDescription>Paste any document text and get a concise summary with key bullet points.</CardDescription>
+        <CardDescription>Upload a PDF, image or TXT file, or paste text. Review the extracted text, then create a concise summary.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <TextInput text={t.text} setText={t.setText} placeholder="Paste your document text here…" />
-        <Button onClick={() => t.run({ task: "summarize" })} disabled={t.busy || !t.text.trim()} data-testid="button-run">
+        <Source label="Document to summarize" value={t.text} onChange={value => { t.setText(value); setConsent(false); }} disabled={t.busy} />
+        <p className="text-sm text-muted-foreground">{t.text.length.toLocaleString()} / 6,000 characters · 1 credit per successful summary</p>
+        {t.text.length > MAX_CHARS && <p role="alert" className="text-destructive">Choose a shorter section or edit the extracted text to 6,000 characters. Nothing will be silently cut off.</p>}
+        <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={consent} disabled={t.busy} onChange={e => setConsent(e.target.checked)} />Send the reviewed text to our AI provider. The original file stays on this device.</label>
+        <Button onClick={() => t.run({ task: "summarize" })} disabled={t.busy || !t.text.trim() || !consent || t.text.length > MAX_CHARS} data-testid="button-run">
           <Sparkles className="h-4 w-4 mr-2" /> Summarize
         </Button>
         <ResultBox result={t.result} error={t.error} busy={t.busy} />
@@ -231,3 +245,5 @@ export function AiTranslator() {
     </Card>
   );
 }
+
+

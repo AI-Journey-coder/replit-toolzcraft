@@ -1,0 +1,2 @@
+import { defineConfig } from '@playwright/test';
+export default defineConfig({testDir:'./tests',outputDir:'test-results/run',timeout:60000,workers:1,use:{baseURL:'http://127.0.0.1:3080',headless:true,trace:'retain-on-failure'},webServer:{command:'node deploy/server.mjs',url:'http://127.0.0.1:3080/healthz',env:{PORT:'3080',HOST:'127.0.0.1',STAGING:'true'},reuseExistingServer:false},reporter:[['list'],['html',{open:'never',outputFolder:'test-results/report'}]]});

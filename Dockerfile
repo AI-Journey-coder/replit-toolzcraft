@@ -1,0 +1,32 @@
+# Build with public frontend configuration only. Secrets belong to the API runtime.
+FROM node:22-bookworm-slim AS build
+WORKDIR /app
+RUN corepack enable && corepack prepare pnpm@10.34.5 --activate
+COPY . .
+RUN pnpm install --frozen-lockfile
+ARG VITE_SITE_URL
+ARG VITE_OPERATOR_NAME
+ARG VITE_CONTACT_EMAIL
+ARG VITE_OPERATOR_JURISDICTION
+ARG VITE_OPERATOR_ADDRESS
+ENV VITE_OPERATOR_ADDRESS=$VITE_OPERATOR_ADDRESS
+ARG VITE_DEFAULT_LOGO=original
+ARG VITE_FIREBASE_API_KEY
+ARG VITE_FIREBASE_PROJECT_ID
+ARG VITE_FIREBASE_APP_ID
+ARG BUILD_TARGET=production
+ENV BUILD_TARGET=$BUILD_TARGET
+ARG VITE_ENABLE_AI=false
+ARG VITE_ENABLE_PHONE_AUTH=false
+ARG VITE_ADSENSE_PUBLISHER_ID
+ENV VITE_SITE_URL=$VITE_SITE_URL VITE_OPERATOR_NAME=$VITE_OPERATOR_NAME VITE_CONTACT_EMAIL=$VITE_CONTACT_EMAIL VITE_OPERATOR_JURISDICTION=$VITE_OPERATOR_JURISDICTION VITE_DEFAULT_LOGO=$VITE_DEFAULT_LOGO VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID VITE_ENABLE_AI=$VITE_ENABLE_AI VITE_ENABLE_PHONE_AUTH=$VITE_ENABLE_PHONE_AUTH VITE_ADSENSE_PUBLISHER_ID=$VITE_ADSENSE_PUBLISHER_ID
+RUN pnpm build:local && node scripts/check-publication.cjs && if [ "$BUILD_TARGET" = "staging" ]; then touch artifacts/toolkit/dist/public/.staging-build; fi
+FROM node:22-bookworm-slim AS web
+WORKDIR /app
+ENV NODE_ENV=production PORT=8080
+COPY --from=build --chown=node:node /app/artifacts/toolkit/dist/public ./artifacts/toolkit/dist/public
+COPY --chown=node:node deploy/server.mjs ./deploy/server.mjs
+USER node
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s CMD node -e "fetch('http://127.0.0.1:8080/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+CMD ["node","deploy/server.mjs"]

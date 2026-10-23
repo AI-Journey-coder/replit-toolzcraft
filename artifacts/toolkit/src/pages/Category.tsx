@@ -8,7 +8,8 @@ import { ChevronLeft, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function CategoryPage() {
-  const { slug } = useParams();
+  const { slug: requestedSlug } = useParams();
+  const slug = requestedSlug === 'media' ? 'image' : requestedSlug === 'files' ? 'data' : requestedSlug;
   useScrollRestore(`category:${slug}`);
   const category = CATEGORIES.find(c => c.slug === slug);
   const categoryTools = TOOLS.filter(t => t.category === slug);
