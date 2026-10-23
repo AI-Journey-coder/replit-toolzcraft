@@ -11,7 +11,7 @@ import {Textarea} from '@/components/ui/textarea';
 import {FileText,ScanLine,Sparkles,Download} from 'lucide-react';
 type Task='invoice'|'table'|'scan'|'compare';
 const names={invoice:'Receipt & Invoice Extractor',table:'Table to Spreadsheet',scan:'Scan to Summary or Translation',compare:'Compare Documents'};
-function Source({label,value,onChange,disabled}:{label:string;value:string;onChange:(s:string)=>void;disabled:boolean}){
+export function Source({label,value,onChange,disabled}:{label:string;value:string;onChange:(s:string)=>void;disabled:boolean}){
  const [status,setStatus]=useState('');const [busy,setBusy]=useState(false);const [language,setLanguage]=useState('eng');const cancel=useRef(()=>{});const alive=useRef(true);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;cancel.current();};},[]);
  async function read(file:File){if(file.size>20*1024*1024){setStatus('Choose a file under 20 MB.');return;}setBusy(true);setStatus('Reading locally…');let stopped=false;let worker:Awaited<ReturnType<typeof import('tesseract.js')['createWorker']>>|undefined;let pdf:any;cancel.current=()=>{stopped=true;void worker?.terminate();};
