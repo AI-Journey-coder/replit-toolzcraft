@@ -4,11 +4,34 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Metadata is available only to the Cloud Run runtime; tokens never reach the browser.
+export function cloudRunIdentity(audience, transport=fetch) {
+ let cached='', expires=0, pending;
+ return async () => {
+  if(cached && Date.now()<expires) return cached;
+  if(pending) return pending;
+  pending=(async()=>{
+   const url=new URL('http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity');
+   url.searchParams.set('audience',audience);url.searchParams.set('format','full');
+   const response=await transport(url,{headers:{'Metadata-Flavor':'Google'},redirect:'error',signal:AbortSignal.timeout(5000)});
+   if(!response.ok)throw new Error('Service identity unavailable');
+   const token=(await response.text()).trim();
+   if(!/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token))throw new Error('Invalid service identity');
+   const claims=JSON.parse(Buffer.from(token.split('.')[1],'base64url').toString());
+   if(claims.aud!==audience||!Number.isFinite(claims.exp)||claims.exp*1000<Date.now()+60000)throw new Error('Expired or mismatched service identity');
+   cached=token;expires=Math.min(claims.exp*1000-60000,Date.now()+300000);return token;
+  })();
+  try{return await pending;}finally{pending=undefined;}
+ };
+}
+
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.wasm':'application/wasm','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.ico':'image/x-icon','.xml':'application/xml','.txt':'text/plain; charset=utf-8','.zip':'application/zip','.whl':'application/zip','.pdf':'application/pdf','.woff2':'font/woff2'};
-export function createServer({root=path.resolve('artifacts/toolkit/dist/public'),upstream=process.env.API_UPSTREAM,production=process.env.NODE_ENV==='production',staging=process.env.STAGING==='true'}={}){
+export function createServer({root=path.resolve('artifacts/toolkit/dist/public'),upstream=process.env.API_UPSTREAM,production=process.env.NODE_ENV==='production',staging=process.env.STAGING==='true',cloudRunAuth=process.env.API_CLOUD_RUN_AUTH==='true',identityProvider}={}){
  root=fs.realpathSync(root);
  let api;if(upstream){api=new URL(upstream);if(!['http:','https:'].includes(api.protocol)||api.username||api.password||api.pathname!=='/'||api.search||api.hash)throw new Error('API_UPSTREAM must be an HTTP(S) origin without credentials or path.');}
- const server=http.createServer((req,res)=>{
+ if(cloudRunAuth&&(!api||api.protocol!=='https:'))throw new Error('Cloud Run authentication requires an HTTPS API_UPSTREAM.');
+ const getIdentity=identityProvider||(cloudRunAuth?cloudRunIdentity(api.origin):null);
+ const server=http.createServer(async(req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');res.setHeader('X-Frame-Options','DENY');res.setHeader('Permissions-Policy','camera=(), microphone=(), geolocation=()');
   // same-origin-allow-popups preserves the Firebase Google sign-in popup.
   res.setHeader('Cross-Origin-Opener-Policy','same-origin-allow-popups');
@@ -22,7 +45,9 @@ export function createServer({root=path.resolve('artifacts/toolkit/dist/public')
   if(pathname==='/healthz')return finish(200,'ok');
   if(pathname==='/api'||pathname.startsWith('/api/')){
    if(!api)return finish(503,'Online features are not enabled.');
-   const headers={...req.headers,host:api.host};delete headers['forwarded'];delete headers['x-forwarded-for'];delete headers['x-forwarded-host'];delete headers['x-forwarded-proto'];
+   const headers={...req.headers,host:api.host};delete headers['forwarded'];delete headers['x-forwarded-for'];delete headers['x-forwarded-host'];delete headers['x-forwarded-proto'];delete headers['x-serverless-authorization'];
+   if(getIdentity){try{headers['x-serverless-authorization']='Bearer '+await getIdentity();}catch{return finish(503,'Online service authentication unavailable');}}
+   if(req.destroyed||res.destroyed)return;
    const proxy=(api.protocol==='https:'?https:http).request(new URL(req.url,api),{method:req.method,headers,timeout:30000},r=>{res.statusCode=r.statusCode||502;for(const [k,v] of Object.entries(r.headers))if(v!==undefined&&!['connection','transfer-encoding','content-security-policy'].includes(k))res.setHeader(k,v);res.setHeader('Cache-Control','no-store');r.pipe(res);});
    let size=0;req.on('data',chunk=>{size+=chunk.length;if(size>262144){proxy.destroy();if(!res.headersSent)finish(413,'Request body too large');}});proxy.on('timeout',()=>proxy.destroy());proxy.on('error',()=>{if(!res.headersSent)finish(502,'Online service unavailable');else res.destroy();});res.on('close',()=>proxy.destroy());req.pipe(proxy);return;
   }

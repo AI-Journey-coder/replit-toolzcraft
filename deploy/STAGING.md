@@ -23,3 +23,8 @@ No credentials should be pasted into chat. These read operations identify the si
 - Keep staging API at one instance until distributed throttling is implemented and verified. This is a temporary staging constraint, not a production scaling design.
 
 No cloud resources have been created by preparing this file.
+
+## Private API proxy
+Set API_CLOUD_RUN_AUTH=true and API_UPSTREAM to the exact private API service HTTPS origin on the staging website. The web runtime identity must have roles/run.invoker on that API. Service identity is obtained from Cloud Run metadata and sent via X-Serverless-Authorization; the user Firebase Authorization header remains intact. Metadata failures return 503 without an unauthenticated upstream request.
+
+The initial website build uses deploy/cloudbuild.staging-web.yaml with AI and phone auth disabled. Deploy it with STAGING=true for noindex responses. Its site URL uses the project-number Cloud Run URL; verify the actual service URL and rebuild if different.
