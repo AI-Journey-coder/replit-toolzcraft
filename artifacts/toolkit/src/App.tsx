@@ -1,3 +1,4 @@
+import { Profile } from "@/pages/Profile";
 import {InvoiceExtractor,TableExtractor,ScanAssistant,DocumentCompare} from '@/pages/tools/DocumentWorkflows';
 import {SqlDataGenerator,SampleDataGenerator,BoundaryDataGenerator} from '@/pages/tools/TestData';
 import {AdvertisingBreakEven,ServiceBreakEven,RefinanceBreakEven} from '@/pages/tools/BreakEvenExtra';
@@ -201,6 +202,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/promo" component={Promo} />
       <Route path="/login" component={Login} />
+      <Route path="/profile" component={Profile} />
       <Route path="/admin" component={Admin} />
       <Route path="/category/:slug" component={CategoryPage} />
 

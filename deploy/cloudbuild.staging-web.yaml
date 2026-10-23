@@ -1,6 +1,6 @@
 steps:
   - name: gcr.io/cloud-builders/docker
-    args: ["build","-f","Dockerfile","-t","asia-southeast1-docker.pkg.dev/toolzcraft-062026/toolzcraft-staging/web:${_RELEASE}","--build-arg","VITE_SITE_URL=https://toolzcraft-staging-304384284059.asia-southeast1.run.app","--build-arg","VITE_OPERATOR_NAME=ToolZCraft.com","--build-arg","VITE_CONTACT_EMAIL=support@toolzcraft.com","--build-arg","VITE_OPERATOR_JURISDICTION=Maharashtra, India","--build-arg","VITE_FIREBASE_API_KEY=AIzaSyB7REUs__nTggemtGcifkKggeSnvq4Ma-k","--build-arg","VITE_FIREBASE_PROJECT_ID=toolzcraft-062026","--build-arg","VITE_FIREBASE_APP_ID=1:304384284059:web:de5290a2cabbf261cc3d3e","--build-arg","VITE_ENABLE_AI=false","--build-arg","VITE_ENABLE_PHONE_AUTH=false","."]
+    args: ["build","-f","Dockerfile","-t","asia-southeast1-docker.pkg.dev/toolzcraft-062026/toolzcraft-staging/web:${_RELEASE}","--build-arg","VITE_SITE_URL=https://toolzcraft-staging-304384284059.asia-southeast1.run.app","--build-arg","VITE_OPERATOR_NAME=ToolZCraft.com","--build-arg","VITE_CONTACT_EMAIL=support@toolzcraft.com","--build-arg","VITE_OPERATOR_JURISDICTION=Maharashtra, India","--build-arg","VITE_FIREBASE_API_KEY=AIzaSyB7REUs__nTggemtGcifkKggeSnvq4Ma-k","--build-arg","VITE_FIREBASE_PROJECT_ID=toolzcraft-062026","--build-arg","VITE_FIREBASE_APP_ID=1:304384284059:web:de5290a2cabbf261cc3d3e","--build-arg","VITE_ENABLE_AI=false","--build-arg","VITE_ENABLE_PHONE_AUTH=true","."]
 images:
   - "asia-southeast1-docker.pkg.dev/toolzcraft-062026/toolzcraft-staging/web:${_RELEASE}"
 substitutions:
