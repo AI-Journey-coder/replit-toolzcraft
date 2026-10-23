@@ -28,6 +28,7 @@ export function cloudRunIdentity(audience, transport=fetch) {
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.wasm':'application/wasm','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.ico':'image/x-icon','.xml':'application/xml','.txt':'text/plain; charset=utf-8','.zip':'application/zip','.whl':'application/zip','.pdf':'application/pdf','.woff2':'font/woff2'};
 export function createServer({root=path.resolve('artifacts/toolkit/dist/public'),upstream=process.env.API_UPSTREAM,production=process.env.NODE_ENV==='production',staging=process.env.STAGING==='true',cloudRunAuth=process.env.API_CLOUD_RUN_AUTH==='true',identityProvider}={}){
  root=fs.realpathSync(root);
+ staging=staging||fs.existsSync(path.join(root,'.staging-build'));
  let api;if(upstream){api=new URL(upstream);if(!['http:','https:'].includes(api.protocol)||api.username||api.password||api.pathname!=='/'||api.search||api.hash)throw new Error('API_UPSTREAM must be an HTTP(S) origin without credentials or path.');}
  if(cloudRunAuth&&(!api||api.protocol!=='https:'))throw new Error('Cloud Run authentication requires an HTTPS API_UPSTREAM.');
  const getIdentity=identityProvider||(cloudRunAuth?cloudRunIdentity(api.origin):null);

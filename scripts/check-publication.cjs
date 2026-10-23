@@ -9,7 +9,10 @@ if(firebaseCount>0&&firebaseCount<3)issues.push('Firebase public configuration i
 if((env.VITE_ENABLE_AI==='true'||env.VITE_ENABLE_PHONE_AUTH==='true')&&firebaseCount!==3)issues.push('AI and phone sign-in require complete Firebase configuration.');
 if(env.VITE_ADSENSE_PUBLISHER_ID&&!/^ca-pub-\d{16}$/.test(env.VITE_ADSENSE_PUBLISHER_ID))issues.push('AdSense publisher ID must be your actual ca-pub- followed by 16 digits.');
 try{const u=new URL(env.VITE_SITE_URL);if(u.pathname!=='/'||u.search||u.hash||u.username||u.password)issues.push('VITE_SITE_URL must be an origin only, without path, query or credentials.');}catch{}
-if(env.VITE_ENABLE_AI==='true')issues.push('AI is enabled: complete provider, privacy and live endpoint review before release.');
+const stagingBuild=env.BUILD_TARGET==='staging'&&env.VITE_SITE_URL==='https://toolzcraft-staging-304384284059.asia-southeast1.run.app';
+if(env.BUILD_TARGET && !['production','staging'].includes(env.BUILD_TARGET))issues.push('Invalid BUILD_TARGET.');
+if(env.BUILD_TARGET==='staging'&&!stagingBuild)issues.push('Staging builds require the dedicated staging origin.');
+if(env.VITE_ENABLE_AI==='true'&&!stagingBuild)issues.push('AI is enabled: complete provider, privacy and live endpoint review before release.');
 if(env.VITE_ENABLE_USAGE_TRACKING==='true')issues.push('Usage tracking is enabled: confirm legal basis, retention and privacy controls before release.');
 const out=path.join(root,'dist/public');for(const file of ['index.html','privacy/index.html','terms/index.html','contact/index.html','cookies/index.html','sitemap.xml'])if(!fs.existsSync(path.join(out,file)))issues.push(`Build output missing: ${file}`);
 if(fs.existsSync(path.join(out,'privacy/index.html'))&&fs.readFileSync(path.join(out,'privacy/index.html'),'utf8').includes('no support email configured'))issues.push('Built policy pages still contain the local contact fallback. Rebuild with operator details.');
