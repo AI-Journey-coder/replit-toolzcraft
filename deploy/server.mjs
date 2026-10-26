@@ -26,8 +26,10 @@ export function cloudRunIdentity(audience, transport=fetch) {
 }
 
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.wasm':'application/wasm','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.ico':'image/x-icon','.xml':'application/xml','.txt':'text/plain; charset=utf-8','.zip':'application/zip','.whl':'application/zip','.pdf':'application/pdf','.woff2':'font/woff2'};
-export function createServer({root=path.resolve('artifacts/toolkit/dist/public'),upstream=process.env.API_UPSTREAM,production=process.env.NODE_ENV==='production',staging=process.env.STAGING==='true',cloudRunAuth=process.env.API_CLOUD_RUN_AUTH==='true',identityProvider}={}){
+export function createServer({root=path.resolve('artifacts/toolkit/dist/public'),upstream=process.env.API_UPSTREAM,production=process.env.NODE_ENV==='production',staging=process.env.STAGING==='true',canonicalOrigin=process.env.CANONICAL_ORIGIN,cloudRunAuth=process.env.API_CLOUD_RUN_AUTH==='true',identityProvider}={}){
  root=fs.realpathSync(root);
+ let canonical;
+ if(canonicalOrigin){canonical=new URL(canonicalOrigin);if(canonical.protocol!=='https:'||canonical.origin!==canonicalOrigin)throw new Error('CANONICAL_ORIGIN must be an HTTPS origin');}
  staging=staging||fs.existsSync(path.join(root,'.staging-build'));
  let api;if(upstream){api=new URL(upstream);if(!['http:','https:'].includes(api.protocol)||api.username||api.password||api.pathname!=='/'||api.search||api.hash)throw new Error('API_UPSTREAM must be an HTTP(S) origin without credentials or path.');}
  if(cloudRunAuth&&(!api||api.protocol!=='https:'))throw new Error('Cloud Run authentication requires an HTTPS API_UPSTREAM.');
@@ -44,6 +46,9 @@ export function createServer({root=path.resolve('artifacts/toolkit/dist/public')
   const finish=(status,message)=>{res.statusCode=status;res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','text/plain; charset=utf-8');res.end(req.method==='HEAD'?undefined:message);};
   let pathname;try{const raw=(req.url||'/').split('?')[0];pathname=decodeURIComponent(raw);if(!pathname.startsWith('/')||pathname.includes('\\')||pathname.includes('\0')||pathname.split('/').some(x=>x==='..'||x.startsWith('.')))return finish(404,'Not found');}catch{return finish(400,'Invalid URL');}
   if(pathname==='/healthz')return finish(200,'ok');
+  if(canonical&&req.headers.host?.toLowerCase()==='www.'+canonical.host){
+   res.statusCode=308;res.setHeader('Location',canonical.origin+req.url);res.setHeader('Cache-Control','no-store');return res.end();
+  }
   if(pathname==='/api'||pathname.startsWith('/api/')){
    if(!api)return finish(503,'Online features are not enabled.');
    const headers={...req.headers,host:api.host};delete headers['forwarded'];delete headers['x-forwarded-for'];delete headers['x-forwarded-host'];delete headers['x-forwarded-proto'];delete headers['x-serverless-authorization'];

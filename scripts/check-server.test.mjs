@@ -9,8 +9,13 @@ test('production HTTP contract: routes, missing assets, headers, ranges and safe
  const dir=await mkdtemp(path.join(os.tmpdir(),'toolzcraft-http-'));
  await mkdir(path.join(dir,'tools/demo'),{recursive:true});await mkdir(path.join(dir,'assets'));
  await writeFile(path.join(dir,'index.html'),'<h1>Home</h1>');await writeFile(path.join(dir,'tools/demo/index.html'),'<h1>Demo</h1>');await writeFile(path.join(dir,'assets/test-hash.js'),'0123456789');await writeFile(path.join(dir,'.env'),'SECRET');
- const server=createServer({root:dir,production:true,staging:true});await new Promise(r=>server.listen(0,'127.0.0.1',r));const base=`http://127.0.0.1:${server.address().port}`;
+ const server=createServer({root:dir,production:true,staging:true,canonicalOrigin:"https://toolzcraft.com"});await new Promise(r=>server.listen(0,'127.0.0.1',r));const base=`http://127.0.0.1:${server.address().port}`;
  try{
+  const requestHost=(route,host)=>new Promise((resolve,reject)=>{http.get(base+route,{headers:{host}},r=>{r.resume();r.on('end',()=>resolve({status:r.statusCode,location:r.headers.location}));}).on('error',reject);});
+  const redirected=await requestHost('/tools/demo?mode=full','www.toolzcraft.com');assert.equal(redirected.status,308);assert.equal(redirected.location,'https://toolzcraft.com/tools/demo?mode=full');
+  assert.equal((await requestHost('/','toolzcraft.com')).status,200);
+  assert.equal((await requestHost('/healthz','www.toolzcraft.com')).status,200);
+  const malicious=await requestHost('//evil.example/path','www.toolzcraft.com');assert.equal(new URL(malicious.location).origin,'https://toolzcraft.com');
   for(const route of ['/','/tools/demo','/tools/demo/'])assert.equal((await fetch(base+route)).status,200);
   for(const route of ['/missing','/assets/missing.js','/.env','/%2e%2e/private','/%5cprivate'])assert.equal((await fetch(base+route)).status,404);
   const asset=await fetch(base+'/assets/test-hash.js');assert.match(asset.headers.get('content-type'),/javascript/);assert.match(asset.headers.get('cache-control'),/immutable/);assert.equal(asset.headers.get('x-content-type-options'),'nosniff');assert.equal(asset.headers.get('x-frame-options'),'DENY');assert.equal(asset.headers.get('x-robots-tag'),'noindex, nofollow');assert.match(asset.headers.get('strict-transport-security'),/max-age/);assert.match(asset.headers.get('content-security-policy'),/frame-ancestors 'none'/);

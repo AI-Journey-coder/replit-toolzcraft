@@ -12,7 +12,11 @@ try{const u=new URL(env.VITE_SITE_URL);if(u.pathname!=='/'||u.search||u.hash||u.
 const stagingBuild=env.BUILD_TARGET==='staging'&&env.VITE_SITE_URL==='https://toolzcraft-staging-304384284059.asia-southeast1.run.app';
 if(env.BUILD_TARGET && !['production','staging'].includes(env.BUILD_TARGET))issues.push('Invalid BUILD_TARGET.');
 if(env.BUILD_TARGET==='staging'&&!stagingBuild)issues.push('Staging builds require the dedicated staging origin.');
-if(env.VITE_ENABLE_AI==='true'&&!stagingBuild)issues.push('AI is enabled: complete provider, privacy and live endpoint review before release.');
+if(env.VITE_ENABLE_AI==='true'&&!stagingBuild){
+ const deferred=env.AI_RELEASE_DECISION==='publish-with-summary-quality-deferred'&&env.VITE_SITE_URL==='https://toolzcraft.com'&&env.BUILD_TARGET==='production';
+ if(!deferred)issues.push('AI is enabled: complete provider, privacy and live endpoint review before release.');
+ else console.warn('Operator requested domain migration with summary quality fixes deferred. This does not certify AI quality or completion of operational/privacy launch checks. See deploy/PRODUCTION-MIGRATION.md.');
+}
 if(env.VITE_ENABLE_USAGE_TRACKING==='true')issues.push('Usage tracking is enabled: confirm legal basis, retention and privacy controls before release.');
 const out=path.join(root,'dist/public');for(const file of ['index.html','privacy/index.html','terms/index.html','contact/index.html','cookies/index.html','sitemap.xml'])if(!fs.existsSync(path.join(out,file)))issues.push(`Build output missing: ${file}`);
 if(fs.existsSync(path.join(out,'privacy/index.html'))&&fs.readFileSync(path.join(out,'privacy/index.html'),'utf8').includes('no support email configured'))issues.push('Built policy pages still contain the local contact fallback. Rebuild with operator details.');
