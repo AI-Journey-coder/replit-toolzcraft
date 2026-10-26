@@ -1,5 +1,4 @@
 import {Link} from 'wouter';
-import {Source} from './DocumentWorkflows';
 import { getAuth } from 'firebase/auth';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -125,28 +124,7 @@ function ResultBox({ result, error, busy }: { result: string; error: string; bus
 }
 
 // ─── AI Summarizer ────────────────────────────────────────────────────────────
-export function AiSummarizer() {
-  const t = useAiTool();
-  const [consent, setConsent] = useState(false);
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>AI Document Summarizer</CardTitle>
-        <CardDescription>Upload a PDF, image or TXT file, or paste text. Review the extracted text, then create a concise summary.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Source label="Document to summarize" value={t.text} onChange={value => { t.setText(value); setConsent(false); }} disabled={t.busy} />
-        <p className="text-sm text-muted-foreground">{t.text.length.toLocaleString()} / 6,000 characters · 1 credit per successful summary</p>
-        {t.text.length > MAX_CHARS && <p role="alert" className="text-destructive">Choose a shorter section or edit the extracted text to 6,000 characters. Nothing will be silently cut off.</p>}
-        <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={consent} disabled={t.busy} onChange={e => setConsent(e.target.checked)} />Send the reviewed text to our AI provider. The original file stays on this device.</label>
-        <Button onClick={() => t.run({ task: "summarize" })} disabled={t.busy || !t.text.trim() || !consent || t.text.length > MAX_CHARS} data-testid="button-run">
-          <Sparkles className="h-4 w-4 mr-2" /> Summarize
-        </Button>
-        <ResultBox result={t.result} error={t.error} busy={t.busy} />
-      </CardContent>
-    </Card>
-  );
-}
+export {SummaryModes as AiSummarizer} from './SummaryModes';
 
 // ─── AI Key Points ────────────────────────────────────────────────────────────
 export function AiKeyPoints() {

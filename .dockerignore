@@ -19,3 +19,6 @@ test-results
 **/.config
 **/.aws
 **/.codex
+
+# Local scratch environment file
+/env

@@ -66,3 +66,6 @@ artifacts/toolkit/public/vendor/pyodide/
 **/firebase-admin.json
 *.pem
 *.key
+
+# Local scratch environment file
+/env

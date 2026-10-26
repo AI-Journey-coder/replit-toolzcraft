@@ -44,8 +44,10 @@ function toAdminUser(u: typeof usersTable.$inferSelect) {
   };
 }
 
-router.get("/admin/users", async (_req, res) => {
-  const rows = await db.select().from(usersTable).orderBy(desc(usersTable.createdAt));
+router.get("/admin/users", async (req, res) => {
+  const offset=Number(req.query.offset??0);
+  if(!Number.isInteger(offset)||offset<0||offset>1000000){res.status(400).json({message:"Invalid page offset"});return;}
+  const rows = await db.select().from(usersTable).orderBy(desc(usersTable.createdAt),desc(usersTable.id)).limit(20).offset(offset);
   res.json(await Promise.all(rows.map(async u=>({...toAdminUser(u),access:await backendAccess(u.id)}))));
 });
 

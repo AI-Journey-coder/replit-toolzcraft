@@ -110,10 +110,11 @@ function UsersTab() {
   const { user: me } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [filter,setFilter]=useState('');
+  const [offset,setOffset]=useState(0);
 
   const load = useCallback(async () => {
-    setUsers(await authedFetch<AdminUser[]>(await getToken(), "admin/users"));
-  }, [getToken]);
+    setUsers(await authedFetch<AdminUser[]>(await getToken(), "admin/users?offset="+offset));
+  }, [getToken,offset]);
 
   useEffect(() => {
     load().catch((e) => toast({ title: "Failed to load users", description: String(e.message ?? e), variant: "destructive" }));
@@ -133,7 +134,7 @@ function UsersTab() {
 
   return (
     <Card>
-      <CardHeader><CardTitle>Users ({users.length})</CardTitle><CardDescription>Activate accounts and manage AI credits. Administrators have unlimited credits; rate and request limits still apply.</CardDescription><Input aria-label="Search users" placeholder="Search name or email" value={filter} onChange={e=>setFilter(e.target.value)}/></CardHeader>
+      <CardHeader><CardTitle>Users · page {offset/20+1}</CardTitle><CardDescription>Activate accounts and manage AI credits. Administrators have unlimited credits; rate and request limits still apply.</CardDescription><Input aria-label="Search users" placeholder="Search this page by name or email" value={filter} onChange={e=>setFilter(e.target.value)}/></CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
@@ -181,6 +182,7 @@ function UsersTab() {
             ))}
           </TableBody>
         </Table>
+        <div className="flex gap-3 mt-4"><Button variant="outline" disabled={offset===0} onClick={()=>{setFilter('');setOffset(n=>Math.max(0,n-20));}}>Previous page</Button><Button variant="outline" disabled={users.length<20} onClick={()=>{setFilter('');setOffset(n=>n+20);}}>Next page</Button></div>
         {users.length === 0 && <p className="text-sm text-muted-foreground py-4">No users yet.</p>}
       </CardContent>
     </Card>

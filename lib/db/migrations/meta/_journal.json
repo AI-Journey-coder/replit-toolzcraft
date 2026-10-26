@@ -36,6 +36,13 @@
       "when": 1792195200000,
       "tag": "0004_admin_credits",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792963200000,
+      "tag": "0005_summary_results",
+      "breakpoints": true
     }
   ]
 }

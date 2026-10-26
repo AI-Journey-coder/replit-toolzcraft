@@ -1,0 +1,7 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: ["build", "-f", "Dockerfile.api", "-t", "asia-southeast1-docker.pkg.dev/toolzcraft-062026/toolzcraft-staging/api:${_RELEASE}", "."]
+images:
+  - "asia-southeast1-docker.pkg.dev/toolzcraft-062026/toolzcraft-staging/api:${_RELEASE}"
+substitutions:
+  _RELEASE: staging

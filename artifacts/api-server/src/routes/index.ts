@@ -1,3 +1,4 @@
+import summaryRouter from './summary';
 import billingRouter from './billing';
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
@@ -13,6 +14,7 @@ router.use(billingRouter);
 router.use(authRouter);
 router.use(toolsRouter);
 router.use(adminRouter);
+router.use(summaryRouter);
 router.use(aiRouter);
 
 export default router;

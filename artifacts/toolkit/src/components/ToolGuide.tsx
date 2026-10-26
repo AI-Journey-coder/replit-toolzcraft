@@ -57,7 +57,7 @@ const examples: Record<string, string> = {
   "ai-document-qa": 'Try the source text "The meeting is on Tuesday at 10:00" and ask "What time is the meeting?" Check that the answer says 10:00. If you ask for a location, the source contains no answer; do not accept an invented one.',
 };
 export function ToolGuide({ tool }: { tool: Tool }) {
-  const [steps, limits] = guidance[tool.category];
+  const [steps, limits] = tool.slug === "ai-summarizer" ? ["Choose Free Summary for locally selected sentences, Quick Summary for short AI analysis, or Full Document for a combined overview. Review extracted text and the displayed credits before starting.", "Quick Summary accepts 6,000 characters for one credit. Full Document accepts 24,000 characters / 20 PDF pages for up to four credits. Free Summary is extractive, not AI rewriting. Verify OCR and AI findings against the source."] : guidance[tool.category];
   const related = TOOLS.filter(t => t.category === tool.category && t.slug !== tool.slug).slice(0, 3);
   return <details aria-label={`${tool.name} guidance`} className="w-full space-y-3 pt-4 border-t leading-relaxed">
     <summary className="cursor-pointer font-semibold">How to use this tool · examples & limitations</summary><p>{tool.description}.</p>
