@@ -55,6 +55,7 @@ for (const width of [390, 1280])
         .check();
       await page.locator("textarea").first().fill("a".repeat(24001));
       await expect(page.getByTestId("button-run")).toBeDisabled();
+      console.log('Overflow elements:',await page.evaluate(()=>Array.from(document.querySelectorAll('body *')).filter(el=>el.getBoundingClientRect().right>window.innerWidth+1).slice(0,12).map(el=>({tag:el.tagName,classes:el.className,width:el.getBoundingClientRect().width}))));
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= window.innerWidth,

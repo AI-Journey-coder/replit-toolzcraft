@@ -101,7 +101,7 @@ export function SummaryModes() {
     }
   }
   return (
-    <Card>
+    <Card className="min-w-0">
       <CardHeader>
         <CardTitle>Document Summarizer</CardTitle>
         <p>
@@ -112,7 +112,7 @@ export function SummaryModes() {
       <CardContent className="space-y-5">
         <fieldset
           disabled={busy || extracting}
-          className="grid gap-3 md:grid-cols-3"
+          className="grid min-w-0 gap-3 md:grid-cols-3"
         >
           <legend className="mb-2 font-semibold">Summary mode</legend>
           {(
