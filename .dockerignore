@@ -22,3 +22,6 @@ test-results
 
 # Local scratch environment file
 /env
+
+# Private deployment rollback notes
+/ENV Variables Old.txt
