@@ -268,7 +268,7 @@ export function TimeFormatConverter() {
             <Input placeholder="1:02:03" onChange={e => { const v = fromHms(e.target.value); if (v >= 0) setSeconds(v); }} />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {formats.map(([label, value]) => (
             <div key={label} className="flex items-center justify-between p-2 bg-muted rounded text-sm">
               <span className="text-muted-foreground">{label}</span>

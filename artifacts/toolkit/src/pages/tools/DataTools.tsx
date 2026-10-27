@@ -1,3 +1,4 @@
+import { parseCsv, toCsv } from "@/lib/csv-conversion";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -98,30 +99,6 @@ function ConverterShell({
 }
 
 // ─── CSV helpers ─────────────────────────────────────────────────────────
-
-function parseCsv(text: string): Record<string, string>[] {
-  const lines = text.trim().split(/\r?\n/);
-  if (lines.length === 0) return [];
-  const headers = lines[0].split(",").map((h) => h.trim().replace(/^"|"$/g, ""));
-  return lines.slice(1).filter((l) => l.trim()).map((line) => {
-    const values = line.split(",").map((v) => v.trim().replace(/^"|"$/g, ""));
-    const row: Record<string, string> = {};
-    headers.forEach((h, i) => (row[h] = values[i] ?? ""));
-    return row;
-  });
-}
-
-function toCsv(data: any[]): string {
-  if (!Array.isArray(data) || data.length === 0) throw new Error("Input must be a non-empty JSON array");
-  const headers = Array.from(new Set(data.flatMap((row) => Object.keys(row))));
-  const escape = (v: any) => {
-    const s = v === undefined || v === null ? "" : String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  const lines = [headers.join(",")];
-  for (const row of data) lines.push(headers.map((h) => escape(row[h])).join(","));
-  return lines.join("\n");
-}
 
 // ─── JSON Validator ───────────────────────────────────────────────────────
 

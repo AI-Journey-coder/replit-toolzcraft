@@ -12,7 +12,7 @@
     "test:new-tools": "node scripts/check-new-tools.cjs",
     "test:media": "node scripts/check-media.cjs",
     "check:publication": "node scripts/check-publication.cjs",
-    "test:release": "node --test scripts/check-server.test.mjs scripts/check-security.test.cjs scripts/check-razorpay.test.cjs scripts/check-image-compression.test.cjs scripts/check-time-quota.test.cjs scripts/check-break-even-pdf.test.cjs scripts/check-billing.test.cjs scripts/check-billing-postgres.test.cjs scripts/check-usability.test.cjs scripts/check-ev-charging.test.cjs scripts/check-certificate.test.cjs scripts/check-summary.test.cjs scripts/check-admin-pagination.test.cjs",
+    "test:release": "node --test scripts/check-server.test.mjs scripts/check-security.test.cjs scripts/check-razorpay.test.cjs scripts/check-image-compression.test.cjs scripts/check-time-quota.test.cjs scripts/check-break-even-pdf.test.cjs scripts/check-billing.test.cjs scripts/check-billing-postgres.test.cjs scripts/check-usability.test.cjs scripts/check-ev-charging.test.cjs scripts/check-certificate.test.cjs scripts/check-summary.test.cjs scripts/check-admin-pagination.test.cjs scripts/check-content-conversion.test.cjs",
     "serve:production": "node deploy/server.mjs",
     "db:migrate": "node scripts/database.cjs migrate",
     "test:adopted-tools": "node scripts/check-adopted-tools.cjs",

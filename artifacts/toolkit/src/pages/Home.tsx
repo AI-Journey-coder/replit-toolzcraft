@@ -1,3 +1,4 @@
+import { WorkflowGuide } from "@/components/ToolGuide";
 import { searchTools } from '@/lib/tool-search';
 import { useState } from "react";
 import { Link } from "wouter";
@@ -33,6 +34,7 @@ export function Home() {
       <div className="mt-4 flex flex-wrap items-center gap-2 text-sm"><span className="text-muted-foreground">Explore:</span>{["Image", "PDF", "Contacts", "SQL"].map(term => <button key={term} onClick={() => { setQuery(term); setCategory(""); }} className="rounded-full border border-primary/20 bg-background/70 px-3 py-1 hover:bg-background">{term}</button>)}</div>
     </section>
     {!searching && <section aria-labelledby="essentials-heading" className="space-y-4"><div><p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">A useful place to start</p><h2 id="essentials-heading" className="text-2xl font-bold">Everyday essentials</h2></div><div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">{FEATURED.map(tool => <ToolCard key={tool.slug} tool={tool} />)}</div></section>}
+    {!searching && <WorkflowGuide />}
     <section aria-labelledby="directory-heading" className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-4"><h2 id="directory-heading" className="text-2xl font-bold">{searching ? "Matching tools" : "Browse all tools"}</h2><label className="flex flex-wrap items-center gap-2 text-sm">Category<select aria-label="Filter tools by category" value={category} onChange={event => setCategory(event.target.value)} className="max-w-full rounded-lg border bg-background p-2"><option value="">All categories</option>{CATEGORIES.map(item => <option key={item.slug} value={item.slug}>{item.name}</option>)}</select></label></div>
       <div className="flex flex-wrap items-center justify-between gap-2"><p role="status" className="text-sm text-muted-foreground">{filtered.length} {filtered.length === 1 ? "tool" : "tools"} in {groups.length} {groups.length === 1 ? "category" : "categories"}</p>{searching ? <Button variant="ghost" size="sm" onClick={reset}>Clear filters</Button> : <Button variant="ghost" size="sm" onClick={() => setExpanded(allExpanded ? [] : groups.map(group => group.slug))}>{allExpanded ? "Collapse all categories" : "Expand all categories"}</Button>}</div>

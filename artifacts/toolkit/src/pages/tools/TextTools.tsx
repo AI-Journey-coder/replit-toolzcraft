@@ -190,7 +190,7 @@ export function LoremIpsum() {
         <CardDescription>Generate placeholder text for your designs</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex gap-3 items-end">
+        <div className="flex flex-wrap gap-3 items-end">
           <div className="space-y-2">
             <Label>Count</Label>
             <Input type="number" min={1} max={50} value={count} onChange={e => setCount(Number(e.target.value))} className="w-24" data-testid="input-count" />

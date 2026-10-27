@@ -1,3 +1,4 @@
+import { toUnicode } from "punycode/";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -355,7 +356,7 @@ export function MarkdownReadmeGuide() {
     <Card>
       <CardHeader><CardTitle>Markdown README Guide</CardTitle></CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {Object.keys(README_TEMPLATES).map(t => (
             <Button key={t} size="sm" variant={template === t ? "default" : "outline"} onClick={() => { setTemplate(t); setOutput(README_TEMPLATES[t]); }}>{t}</Button>
           ))}
@@ -381,16 +382,7 @@ function toAscii(domain: string): string {
 }
 
 function fromPunycode(input: string): string {
-  try {
-    const labels = input.split(".");
-    return labels.map(label => {
-      if (!label.startsWith("xn--")) return label;
-      const decoded = decodeURIComponent(escape(atob(label.slice(4))));
-      return decoded;
-    }).join(".");
-  } catch {
-    return input;
-  }
+  try { return toUnicode(input.trim()); } catch { return "Invalid Punycode domain"; }
 }
 
 export function PunycodeTool() {
