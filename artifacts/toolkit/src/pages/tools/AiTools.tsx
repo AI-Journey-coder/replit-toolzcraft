@@ -1,11 +1,26 @@
-import {Link} from 'wouter';
-import { getAuth } from 'firebase/auth';
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Source } from "./DocumentWorkflows";
+import { AnalysisResult } from "./AnalysisResult";
+import { useAuth } from "@/hooks/use-auth";
+import { Link } from "wouter";
+import { getAuth } from "firebase/auth";
+import { useState, useRef } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Copy, Sparkles } from "lucide-react";
 import { apiUrl } from "@/lib/api";
@@ -20,17 +35,24 @@ async function analyze(body: {
   question?: string;
   targetLanguage?: string;
 }): Promise<string> {
-  if (import.meta.env.VITE_ENABLE_AI !== "true") throw new Error("AI analysis is unavailable in this preview. Browser-only tools remain available.");
-  const user=getAuth().currentUser;
-  if(!user)throw new Error("Sign in to use AI tools.");
-  const token=await user.getIdToken();
+  if (import.meta.env.VITE_ENABLE_AI !== "true")
+    throw new Error(
+      "AI analysis is unavailable in this preview. Browser-only tools remain available.",
+    );
+  const user = getAuth().currentUser;
+  if (!user) throw new Error("Sign in to use AI tools.");
+  const token = await user.getIdToken();
   const res = await fetch(apiUrl("/ai/analyze"), {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify(body),
   });
   const data = await res.json().catch(() => null);
-  if(res.status===402 && data?.code==='SUBSCRIPTION_REQUIRED')throw new Error('SUBSCRIPTION_REQUIRED');
+  if (res.status === 402 && data?.code === "SUBSCRIPTION_REQUIRED")
+    throw new Error("SUBSCRIPTION_REQUIRED");
   if (!res.ok) {
     throw new Error(data?.message ?? `Request failed: ${res.status}`);
   }
@@ -38,14 +60,36 @@ async function analyze(body: {
 }
 
 function useAiTool() {
-  const [text, setText] = useState("");
+  const [text, updateText] = useState("");
+  const { firebaseUser, user } = useAuth();
+  const [consent, setConsent] = useState(false);
+  const [extracting, setExtracting] = useState(false);
+  const lock = useRef(false);
+  const setText = (v: string) => {
+    updateText(v);
+    setResult("");
+    setError("");
+    setConsent(false);
+  };
   const [result, setResult] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   const run = async (body: Omit<Parameters<typeof analyze>[0], "text">) => {
-    if (!text.trim()) return;
-    if (text.length > MAX_CHARS) { setError("Shorten the document to 6,000 characters before continuing. Nothing has been sent."); return; }
+    if (lock.current || extracting || !consent || !firebaseUser || !text.trim())
+      return;
+    if (
+      text.length +
+        (body.question?.length || 0) +
+        (body.targetLanguage?.length || 0) >
+      MAX_CHARS
+    ) {
+      setError(
+        "Shorten the document to 6,000 characters before continuing. Nothing has been sent.",
+      );
+      return;
+    }
+    lock.current = true;
     setBusy(true);
     setError("");
     setResult("");
@@ -54,77 +98,120 @@ function useAiTool() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Analysis failed");
     } finally {
+      lock.current = false;
       setBusy(false);
     }
   };
 
-  return { text, setText, result, error, busy, run };
+  return {
+    text,
+    setText,
+    result,
+    setResult,
+    error,
+    busy,
+    run,
+    firebaseUser,
+    user,
+    consent,
+    setConsent,
+    extracting,
+    setExtracting,
+  };
 }
 
 function TextInput({
-  text,
-  setText,
-  placeholder,
+  t,
+  extra = 0,
 }: {
-  text: string;
-  setText: (v: string) => void;
-  placeholder: string;
+  t: ReturnType<typeof useAiTool>;
+  extra?: number;
 }) {
+  const enabled = import.meta.env.VITE_ENABLE_AI === "true";
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label>Document text</Label>
-        <span className="text-xs text-muted-foreground">
-          {text.length.toLocaleString()} / {MAX_CHARS.toLocaleString()} characters
-        </span>
-      </div>
-      <Textarea
-        value={text}
-        onChange={(e) => setText(e.target.value.slice(0, MAX_CHARS))}
-        placeholder={placeholder}
-        rows={10}
-        data-testid="input-document-text"
+    <div className="space-y-3">
+      <Source
+        label="Document text"
+        value={t.text}
+        onChange={t.setText}
+        disabled={t.busy}
+        onBusyChange={t.setExtracting}
       />
-      <p className="text-xs text-muted-foreground">
-        Tip: use the PDF Text Extractor or OCR tools to pull text out of files first.
+      <p className="text-sm">
+        {(t.text.length + extra).toLocaleString()} / 6,000 characters including
+        options ·{" "}
+        {t.user?.role === "admin"
+          ? "Unlimited administrator credits"
+          : "1 credit per successful request"}
       </p>
+      {t.text.length + extra > MAX_CHARS && (
+        <p role="alert" className="text-destructive">
+          Select a shorter section. Your full input is preserved; nothing has
+          been sent or truncated.
+        </p>
+      )}
+      {!enabled ? (
+        <p>AI is unavailable in this build.</p>
+      ) : !t.firebaseUser ? (
+        <Link href="/login" className="underline text-primary">
+          Sign in to use AI
+        </Link>
+      ) : (
+        <label className="flex items-start gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={t.consent}
+            disabled={t.busy || t.extracting}
+            onChange={(e) => t.setConsent(e.target.checked)}
+          />
+          Send this reviewed text to the AI provider.{" "}
+          {t.user?.role === "admin"
+            ? "Uses your unlimited admin allowance."
+            : "Uses 1 credit on success."}{" "}
+          The original file stays local.
+        </label>
+      )}
     </div>
   );
 }
-
-function ResultBox({ result, error, busy }: { result: string; error: string; busy: boolean }) {
-  if (busy) {
+function canRun(t: ReturnType<typeof useAiTool>, extra = 0) {
+  return (
+    import.meta.env.VITE_ENABLE_AI === "true" &&
+    !!t.firebaseUser &&
+    t.consent &&
+    !t.busy &&
+    !t.extracting &&
+    !!t.text.trim() &&
+    t.text.length + extra <= MAX_CHARS
+  );
+}
+function ResultBox({
+  result,
+  error,
+  busy,
+}: {
+  result: string;
+  error: string;
+  busy: boolean;
+}) {
+  if (busy) return <p role="status">Reading your document…</p>;
+  if (error)
     return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground" data-testid="status-analyzing">
-        <Loader2 className="h-4 w-4 animate-spin" /> Analyzing…
+      <div role="alert" className="text-destructive">
+        {error === "SUBSCRIPTION_REQUIRED" ? (
+          <Link href="/subscriptions">
+            Your credits are used. View subscription and credits.
+          </Link>
+        ) : (
+          error
+        )}
       </div>
     );
-  }
-  if(error==='SUBSCRIPTION_REQUIRED')return <div role="alert" className="rounded-xl border p-4"><p>Your AI credits are used. Check your plan and next renewal date.</p><Link href="/subscriptions" className="inline-block mt-3 underline text-primary">View subscription and credits</Link></div>;
-  if (error) {
-    return <p className="text-sm text-destructive" data-testid="text-error">{error}</p>;
-  }
-  if (!result) return null;
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label>Result</Label>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigator.clipboard.writeText(result)}
-          data-testid="button-copy-result"
-        >
-          <Copy className="h-4 w-4 mr-1" /> Copy
-        </Button>
-      </div>
-      <Textarea value={result} readOnly rows={12} data-testid="text-result" />
-    </div>
-  );
+  return result ? <AnalysisResult result={result} /> : null;
 }
 
 // ─── AI Summarizer ────────────────────────────────────────────────────────────
-export {SummaryModes as AiSummarizer} from './SummaryModes';
+export { SummaryModes as AiSummarizer } from "./SummaryModes";
 
 // ─── AI Key Points ────────────────────────────────────────────────────────────
 export function AiKeyPoints() {
@@ -133,11 +220,18 @@ export function AiKeyPoints() {
     <Card>
       <CardHeader>
         <CardTitle>AI Key Points Extractor</CardTitle>
-        <CardDescription>Pull out the important names, dates, figures, and decisions from any text.</CardDescription>
+        <CardDescription>
+          Pull out the important names, dates, figures, and decisions from any
+          text.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <TextInput text={t.text} setText={t.setText} placeholder="Paste your document text here…" />
-        <Button onClick={() => t.run({ task: "key-points" })} disabled={t.busy || !t.text.trim()} data-testid="button-run">
+        <TextInput t={t} />
+        <Button
+          onClick={() => t.run({ task: "key-points" })}
+          disabled={!canRun(t)}
+          data-testid="button-run"
+        >
           <Sparkles className="h-4 w-4 mr-2" /> Extract key points
         </Button>
         <ResultBox result={t.result} error={t.error} busy={t.busy} />
@@ -154,22 +248,29 @@ export function AiDocumentQa() {
     <Card>
       <CardHeader>
         <CardTitle>AI Document Q&amp;A</CardTitle>
-        <CardDescription>Ask questions about a document — answers come only from the text you provide.</CardDescription>
+        <CardDescription>
+          Ask questions about a document — answers come only from the text you
+          provide.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <TextInput text={t.text} setText={t.setText} placeholder="Paste your document text here…" />
+        <TextInput t={t} extra={question.length} />
         <div className="space-y-2">
           <Label>Your question</Label>
           <Input
             value={question}
-            onChange={(e) => setQuestion(e.target.value)}
+            disabled={t.busy}
+            onChange={(e) => {
+              setQuestion(e.target.value);
+              t.setResult("");
+            }}
             placeholder="e.g. What is the total amount due?"
             data-testid="input-question"
           />
         </div>
         <Button
           onClick={() => t.run({ task: "qa", question })}
-          disabled={t.busy || !t.text.trim() || !question.trim()}
+          disabled={!canRun(t, question.length) || !question.trim()}
           data-testid="button-run"
         >
           <Sparkles className="h-4 w-4 mr-2" /> Get answer
@@ -182,9 +283,24 @@ export function AiDocumentQa() {
 
 // ─── AI Translator ────────────────────────────────────────────────────────────
 const LANGUAGES = [
-  "English", "Hindi", "Spanish", "French", "German", "Portuguese", "Italian",
-  "Arabic", "Russian", "Japanese", "Korean", "Chinese (Simplified)", "Bengali",
-  "Tamil", "Telugu", "Marathi", "Gujarati", "Urdu",
+  "English",
+  "Hindi",
+  "Spanish",
+  "French",
+  "German",
+  "Portuguese",
+  "Italian",
+  "Arabic",
+  "Russian",
+  "Japanese",
+  "Korean",
+  "Chinese (Simplified)",
+  "Bengali",
+  "Tamil",
+  "Telugu",
+  "Marathi",
+  "Gujarati",
+  "Urdu",
 ];
 
 export function AiTranslator() {
@@ -194,26 +310,38 @@ export function AiTranslator() {
     <Card>
       <CardHeader>
         <CardTitle>AI Document Translator</CardTitle>
-        <CardDescription>Translate document text into another language while preserving meaning and structure.</CardDescription>
+        <CardDescription>
+          Translate document text into another language while preserving meaning
+          and structure.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <TextInput text={t.text} setText={t.setText} placeholder="Paste the text you want to translate…" />
+        <TextInput t={t} extra={language.length} />
         <div className="space-y-2">
           <Label>Translate to</Label>
-          <Select value={language} onValueChange={setLanguage}>
+          <Select
+            disabled={t.busy}
+            value={language}
+            onValueChange={(v) => {
+              setLanguage(v);
+              t.setResult("");
+            }}
+          >
             <SelectTrigger className="w-64" data-testid="select-language">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {LANGUAGES.map((l) => (
-                <SelectItem key={l} value={l}>{l}</SelectItem>
+                <SelectItem key={l} value={l}>
+                  {l}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <Button
           onClick={() => t.run({ task: "translate", targetLanguage: language })}
-          disabled={t.busy || !t.text.trim()}
+          disabled={!canRun(t, language.length)}
           data-testid="button-run"
         >
           <Sparkles className="h-4 w-4 mr-2" /> Translate
@@ -223,5 +351,3 @@ export function AiTranslator() {
     </Card>
   );
 }
-
-

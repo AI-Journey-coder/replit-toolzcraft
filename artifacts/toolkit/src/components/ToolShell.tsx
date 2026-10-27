@@ -84,7 +84,7 @@ export function ToolShell({ children }: ToolShellProps) {
         Back
       </Button>
 
-      {tool?.category === "ai" && <p className="rounded-lg border p-4 text-sm">Backend · 3 free AI credits per account, shared across AI tools. <Link href="/subscriptions" className="underline">View subscriptions</Link>. Submitting sends your text to our server and configured AI provider. Avoid confidential information. AI output can be incorrect; check it against your source.</p>}
+      {tool?.category === "ai" && <p className="rounded-lg border p-4 text-sm">{slug === "ai-summarizer" ? "Free Summary runs on your device without using credits. Quick Summary and Full Document send your reviewed text to our AI provider." : "AI requests send your reviewed text to our server and AI provider."} Your account includes 3 free AI credits shared across tools. <Link href="/subscriptions" className="underline">View credits and plans</Link>. Check AI results against the source.</p>}
       {tool&&<Button variant="outline" aria-pressed={preferences.favorites.includes(tool.slug)} onClick={()=>toggleFavorite(tool.slug)}>{preferences.favorites.includes(tool.slug)?'★ Saved to favourites':'☆ Add to favourites'}</Button>}
       {tool&&<ToolTerms content={content} name={tool.name}/>}
       <div ref={content} className="space-y-4">{children}

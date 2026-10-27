@@ -2,6 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),express=req
 test('workflow endpoint validates before charging, gates allowance, and releases failed requests',async()=>{
  const old=process.env.ENABLE_AI;process.env.ENABLE_AI='true';let allowed=true,fail=false,claims=0;const finished=[];
  const router=load('artifacts/api-server/src/routes/ai.ts',{
+ '../lib/ai-prompts':load('artifacts/api-server/src/lib/ai-prompts.ts'),
  '../lib/document-workflows':load('artifacts/api-server/src/lib/document-workflows.ts'),
  '../lib/billing-policy':{AI_INPUT_LIMIT:6000},
  '../lib/backend-quota':{claimBackendAttempt:async()=>{claims++;return {allowed,reservation:'reservation',remaining:2}},finishBackendAttempt:async(...a)=>finished.push(a)},

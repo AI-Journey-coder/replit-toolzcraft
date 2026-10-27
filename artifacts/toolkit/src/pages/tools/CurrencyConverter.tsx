@@ -1,6 +1,6 @@
 import {preferredDate} from '@/lib/display-units';
 import { usePreferences } from '@/hooks/use-preferences';
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -72,23 +72,29 @@ export function CurrencyConverter() {
   const [search, setSearch] = useState("");
   const { copiedKey, copy } = useCopy();
 
+  const request = useRef(0);
   const fetchRates = useCallback(async (baseCcy: string) => {
+    const id=++request.current;
+    setRatesData(null);
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`https://open.er-api.com/v6/latest/${baseCcy}`);
+      const res = await fetch(`https://open.er-api.com/v6/latest/${baseCcy}`, {signal: AbortSignal.timeout(15000)});
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       if (json.result !== "success") throw new Error(json["error-type"] || "Unknown error");
+      if(id !== request.current)return;
+      if(json.base_code !== baseCcy || !json.rates || !Object.values(json.rates).every(v=>typeof v === "number" && Number.isFinite(v) && v>0))throw new Error("Invalid exchange-rate response");
       setRatesData({
         rates: json.rates,
         base: json.base_code,
         updatedAt: json.time_last_update_utc,
       });
     } catch (e) {
+      if(id !== request.current)return;
       setError(e instanceof Error ? e.message : "Failed to load exchange rates");
     } finally {
-      setLoading(false);
+      if(id === request.current)setLoading(false);
     }
   }, []);
 

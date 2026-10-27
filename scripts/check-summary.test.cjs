@@ -6,7 +6,15 @@ const test = require("node:test"),
   load = require("./load-ts-test.cjs");
 const free = load("artifacts/toolkit/src/lib/free-summary.ts").freeSummary;
 const modulePath = "artifacts/api-server/src/lib/summary.ts";
+test("free summaries preserve decimal amounts and avoid duplicate sentences",()=>{
+  const source="The amount due is INR 720.34. The amount due is INR 720.34. The amount due is INR 720.34. Payment must arrive by 30 October. The office opens at nine. The office closes at five.";
+  const result=free(source);
+  assert.ok(result.includes('720.34'));
+  assert.equal(result.split('720.34').length-1,1);
+  assert.ok(result.includes('30 October'));
+});
 const inert = load(modulePath, {
+    "./ai-prompts": load("artifacts/api-server/src/lib/ai-prompts.ts"),
   "@workspace/db": {},
   "./backend-quota": {},
   "./ai": {},
@@ -80,6 +88,7 @@ test(
       "./razorpay": { razorpayConfig: () => null },
     });
     const summary = load(modulePath, {
+    "./ai-prompts": load("artifacts/api-server/src/lib/ai-prompts.ts"),
       "@workspace/db": { pool },
       "./backend-quota": quota,
       "./ai": {},

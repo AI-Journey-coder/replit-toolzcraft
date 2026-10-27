@@ -1,3 +1,4 @@
+import { AnalysisResult } from "./AnalysisResult";
 import { useRef, useState } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -163,6 +164,18 @@ export function SummaryModes() {
             </label>
           ))}
         </fieldset>
+        <Button
+          variant="outline"
+          disabled={busy || extracting}
+          onClick={() => {
+            setText(
+              "Project review — 12 October 2026. The team agreed to launch the pilot on 2 November 2026 with 40 customers. The budget is ₹85,000, including ₹15,000 for support. Priya will finish accessibility testing by 25 October. Omar will send customer invitations by 28 October. The payment integration is still untested; launch depends on a successful test. No decision was made about international expansion.",
+            );
+            reset();
+          }}
+        >
+          Try an example
+        </Button>
         <Source
           label="Document to summarize"
           value={text}
@@ -259,32 +272,14 @@ export function SummaryModes() {
           </p>
         )}
         {result && (
-          <section aria-label="Summary result" className="space-y-3">
-            <h2 className="font-semibold">
-              {mode === "free" ? "Selected original sentences" : "Summary"}
-            </h2>
-            <p
-              className="whitespace-pre-wrap break-words"
-              data-testid="text-result"
-            >
-              {result}
+          <>
+            <p className="text-sm text-muted-foreground">
+              {mode === "free"
+                ? "Original sentences selected locally; this is not an AI interpretation. For a rewritten overview and findings, choose Quick Summary."
+                : "Check important facts and figures against your source."}
             </p>
-            <Button
-              variant="outline"
-              onClick={() => {
-                const url = URL.createObjectURL(
-                  new Blob([result], { type: "text/plain;charset=utf-8" }),
-                );
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "toolzcraft-summary.txt";
-                a.click();
-                setTimeout(() => URL.revokeObjectURL(url), 1000);
-              }}
-            >
-              Download summary
-            </Button>
-          </section>
+            <AnalysisResult result={result} title="Summary result" />
+          </>
         )}
       </CardContent>
     </Card>
