@@ -8,18 +8,21 @@ async function main() {
     throw Error("Use --live for bounded synthetic provider calls.");
   process.loadEnvFile("artifacts/api-server/.env");
   const results = [];
-  for (const action of [
-    "overview",
-    "detailed",
-    "facts",
-    "amounts",
-    "questions",
-    "deadlines",
-    "actions",
-    "simplify",
-    "checklist",
-    "compare",
-  ]) {
+  const followup = process.argv.includes("--followup");
+  for (const action of followup
+    ? ["questions"]
+    : [
+        "overview",
+        "detailed",
+        "facts",
+        "amounts",
+        "questions",
+        "deadlines",
+        "actions",
+        "simplify",
+        "checklist",
+        "compare",
+      ]) {
     const documents = [
       {
         id: "a",
@@ -42,8 +45,17 @@ async function main() {
           },
         ],
       });
-    const question =
-      action === "questions"
+    const history = followup
+      ? [
+          {
+            question: "Which invoice and amount?",
+            answer: "DEMO-104, amount due ₹999.00",
+          },
+        ]
+      : [];
+    const question = followup
+      ? "What is its actual amount due according to the document?"
+      : action === "questions"
         ? "What is the customer bank account number?"
         : action === "checklist"
           ? "Invoice reference, supplier bank account number and due date"
@@ -73,6 +85,7 @@ async function main() {
                   "invoice",
                   action,
                   question,
+                  history,
                 ),
               },
             ],
@@ -89,10 +102,17 @@ async function main() {
         documents,
       );
       if (
+        !followup &&
         action === "questions" &&
         !result.missing.some((x) => /bank|account|information/i.test(x))
       )
         throw Error("Missing-answer safeguard failed");
+      if (
+        followup &&
+        (!result.findings.some((f) => /850\.00/.test(f.value)) ||
+          result.findings.some((f) => /999\.00/.test(f.value)))
+      )
+        throw Error("Follow-up trusted conversation instead of source.");
       results.push({ action, pass: true, result });
       console.log(action + ": PASS");
     } catch (e) {
@@ -101,7 +121,9 @@ async function main() {
     }
   }
   fs.writeFileSync(
-    "test-results/intelligence-live.json",
+    followup
+      ? "test-results/intelligence-followup-live.json"
+      : "test-results/intelligence-live.json",
     JSON.stringify(results, null, 2),
   );
   if (results.some((r) => !r.pass)) process.exitCode = 1;

@@ -10,11 +10,15 @@ This is an initial replacement workspace, not completion of the full A–L bluep
 - Local invoice fields with ambiguity/missing states, separate GST components, strict minor-unit arithmetic and no inferred payment status. Local comparison identifies normalized added/removed lines and explicitly does not assess order, repeated-line counts or meaning.
 - Server-calculated 1–4 credit cost at one credit per 6,000 selected characters including the question; explicit consent; atomic existing ledger; idempotent retries; owner-bound result clearing; malformed output rolls back. Original files stay local. Selected reviewed text is sent to the AI provider only after confirmation.
 - TXT/CSV/JSON/PDF result exports and copy. PDF uses rendered pages to preserve Unicode; use TXT/JSON for selectable machine-readable text. Exports include evidence and warnings.
+- PDF thumbnail navigation preserves original page anchors after reordering. Thumbnails are bounded local previews and are released with the workspace.
+- Conversational follow-ups retain up to six prior turns and 6,000 context characters. Context counts toward the 24,000-character request limit and quoted credit cost. Source edits/selection changes reset context; users can start a new conversation explicitly. Earlier answers are context, never evidence.
+- Local candidate-table extraction preserves consistent tab/pipe-delimited rows, including Word table cells. Each row links to its source and exports to formula-safe CSV; no first-row/header inference or invented missing cells. Complex visual/merged-cell layouts remain unsupported by this local extractor.
+- Document-specific field profiles, suggested questions and editable checklist templates cover invoices/receipts, agreements, reports, financial statements, resumes and technical documents. These are extraction targets, not professional assessments or complete specialist result schemas.
 
 ## Explicit limits and incomplete blueprint requirements
 
 - Maximum five files, 20 MB each, 20 pages per PDF, 200,000 extracted characters per file and 24,000 selected characters per AI request. No silent truncation; large-document background processing is not implemented.
-- PDF thumbnails, automatic language/author metadata, layout-preserving table extraction in this workspace, structured specialist adapters for every blueprint document category, suggested questions and conversational follow-up context remain outstanding. Current Q&A is a separate source-grounded question per request; the UI asks users to include necessary context.
+- Automatic language/author metadata, complex layout-preserving table extraction and fully structured specialist result schemas remain outstanding. The newly added profiles do not claim to complete every specialized workflow in the blueprint.
 - English OCR only. Mixed pages with selectable text do not currently OCR additional embedded image regions. Source review remains necessary. No signature authenticity, legal-compliance or external issuer verification is claimed.
 - No persistent original-file storage or server upload; therefore no server malware-scanning claim. Local parsing is bounded but not a guarantee against all malformed files.
 - Result text is retained for retry recovery. Existing code clears expired text on the user's next request; `node scripts/database.cjs prune-summaries` clears older text globally. A scheduled deployment cleanup job is still required for an enforceable time-based deletion guarantee. Manual clear removes result text while preserving accounting metadata. Closing the tab clears local state but does not delete server receipts.
@@ -24,9 +28,10 @@ This is an initial replacement workspace, not completion of the full A–L bluep
 ## Verification and release gate
 
 - TypeScript checks and API/web builds pass locally.
-- 73 release tests passed, including real disposable PostgreSQL charging, rollback, concurrency and retry tests. Ten existing document workflow tests passed.
-- Final full browser suite: 29 passed. Focused workspace suite: six passed, including real image OCR, source clearing, PDF/DOCX input, mobile layout, exports and corrupt input preservation.
+- 75 release tests passed, including real disposable PostgreSQL charging, rollback, concurrency and retry tests, plus conversation cost/limits and candidate-table extraction. Ten existing document workflow tests passed at the previous checkpoint.
+- Previous full browser suite: 29 passed. Enhanced full run: 30 passed and one form-label selector failure; after adding explicit accessible labels, all eight workspace tests passed in the focused rerun. Thumbnail navigation, real OCR, Word tables, specialist profiles, local clearing, mobile layout, exports and corrupt input preservation are covered.
 - Ten synthetic live Gemini actions passed after prompt corrections. This is evidence for those samples, not a universal quality guarantee. Invalid outputs continue to fail closed without successful credit settlement.
+- All ten actions passed again with document profiles. A separate live follow-up test supplied an incorrect previous amount (999.00) and verified that the response cited the source amount (850.00) instead.
 - Authenticated staging verification through Firebase, Cloud Run proxy/API and the credit ledger is still required. These changes are not on staging or production until both images are built and deployed.
 
 The incomplete P1 items above must be delivered or explicitly agreed as deferred before calling the complete blueprint MVP finished. This checkpoint must not be advertised as full production readiness or an AdSense approval guarantee.

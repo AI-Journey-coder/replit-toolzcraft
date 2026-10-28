@@ -64,12 +64,30 @@ export async function readDocument(
       const doc = new DOMParser().parseFromString(xml, "application/xml");
       if (doc.getElementsByTagName("parsererror").length)
         throw Error("Invalid DOCX XML.");
-      const paragraphs = Array.from(doc.getElementsByTagNameNS("*", "p"))
-        .map((p) =>
-          Array.from(p.getElementsByTagNameNS("*", "t"))
-            .map((t) => t.textContent || "")
-            .join(""),
-        )
+      const body = doc.getElementsByTagNameNS("*", "body")[0];
+      if (!body) throw Error("DOCX has no document body.");
+      const textOf = (p: Element) =>
+        Array.from(p.getElementsByTagNameNS("*", "t"))
+          .map((t) => t.textContent || "")
+          .join("");
+      const hasTables = body.getElementsByTagNameNS("*", "tbl").length > 0;
+      const paragraphs = Array.from(body.children)
+        .flatMap((element) => {
+          if (element.localName === "tbl")
+            return Array.from(element.children)
+              .filter((r) => r.localName === "tr")
+              .map((row) =>
+                Array.from(row.children)
+                  .filter((c) => c.localName === "tc")
+                  .map((cell) =>
+                    Array.from(cell.getElementsByTagNameNS("*", "p"))
+                      .map(textOf)
+                      .join(" "),
+                  )
+                  .join("\t"),
+              );
+          return [textOf(element)];
+        })
         .filter(Boolean);
       if (paragraphs.join("\n").length > 200000)
         throw Error(
@@ -80,7 +98,10 @@ export async function readDocument(
         pages.push({
           id: id + "-section" + i,
           label:
-            "Paragraphs " + (i + 1) + "–" + Math.min(i + 20, paragraphs.length),
+            (hasTables ? "Blocks " : "Paragraphs ") +
+            (i + 1) +
+            "–" +
+            Math.min(i + 20, paragraphs.length),
           text: paragraphs.slice(i, i + 20).join("\n"),
         });
       check();

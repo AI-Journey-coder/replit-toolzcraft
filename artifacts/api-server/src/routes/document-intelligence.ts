@@ -4,6 +4,7 @@ import {
   ACTIONS,
   DOCUMENT_TYPES,
   validateSources,
+  validateConversation,
   verifiedResult,
   intelligencePrompt,
   type IntelligenceAction,
@@ -19,6 +20,9 @@ let active = 0;
 const hits = new Map<number, { at: number; count: number }>();
 export function intelligenceInput(body: any) {
   const documents = validateSources(body?.documents);
+  const history = validateConversation(body?.history);
+  if (history.length && body.action !== "questions")
+    throw Error("Conversation context is only supported for questions.");
   if (
     !ACTIONS.includes(body.action) ||
     !DOCUMENT_TYPES.includes(body.documentType) ||
@@ -34,7 +38,9 @@ export function intelligenceInput(body: any) {
     documents.reduce(
       (n, d) => n + d.pages.reduce((m, p) => m + p.text.length, 0),
       0,
-    ) + body.question.length;
+    ) +
+    body.question.length +
+    history.reduce((n, t) => n + t.question.length + t.answer.length, 0);
   if (length > 24000)
     throw Error("Select up to 24,000 characters including your question.");
   const canonical = JSON.stringify({
@@ -43,12 +49,14 @@ export function intelligenceInput(body: any) {
     action: body.action,
     documentType: body.documentType,
     question: body.question,
+    history,
   });
   return {
     documents,
     action: body.action as IntelligenceAction,
     documentType: body.documentType as DocumentType,
     question: body.question as string,
+    history,
     canonical,
     credits: Math.max(1, Math.ceil(length / 6000)),
     fingerprint: createHash("sha256").update(canonical).digest("hex"),
@@ -156,6 +164,7 @@ router.post("/document-intelligence/analyze", async (req, res) => {
             input.documentType,
             input.action,
             input.question,
+            input.history,
           ),
         );
         return JSON.stringify(verifiedResult(raw, input.documents));

@@ -12,11 +12,15 @@ import {
 import {
   ACTIONS,
   DOCUMENT_TYPES,
+  DOCUMENT_PROFILES,
   classify,
   localInvoice,
   normalize,
   pagesFromText,
   validateSources,
+  extractTables,
+  type SourceTable,
+  type ConversationTurn,
   type DocumentSource,
   type DocumentType,
   type IntelligenceAction,
@@ -29,6 +33,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { DocumentPreview } from "./DocumentPreview";
+import { DocumentThumbnails } from "./DocumentThumbnails";
 import { downloadDocumentReport } from "@/lib/document-report";
 import { csv } from "@/lib/document-results";
 type LocalDocument = DocumentSource & {
@@ -69,6 +74,8 @@ export function DocumentIntelligence() {
     [kind, setKind] = useState<DocumentType>("general"),
     [action, setAction] = useState<IntelligenceAction>("overview"),
     [question, setQuestion] = useState(""),
+    [history, setHistory] = useState<ConversationTurn[]>([]),
+    [tables, setTables] = useState<SourceTable[] | null>(null),
     [result, setResult] = useState<IntelligenceResult | null>(null),
     [evidence, setEvidence] = useState<Finding | null>(null),
     [status, setStatus] = useState(""),
@@ -102,19 +109,33 @@ export function DocumentIntelligence() {
       pages: d.pages.filter((p) => selected.includes(p.id)),
     }))
     .filter((d) => d.pages.length);
+  const sourceVersion = JSON.stringify(sources);
+  useEffect(() => {
+    setHistory([]);
+  }, [sourceVersion, kind]);
+  const context = action === "questions" ? history : [];
+  const contextLength = context.reduce(
+    (n, t) => n + t.question.length + t.answer.length,
+    0,
+  );
   const length =
     sources.reduce(
       (n, d) => n + d.pages.reduce((m, p) => m + p.text.length, 0),
       0,
-    ) + question.length;
+    ) +
+    question.length +
+    contextLength;
   const current = documents.find((d) => d.pages.some((p) => p.id === focus));
   const page = current?.pages.find((p) => p.id === focus);
   const blocked = busy || reading;
   const valid =
     sources.length > 0 &&
     length <= 24000 &&
+    contextLength <= 6000 &&
+    context.length <= 6 &&
     sources.some((d) => d.pages.some((p) => p.text.trim()));
   function changed() {
+    setTables(null);
     setResult(null);
     setEvidence(null);
     setQuote(null);
@@ -314,6 +335,7 @@ export function DocumentIntelligence() {
     documentType: kind,
     action,
     question,
+    history: context,
   });
   async function getQuote() {
     if (lock.current) return;
@@ -363,6 +385,18 @@ export function DocumentIntelligence() {
       });
       if (alive.current) {
         setResult(data.result);
+        if (action === "questions") {
+          const answer = [
+            ...data.result.findings.map(
+              (f: Finding) => `${f.label}: ${f.value}`,
+            ),
+            ...data.result.missing,
+          ].join("\n");
+          setHistory((h) => [...h, { question, answer }]);
+          setQuote(null);
+          setConsent(false);
+          setQuestion("");
+        }
         setStatus(
           data.replayed
             ? "Recovered the existing result without another charge."
@@ -393,6 +427,7 @@ export function DocumentIntelligence() {
       setSelected([]);
       setFocus("");
       setQuestion("");
+      setHistory([]);
       changed();
       setStatus(
         "Local sources cleared. Any saved analysis text from this workspace has been cleared; accounting receipts are retained.",
@@ -618,6 +653,11 @@ export function DocumentIntelligence() {
                       )}
                     </div>
                   ))}
+                  <DocumentThumbnails
+                    file={d.file}
+                    pages={d.pages}
+                    onSelect={setFocus}
+                  />
                 </div>
               ))}
             </aside>
@@ -686,6 +726,7 @@ export function DocumentIntelligence() {
               <label className="text-sm">
                 Document type{" "}
                 <select
+                  aria-label="Document type"
                   className="block rounded border bg-background p-2"
                   value={kind}
                   disabled={blocked}
@@ -704,6 +745,7 @@ export function DocumentIntelligence() {
               <label className="text-sm">
                 AI action{" "}
                 <select
+                  aria-label="AI action"
                   className="block max-w-full rounded border bg-background p-2"
                   value={action}
                   disabled={blocked}
@@ -725,9 +767,34 @@ export function DocumentIntelligence() {
               selection controls what is analyzed.
             </p>
             {["questions", "checklist"].includes(action) && (
+              <div
+                className="rounded-lg bg-muted/40 p-3 text-sm"
+                aria-label="Document field profile"
+              >
+                <p className="font-medium">{kind} review profile</p>
+                <p>{DOCUMENT_PROFILES[kind].fields.join(" · ")}</p>
+                <Button
+                  variant="outline"
+                  disabled={blocked}
+                  className="mt-2 h-auto whitespace-normal py-2"
+                  onClick={() => {
+                    setAction("checklist");
+                    setQuestion(DOCUMENT_PROFILES[kind].fields.join(", "));
+                    changed();
+                  }}
+                >
+                  Use these fields as checklist
+                </Button>
+                <p className="mt-2 text-xs">
+                  Extraction targets only; not a compliance or professional
+                  review.
+                </p>
+              </div>
+            )}
+            {["questions", "checklist"].includes(action) && (
               <label className="block text-sm">
                 {action === "questions"
-                  ? "Your question (include context for follow-ups)"
+                  ? "Your question or follow-up"
                   : "Required fields or checklist"}
                 <Textarea
                   value={question}
@@ -741,9 +808,79 @@ export function DocumentIntelligence() {
                 />
               </label>
             )}
+            {action === "questions" && (
+              <div className="space-y-3">
+                <div
+                  className="flex flex-wrap gap-2"
+                  aria-label="Suggested questions"
+                >
+                  {[
+                    ...DOCUMENT_PROFILES[kind].questions,
+                    "What information is missing?",
+                  ].map((q) => (
+                    <Button
+                      key={q}
+                      variant="outline"
+                      disabled={blocked}
+                      className="h-auto whitespace-normal py-2"
+                      onClick={() => {
+                        setQuestion(q);
+                        changed();
+                      }}
+                    >
+                      {q}
+                    </Button>
+                  ))}
+                </div>
+                {!!history.length && (
+                  <section
+                    aria-label="Conversation"
+                    className="space-y-3 rounded border p-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="font-semibold">
+                        Conversation · {history.length} question(s)
+                      </h3>
+                      <Button
+                        variant="outline"
+                        disabled={blocked}
+                        onClick={() => {
+                          setHistory([]);
+                          changed();
+                        }}
+                      >
+                        New conversation
+                      </Button>
+                    </div>
+                    {history.map((t, i) => (
+                      <details key={i}>
+                        <summary className="cursor-pointer break-words">
+                          {t.question}
+                        </summary>
+                        <p className="whitespace-pre-wrap break-words text-sm">
+                          {t.answer}
+                        </p>
+                      </details>
+                    ))}
+                    <p className="text-xs">
+                      Previous questions and answers are included in the next
+                      request and its credit cost. Evidence is always checked
+                      against the selected documents. Changing sources resets
+                      this conversation.
+                    </p>
+                    {(contextLength > 6000 || history.length > 6) && (
+                      <p role="alert">
+                        Conversation limit reached. Start a new conversation; no
+                        history is silently truncated.
+                      </p>
+                    )}
+                  </section>
+                )}
+              </div>
+            )}
             <p className="text-sm">
               {length.toLocaleString()} / 24,000 selected characters including
-              your question
+              your question and conversation
             </p>
             {length > 24000 && (
               <p role="alert" className="text-destructive">
@@ -752,6 +889,16 @@ export function DocumentIntelligence() {
               </p>
             )}
             <div className="flex flex-wrap gap-3">
+              <Button
+                variant="outline"
+                disabled={blocked || !valid}
+                onClick={() => {
+                  changed();
+                  setTables(extractTables(sources));
+                }}
+              >
+                Extract tables · Free
+              </Button>
               <Button
                 variant="outline"
                 disabled={blocked || !valid}
@@ -824,6 +971,91 @@ export function DocumentIntelligence() {
             )}
           </section>
         </>
+      )}
+      {tables && (
+        <section
+          aria-label="Extracted tables"
+          className="min-w-0 space-y-4 rounded-xl border p-5"
+        >
+          <h2 className="text-xl font-semibold">Tables & source rows</h2>
+          <p className="text-sm">
+            Detects consistent tab-separated or pipe-separated rows locally.
+            Column names are placeholders; every original row is retained.
+            Complex merged cells and visual-only tables require source review.
+          </p>
+          {!tables.length && (
+            <p role="status">
+              No consistent delimited table found. Review the extracted text or
+              use the dedicated AI Table Extractor for visual layouts.
+            </p>
+          )}
+          {tables.map((t, i) => (
+            <div key={i} className="min-w-0 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="font-semibold">
+                  Table {i + 1} · {sourceLabel(t.sourceId)}
+                </h3>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    save(
+                      csv(
+                        t.rows[0].map((_, n) => "Column " + (n + 1)),
+                        t.rows,
+                      ),
+                      "document-table-" + (i + 1) + ".csv",
+                      "text/csv;charset=utf-8",
+                    )
+                  }
+                >
+                  Export table {i + 1} CSV
+                </Button>
+              </div>
+              <div className="max-w-full overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr>
+                      {t.rows[0].map((_, n) => (
+                        <th key={n} className="border p-2 text-left">
+                          Column {n + 1}
+                        </th>
+                      ))}
+                      <th className="border p-2">Evidence</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {t.rows.map((row, n) => (
+                      <tr key={n}>
+                        {row.map((c, j) => (
+                          <td key={j} className="border p-2">
+                            {c}
+                          </td>
+                        ))}
+                        <td className="border p-2">
+                          <button
+                            className="underline"
+                            onClick={() => {
+                              setFocus(t.sourceId);
+                              setEvidence({
+                                label: "Table row " + (n + 1),
+                                value: t.quotes[n],
+                                quote: t.quotes[n],
+                                sourceId: t.sourceId,
+                                status: "extracted",
+                              });
+                            }}
+                          >
+                            View row {n + 1} source
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+        </section>
       )}
       {result && (
         <section

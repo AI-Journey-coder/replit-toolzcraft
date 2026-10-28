@@ -2,6 +2,61 @@ const test = require("node:test"),
   assert = require("node:assert/strict"),
   load = require("./load-ts-test.cjs");
 const core = load("lib/document-intelligence/src/index.ts");
+
+test("tables retain rows, empty cells and source anchors without guessing missing columns", () => {
+  const d = [
+    {
+      id: "d",
+      name: "Table",
+      pages: [
+        {
+          id: "p",
+          label: "Page 1",
+          text: "Item\tQty\tPrice\nPlan\t1\t850.00\nNote\n| Name | Value |\n| --- | --- |\n| GST | 18% |",
+        },
+      ],
+    },
+  ];
+  const tables = core.extractTables(d);
+  assert.equal(tables.length, 2);
+  assert.equal(tables[0].rows[1][2], "850.00");
+  assert.equal(tables[1].rows[1][1], "18%");
+  assert.equal(tables[0].sourceId, "p");
+  assert.equal(
+    core.extractTables([
+      {
+        ...d[0],
+        pages: [{ ...d[0].pages[0], text: "No table here\nPlain prose only" }],
+      },
+    ]).length,
+    0,
+  );
+});
+test("conversation limits reject malformed and oversized context without truncation", () => {
+  assert.equal(
+    core.validateConversation([{ question: "When?", answer: "October 1" }])
+      .length,
+    1,
+  );
+  assert.throws(() =>
+    core.validateConversation(Array(7).fill({ question: "Q", answer: "A" })),
+  );
+  assert.throws(() =>
+    core.validateConversation([{ question: "Q", answer: "a".repeat(6000) }]),
+  );
+  assert.throws(() =>
+    core.validateConversation([{ question: "Q", answer: 42 }]),
+  );
+  const prompt = core.intelligencePrompt(
+    [],
+    "general",
+    "questions",
+    "And the total?",
+    [{ question: "Which invoice?", answer: "DEMO" }],
+  );
+  assert.match(prompt, /DEMO/);
+  assert.match(prompt, /never evidence/);
+});
 const invoice = `[Page 1]\nPage 1 of 1\nInvoice\nInvoice number\tDEMO\t0001\nDate of issue September 1, 2026\nDate due September 1, 2026\nExample Software Pvt. Ltd GST\nBill to\nDemo Customer\nvideo AI - Basic\nSep 1–Oct 1, 2026\nSubtotal ₹850.00\nTotal excluding tax ₹720.34\nSGST - INDIA 9% incl. on ₹720.34 ₹64.83\nCGST - INDIA 9% incl. on ₹720.34 ₹64.83\nTotal ₹850.00\nAmount due ₹850.00\nHSN/SAC - 998314`;
 const docs = (text = invoice) => [
   {
@@ -208,6 +263,31 @@ test("intelligence quote binds source, action and options; malformed jobs fail b
       await send("quote", { ...input, action: "facts" })
     ).json();
     assert.notEqual(q.fingerprint, q2.fingerprint);
+    const conversation = {
+      ...input,
+      documents: docs("x".repeat(5900)),
+      action: "questions",
+      question: "What next?",
+    };
+    const before = await (await send("quote", conversation)).json();
+    const after = await (
+      await send("quote", {
+        ...conversation,
+        history: [{ question: "Prior?", answer: "a".repeat(200) }],
+      })
+    ).json();
+    assert.equal(before.credits, 1);
+    assert.equal(after.credits, 2);
+    assert.notEqual(before.fingerprint, after.fingerprint);
+    assert.equal(
+      (
+        await send("quote", {
+          ...input,
+          history: [{ question: "Q", answer: "A" }],
+        })
+      ).status,
+      400,
+    );
     assert.equal(
       (
         await send("analyze", {

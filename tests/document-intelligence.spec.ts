@@ -1,19 +1,105 @@
 import { test, expect } from "@playwright/test";
 
-test('image upload extracts readable text locally', async ({page}) => {
-  test.setTimeout(120000);
-  await page.goto('/tools/ai-document-intelligence');
-  const png = await page.evaluate(() => {
-    const c = document.createElement('canvas'); c.width = 1000; c.height = 300;
-    const ctx = c.getContext('2d')!; ctx.fillStyle = 'white'; ctx.fillRect(0,0,1000,300);
-    ctx.fillStyle = 'black'; ctx.font = '40px Arial';
-    ctx.fillText('Invoice DEMO-202',40,80); ctx.fillText('Amount due INR 850.00',40,160);
-    return c.toDataURL('image/png').split(',')[1];
+test("specialist questions and checklists follow the chosen document type", async ({
+  page,
+}) => {
+  await page.goto("/tools/ai-document-intelligence");
+  await page.getByRole("button", { name: "Paste text", exact: true }).click();
+  await page
+    .getByLabel("Reviewed source text")
+    .fill("Agreement between Example A and Example B. Notice period: 30 days.");
+  await page
+    .getByLabel("Document type", { exact: true })
+    .selectOption("agreement");
+  await page.getByLabel("AI action", { exact: true }).selectOption("questions");
+  await page
+    .getByRole("button", {
+      name: "What are the termination and notice terms?",
+      exact: true,
+    })
+    .click();
+  await expect(page.getByLabel("Your question or follow-up")).toHaveValue(
+    "What are the termination and notice terms?",
+  );
+  await page
+    .getByRole("button", { name: "Use these fields as checklist" })
+    .click();
+  await expect(page.getByLabel("Required fields or checklist")).toHaveValue(
+    /Notice period/,
+  );
+});
+
+test("Word tables retain cells and export source rows without guessed headers", async ({
+  page,
+}) => {
+  const { zipSync, strToU8 } =
+    await import("../artifacts/toolkit/node_modules/fflate/lib/index.cjs");
+  const row = (cells: string[]) =>
+    "<w:tr>" +
+    cells
+      .map((c) => "<w:tc><w:p><w:r><w:t>" + c + "</w:t></w:r></w:p></w:tc>")
+      .join("") +
+    "</w:tr>";
+  const xml =
+    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:tbl>' +
+    row(["Item", "Qty", "Amount"]) +
+    row(["Plan", "1", "850.00"]) +
+    "</w:tbl></w:body></w:document>";
+  await page.goto("/tools/ai-document-intelligence");
+  await page.getByLabel("Upload documents").setInputFiles({
+    name: "table.docx",
+    mimeType:
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    buffer: Buffer.from(zipSync({ "word/document.xml": strToU8(xml) })),
   });
-  await page.getByLabel('Upload documents').setInputFiles({name:'ocr-example.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
-  await expect(page.getByLabel('Reviewed source text')).toHaveValue(/DEMO-202/, {timeout:90000});
-  await expect(page.getByLabel('Reviewed source text')).toHaveValue(/850\.00/);
-  await expect(page.getByAltText('Original uploaded document')).toBeVisible();
+  await expect(page.getByLabel("Reviewed source text")).toHaveValue(
+    "Item\tQty\tAmount\nPlan\t1\t850.00",
+  );
+  await page
+    .getByRole("button", { name: "Extract tables · Free", exact: true })
+    .click();
+  const tables = page.getByRole("region", { name: "Extracted tables" });
+  await expect(
+    tables.getByRole("cell", { name: "850.00", exact: true }),
+  ).toBeVisible();
+  const download = page.waitForEvent("download");
+  await tables.getByRole("button", { name: "Export table 1 CSV" }).click();
+  expect((await download).suggestedFilename()).toBe("document-table-1.csv");
+  await tables.getByRole("button", { name: "View row 2 source" }).click();
+  await expect(
+    page.getByText("Selected evidence", { exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("Reviewed source text").fill("Edited");
+  await expect(tables).toHaveCount(0);
+});
+
+test("image upload extracts readable text locally", async ({ page }) => {
+  test.setTimeout(120000);
+  await page.goto("/tools/ai-document-intelligence");
+  const png = await page.evaluate(() => {
+    const c = document.createElement("canvas");
+    c.width = 1000;
+    c.height = 300;
+    const ctx = c.getContext("2d")!;
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, 1000, 300);
+    ctx.fillStyle = "black";
+    ctx.font = "40px Arial";
+    ctx.fillText("Invoice DEMO-202", 40, 80);
+    ctx.fillText("Amount due INR 850.00", 40, 160);
+    return c.toDataURL("image/png").split(",")[1];
+  });
+  await page.getByLabel("Upload documents").setInputFiles({
+    name: "ocr-example.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(png, "base64"),
+  });
+  await expect(page.getByLabel("Reviewed source text")).toHaveValue(
+    /DEMO-202/,
+    { timeout: 90000 },
+  );
+  await expect(page.getByLabel("Reviewed source text")).toHaveValue(/850\.00/);
+  await expect(page.getByAltText("Original uploaded document")).toBeVisible();
 });
 for (const width of [390, 1280])
   test(
@@ -126,13 +212,21 @@ test("PDF extraction preserves page anchors and corrupt files retain current sou
   await expect(
     page.getByRole("button", { name: "Page 2", exact: true }),
   ).toBeVisible();
+  await expect(page.getByAltText("Thumbnail Page 2")).toBeVisible();
   await page
-    .getByLabel("Upload documents")
-    .setInputFiles({
-      name: "bad.pdf",
-      mimeType: "application/pdf",
-      buffer: Buffer.from("broken"),
-    });
+    .getByRole("button", { name: "Preview Page 2", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: /sample.pdf · Page 2/ }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Preview Page 1", exact: true })
+    .click();
+  await page.getByLabel("Upload documents").setInputFiles({
+    name: "bad.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.from("broken"),
+  });
   await expect(page.getByRole("alert")).toContainText("Invalid PDF signature");
   await expect(page.getByLabel("Reviewed source text")).toContainText(
     "ToolzCraft test 123",
