@@ -198,6 +198,9 @@ importers:
       '@workspace/db':
         specifier: workspace:*
         version: link:../../lib/db
+      '@workspace/document-intelligence':
+        specifier: workspace:*
+        version: link:../../lib/document-intelligence
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
@@ -463,6 +466,9 @@ importers:
       '@types/turndown':
         specifier: ^5.0.6
         version: 5.0.6
+      '@workspace/document-intelligence':
+        specifier: workspace:*
+        version: link:../../lib/document-intelligence
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
@@ -813,6 +819,8 @@ importers:
       drizzle-kit:
         specifier: ^0.31.10
         version: 0.31.10
+
+  lib/document-intelligence: {}
 
   scripts:
     devDependencies:

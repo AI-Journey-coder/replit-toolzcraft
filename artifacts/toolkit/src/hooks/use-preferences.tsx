@@ -8,7 +8,7 @@ const key = 'toolzcraft.preferences.v1';
 const defaults: Preferences = { favorites: [], dateFormat:'dmy-text', currency: 'USD', palette: 'jade', logo: LOGOS.includes(import.meta.env.VITE_DEFAULT_LOGO as LogoId) ? import.meta.env.VITE_DEFAULT_LOGO as LogoId : 'original' };
 function read(): Preferences {
   try { const p=JSON.parse(localStorage.getItem(key)||'null'); return {
-    favorites: Array.isArray(p?.favorites) ? [...new Set<string>(p.favorites.filter((s:unknown)=>TOOLS.some(t=>t.slug===s)))] : [],
+    favorites: Array.isArray(p?.favorites) ? [...new Set<string>(p.favorites.map((s:unknown)=>s==='ai-summarizer'?'ai-document-intelligence':s).filter((s:unknown)=>TOOLS.some(t=>t.slug===s)))] : [],
     dateFormat: ['dmy-text','mdy','dmy','iso'].includes(p?.dateFormat)?p.dateFormat:'dmy-text',
     currency: CURRENCIES.includes(p?.currency) ? p.currency : defaults.currency,
     palette: localStorage.getItem('toolzcraft.palette') === 'indigo' ? 'indigo' : 'jade',

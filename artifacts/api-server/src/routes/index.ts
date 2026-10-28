@@ -1,3 +1,4 @@
+import intelligenceRouter from "./document-intelligence";
 import summaryRouter from './summary';
 import billingRouter from './billing';
 import { Router, type IRouter } from "express";
@@ -14,6 +15,7 @@ router.use(billingRouter);
 router.use(authRouter);
 router.use(toolsRouter);
 router.use(adminRouter);
+router.use(intelligenceRouter);
 router.use(summaryRouter);
 router.use(aiRouter);
 

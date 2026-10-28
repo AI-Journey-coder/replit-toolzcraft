@@ -210,9 +210,6 @@ function ResultBox({
   return result ? <AnalysisResult result={result} /> : null;
 }
 
-// ─── AI Summarizer ────────────────────────────────────────────────────────────
-export { SummaryModes as AiSummarizer } from "./SummaryModes";
-
 // ─── AI Key Points ────────────────────────────────────────────────────────────
 export function AiKeyPoints() {
   const t = useAiTool();

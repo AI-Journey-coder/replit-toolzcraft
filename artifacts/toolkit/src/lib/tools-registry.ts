@@ -371,13 +371,13 @@ const REGISTERED_TOOLS: Tool[] = [
   { name: "PDF OCR", slug: "pdf-ocr", category: "ocr", description: "Recognize text in scanned PDFs, page by page", icon: FileSearch, popular: true },
 
   // ── AI Tools ───────────────────────────────────────────────────────────────
-  { name: "Document Summarizer", slug: "ai-summarizer", category: "ai", description: "Free local summaries, quick AI summaries and full-document analysis with upfront credit costs", icon: Sparkles, popular: true },
+  { name: "AI Document Intelligence", slug: "ai-document-intelligence", category: "ai", description: "Review documents, validate invoice amounts, compare text and explore AI findings with source evidence", icon: Sparkles, popular: true },
   { name: "AI Key Points Extractor", slug: "ai-key-points", category: "ai", description: "Extract names, dates, figures, and decisions from any text", icon: List },
   { name: "AI Document Q&A", slug: "ai-document-qa", category: "ai", description: "Ask questions about a document and get answers from its text", icon: FileSearch, popular: true },
   { name: "AI Document Translator", slug: "ai-translator", category: "ai", description: "Translate document text into 18 languages with AI", icon: Languages },
 ];
 
 // Do not advertise unavailable online tools in the public directory.
-export const TOOLS: Tool[] = REGISTERED_TOOLS.filter(t => t.slug === "ai-summarizer" || t.category !== "ai" || import.meta.env.VITE_ENABLE_AI === "true");
+export const TOOLS: Tool[] = REGISTERED_TOOLS.filter(t => t.slug === "ai-document-intelligence" || t.category !== "ai" || import.meta.env.VITE_ENABLE_AI === "true");
 
 export const CATEGORIES: Category[] = REGISTERED_CATEGORIES.filter(c => TOOLS.some(t => t.category === c.slug));

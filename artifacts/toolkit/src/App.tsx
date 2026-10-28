@@ -1,3 +1,5 @@
+import {DocumentIntelligence} from "@/pages/tools/DocumentIntelligence";
+import {Redirect} from 'wouter';
 import { Profile } from "@/pages/Profile";
 import {InvoiceExtractor,TableExtractor,ScanAssistant,DocumentCompare} from '@/pages/tools/DocumentWorkflows';
 import {SqlDataGenerator,SampleDataGenerator,BoundaryDataGenerator} from '@/pages/tools/TestData';
@@ -135,7 +137,7 @@ import { PdfToImages, PdfTextExtractor } from "@/pages/tools/PdfTools2";
 // OCR & Documents
 import { ImageOcr, PdfOcr } from "@/pages/tools/OcrTools";
 // AI Tools
-import { AiSummarizer, AiKeyPoints, AiDocumentQa, AiTranslator } from "@/pages/tools/AiTools";
+import { AiKeyPoints, AiDocumentQa, AiTranslator } from "@/pages/tools/AiTools";
 
 const queryClient = new QueryClient();
 
@@ -487,7 +489,8 @@ function Router() {
 <Route path="/tools/ai-table-extractor">{() => <T component={TableExtractor} />}</Route>
 <Route path="/tools/ai-scan-assistant">{() => <T component={ScanAssistant} />}</Route>
 <Route path="/tools/ai-document-compare">{() => <T component={DocumentCompare} />}</Route>
-<Route path="/tools/ai-summarizer">{() => <T component={AiSummarizer} />}</Route>
+<Route path="/tools/ai-document-intelligence">{() => <T component={DocumentIntelligence} />}</Route>
+<Route path="/tools/ai-summarizer">{() => <Redirect to="/tools/ai-document-intelligence" />}</Route>
       <Route path="/tools/ai-key-points">{() => <T component={AiKeyPoints} />}</Route>
       <Route path="/tools/ai-document-qa">{() => <T component={AiDocumentQa} />}</Route>
       <Route path="/tools/ai-translator">{() => <T component={AiTranslator} />}</Route>

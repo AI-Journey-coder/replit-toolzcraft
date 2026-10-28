@@ -112,6 +112,7 @@
     "pyodide": "^314.0.6",
     "qrcode": "^1.5.4",
     "reflect-metadata": "^0.2.2",
-    "turndown": "^7.2.4"
+    "turndown": "^7.2.4",
+    "@workspace/document-intelligence": "workspace:*"
   }
 }

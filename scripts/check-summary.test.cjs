@@ -4,31 +4,8 @@ const test = require("node:test"),
   path = require("path"),
   crypto = require("crypto"),
   load = require("./load-ts-test.cjs");
-const free = load("artifacts/toolkit/src/lib/free-summary.ts").freeSummary;
-const modulePath = "artifacts/api-server/src/lib/summary.ts";
-test("free summaries preserve decimal amounts and avoid duplicate sentences",()=>{
-  const source="The amount due is INR 720.34. The amount due is INR 720.34. The amount due is INR 720.34. Payment must arrive by 30 October. The office opens at nine. The office closes at five.";
-  const result=free(source);
-  assert.ok(result.includes('720.34'));
-  assert.equal(result.split('720.34').length-1,1);
-  assert.ok(result.includes('30 October'));
-});
-const inert = load(modulePath, {
-    "./ai-prompts": load("artifacts/api-server/src/lib/ai-prompts.ts"),
-  "@workspace/db": {},
-  "./backend-quota": {},
-  "./ai": {},
-});
-test("free summary selects source sentences, supports Unicode and enforces input limits", () => {
-  const text =
-    "Revenue grew this quarter. Revenue growth came from subscriptions. Costs remained stable. The team hired two engineers. New markets opened.";
-  const result = free(text);
-  assert.ok(result.length < text.length);
-  for (const s of result.split("\n\n")) assert.ok(text.includes(s));
-  assert.ok(free("यह पहली पंक्ति है। यह दूसरी पंक्ति है।").length > 0);
-  assert.throws(() => free(" "));
-  assert.throws(() => free("x".repeat(24001)));
-});
+const modulePath="artifacts/api-server/src/lib/summary.ts";
+const inert=load(modulePath,{"./ai-prompts":load("artifacts/api-server/src/lib/ai-prompts.ts"),"@workspace/db":{},"./backend-quota":{},"./ai":{}});
 test("server calculates credits and rejects invalid requests before allocation", () => {
   const id = crypto.randomUUID();
   for (const [n, c] of [

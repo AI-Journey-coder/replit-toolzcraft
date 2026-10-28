@@ -76,7 +76,10 @@ export async function summarize(
           409,
           "This request ID belongs to different text. Start a new summary.",
         );
-      if (Date.now() - new Date(old.rows[0].created_at).getTime() > 86400000)
+      if (
+        !old.rows[0].result ||
+        Date.now() - new Date(old.rows[0].created_at).getTime() > 86400000
+      )
         throw new SummaryError(
           409,
           "This retry has expired. Start a new summary.",

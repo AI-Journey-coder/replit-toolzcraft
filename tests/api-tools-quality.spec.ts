@@ -34,27 +34,6 @@ for (const route of ["ai-key-points", "ai-document-qa", "ai-translator"])
     ).toBe(true);
   });
 
-test("summary example produces readable extract and clears stale output", async ({
-  page,
-}) => {
-  await page.goto("/tools/ai-summarizer");
-  await page.getByRole("button", { name: "Try an example" }).click();
-  await page.getByTestId("button-run").click();
-  await expect(
-    page.getByRole("region", { name: "Summary result" }),
-  ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Copy result" })).toBeVisible();
-  await expect(page.getByTestId("text-result")).toContainText(
-    /25|28|85,000|November/,
-  );
-  await page.screenshot({
-    path: "test-results/summary-quality-preview.png",
-    fullPage: true,
-  });
-  await page.locator("textarea").first().fill("Different document.");
-  await expect(page.getByTestId("text-result")).toHaveCount(0);
-});
-
 test("SRI hashes are browser-compatible and reject HTTP error pages", async ({
   page,
 }) => {

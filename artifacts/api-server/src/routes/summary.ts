@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth } from "../middlewares/auth";
 import { requireAccount } from "../middlewares/account";
 import { summaryInput, summarize, SummaryError } from "../lib/summary";
+import { pool } from "@workspace/db";
 const router = Router();
 let active = 0;
 const hits = new Map<number, { start: number; count: number }>();
@@ -24,11 +25,9 @@ router.post("/ai/summary", requireAuth, requireAccount, async (req, res) => {
   hit.count++;
   hits.set(uid, hit);
   if (hit.count > 10) {
-    res
-      .status(429)
-      .json({
-        message: "Too many summary requests. Wait a minute before retrying.",
-      });
+    res.status(429).json({
+      message: "Too many summary requests. Wait a minute before retrying.",
+    });
     return;
   }
   if (active >= 2) {
@@ -37,16 +36,27 @@ router.post("/ai/summary", requireAuth, requireAccount, async (req, res) => {
   }
   active++;
   try {
+    const prior = await pool.query(
+      "SELECT 1 FROM summary_results WHERE user_id=$1 AND request_id=$2",
+      [uid, input.requestId],
+    );
+    if (!prior.rowCount) {
+      res
+        .status(410)
+        .json({
+          message:
+            "Document Summarizer has been replaced by AI Document Intelligence. Open /tools/ai-document-intelligence. No credits charged.",
+        });
+      return;
+    }
     res.json(await summarize(req.dbUser!.id, input));
   } catch (e) {
-    res
-      .status(e instanceof SummaryError ? e.status : 502)
-      .json({
-        message:
-          e instanceof SummaryError
-            ? e.message
-            : "Summary failed. No credits were charged. Retry the same request.",
-      });
+    res.status(e instanceof SummaryError ? e.status : 502).json({
+      message:
+        e instanceof SummaryError
+          ? e.message
+          : "Summary failed. No credits were charged. Retry the same request.",
+    });
   } finally {
     active--;
   }
