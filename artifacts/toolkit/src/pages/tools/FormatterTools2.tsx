@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -277,7 +278,7 @@ export function SvgMinifier() {
           <div className="space-y-2">
             <Badge variant="outline">{savings}% smaller — {input.length} → {output.length} bytes</Badge>
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex justify-center items-center h-24 bg-muted rounded border" dangerouslySetInnerHTML={{ __html: output }} />
+              <div className="flex justify-center items-center h-24 bg-muted rounded border" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(output, {USE_PROFILES:{svg:true,svgFilters:true}}) }} />
               <div className="relative">
                 <pre className="bg-muted rounded p-3 text-xs overflow-auto max-h-24 whitespace-pre-wrap break-all">{output}</pre>
                 <Button size="sm" className="absolute top-2 right-2" onClick={() => copyToClipboard(output)}>Copy</Button>

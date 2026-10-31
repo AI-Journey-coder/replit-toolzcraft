@@ -1,0 +1,10 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('fs'),path=require('path'),vm=require('vm');
+const root=path.resolve(__dirname,'..'),toolkit=path.join(root,'artifacts/toolkit');
+const ts=require(path.join(root,'node_modules/typescript'));
+const exportsObject={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(toolkit,'src/lib/csv-conversion.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,{exports:exportsObject,require:n=>require(require.resolve(n,{paths:[toolkit]}))});
+const {parseCsv,toCsv}=exportsObject;
+test('CSV preserves quoted commas, newlines, quotes, spaces and identifiers',()=>{const rows=parseCsv('name,code,note\r\n"Ada, Jr.",001,"first\nsecond ""quoted"""\r\n Lin ,002,plain');assert.equal(rows[0].name,'Ada, Jr.');assert.equal(rows[0].code,'001');assert.equal(rows[0].note,'first\nsecond "quoted"');assert.equal(rows[1].name,' Lin ');});
+test('CSV rejects ambiguous headers and uneven records',()=>{for(const text of ['a,a\n1,2','a,\n1,2','a,b\n1','a,b\n1,2,3','a\n"unterminated'])assert.throws(()=>parseCsv(text));});
+test('JSON to CSV escapes headings, serializes nested data and round-trips values',()=>{const input=[{'a,b':'one\rtwo',nested:{ok:true},id:'001'},{id:'002'}];const csv=toCsv(input),result=parseCsv(csv);assert.equal(result[0]['a,b'],'one\rtwo');assert.equal(result[0].nested,'{"ok":true}');assert.equal(result[1].nested,'');assert.equal(result[0].id,'001');for(const bad of [null,{},[],[null],[1],[[]],[{}]])assert.throws(()=>toCsv(bad));});
+test('CSV special property names stay data',()=>{const result=parseCsv('__proto__,constructor\nvalue,other');assert.equal(Object.hasOwn(result[0],'__proto__'),true);assert.equal(result[0].__proto__,'value');});
+test('Punycode decodes actual international hostnames',()=>{const {toUnicode}=require(require.resolve('punycode/',{paths:[toolkit]}));assert.equal(toUnicode('xn--mnchen-3ya.de'),'münchen.de');assert.equal(toUnicode('xn--fiq228c.com'),'中文.com');});

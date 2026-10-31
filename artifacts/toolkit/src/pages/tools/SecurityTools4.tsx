@@ -99,7 +99,7 @@ export function SriHashGenerator() {
       const data = new TextEncoder().encode(content);
       const hash = await crypto.subtle.digest(algo.replace("-", "-"), data);
       const b64 = btoa(String.fromCharCode(...new Uint8Array(hash)));
-      setSriHash(`${algo.toLowerCase().replace("-", "")}=${b64}`);
+      setSriHash(`${algo.toLowerCase().replace("-", "")}-${b64}`);
     } catch (e) { setError("Hash generation failed"); }
     setLoading(false);
   };
@@ -108,11 +108,12 @@ export function SriHashGenerator() {
     if (!url) return;
     setError(""); setLoading(true); setSriHash("");
     try {
-      const res = await fetch(url);
+      const res = await fetch(url, {signal: AbortSignal.timeout(15000)});
+      if (!res.ok) throw new Error("Resource unavailable");
       const buf = await res.arrayBuffer();
       const hash = await crypto.subtle.digest(algo.replace("-", "-"), buf);
       const b64 = btoa(String.fromCharCode(...new Uint8Array(hash)));
-      setSriHash(`${algo.toLowerCase().replace("-", "")}=${b64}`);
+      setSriHash(`${algo.toLowerCase().replace("-", "")}-${b64}`);
     } catch { setError("Failed to fetch URL — try pasting content directly"); }
     setLoading(false);
   };

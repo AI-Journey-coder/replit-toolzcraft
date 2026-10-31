@@ -47,3 +47,33 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Recreated from the installed, pinned Pyodide package
+artifacts/toolkit/public/vendor/pyodide/
+
+# Local configuration and credentials; examples remain versioned
+.env
+.env.*
+!.env.example
+!*.env.example
+**/service-account*.json
+**/*-firebase-adminsdk-*.json
+.playwright/
+/test-results/
+
+# Local runtime diagnostics and private credentials
+*.log
+**/firebase-admin.json
+*.pem
+*.key
+
+# Local scratch environment file
+/env
+
+# Private deployment rollback notes
+/ENV Variables Old.txt
+/Neon.txt
+
+# Python parser verification artifacts
+__pycache__/
+*.pyc

@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from "fs";
 import path from "path";
-import glob from "fast-glob";
+import { readdir } from "node:fs/promises";
 import chokidar from "chokidar";
 import type { FSWatcher } from "chokidar";
 import type { Plugin } from "vite";
@@ -40,10 +40,22 @@ export function mockupPreviewPlugin(): Plugin {
   }
 
   async function discoverComponents(): Promise<Array<DiscoveredComponent>> {
-    const files = await glob(`${MOCKUPS_DIR}/**/*.tsx`, {
-      cwd: root,
-      ignore: ["**/_*/**", "**/_*.tsx"],
-    });
+    const files: string[] = [];
+    const pending = [MOCKUPS_DIR];
+    while (pending.length) {
+      const dir = pending.pop()!;
+      const entries = await readdir(path.join(root, dir), { withFileTypes: true }).catch((error: NodeJS.ErrnoException) => {
+        if (error.code === "ENOENT") return [];
+        throw error;
+      });
+      for (const entry of entries) {
+        if (entry.name.startsWith("_") || entry.name.startsWith(".")) continue;
+        const relative = path.posix.join(dir, entry.name);
+        if (entry.isDirectory()) pending.push(relative);
+        else if (entry.isFile() && entry.name.endsWith(".tsx")) files.push(relative);
+      }
+    }
+    files.sort();
 
     return files.map((f) => ({
       globKey: "./" + f.slice("src/".length),

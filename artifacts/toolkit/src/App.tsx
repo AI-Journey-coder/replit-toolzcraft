@@ -1,3 +1,20 @@
+import {DocumentIntelligence} from "@/pages/tools/DocumentIntelligence";
+import {Redirect} from 'wouter';
+import { Profile } from "@/pages/Profile";
+import {InvoiceExtractor,TableExtractor,ScanAssistant,DocumentCompare} from '@/pages/tools/DocumentWorkflows';
+import {SqlDataGenerator,SampleDataGenerator,BoundaryDataGenerator} from '@/pages/tools/TestData';
+import {AdvertisingBreakEven,ServiceBreakEven,RefinanceBreakEven} from '@/pages/tools/BreakEvenExtra';
+import {BuyRentCalculator,EvFuelCalculator} from '@/pages/tools/OwnershipCalculator';
+import {TimeArithmetic,WorkingHours} from '@/pages/tools/TimeWork';
+import {Subscriptions} from '@/pages/Subscriptions';
+import { AppErrorBoundary } from '@/components/AppErrorBoundary';
+import { PolicyPage, POLICY_KEYS } from '@/pages/Policies';
+import { PreferencesProvider } from '@/hooks/use-preferences';
+import { MyTools } from '@/pages/MyTools';
+import { LogoGallery } from '@/pages/LogoGallery';
+import { lazy, Suspense } from "react";
+import { InformationPage } from "@/pages/Information";
+import { PageMetadata } from "@/components/PageMetadata";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -120,20 +137,74 @@ import { PdfToImages, PdfTextExtractor } from "@/pages/tools/PdfTools2";
 // OCR & Documents
 import { ImageOcr, PdfOcr } from "@/pages/tools/OcrTools";
 // AI Tools
-import { AiSummarizer, AiKeyPoints, AiDocumentQa, AiTranslator } from "@/pages/tools/AiTools";
+import { AiKeyPoints, AiDocumentQa, AiTranslator } from "@/pages/tools/AiTools";
 
 const queryClient = new QueryClient();
+
+const New_PdfOrganizer = lazy(() => import("@/pages/tools/PdfWorkbench").then(m => ({default:m.PdfOrganizer})));
+const New_PdfFormFiller = lazy(() => import("@/pages/tools/PdfWorkbench").then(m => ({default:m.PdfFormFiller})));
+const New_PdfCompressor = lazy(() => import("@/pages/tools/PdfWorkbench").then(m => ({default:m.PdfCompressor})));
+const New_SearchablePdf = lazy(() => import("@/pages/tools/SearchablePdf").then(m => ({default:m.SearchablePdf})));
+const ContactDuplicateTool = lazy(() => import("@/pages/tools/ContactDuplicates").then(m => ({default:m.ContactDuplicates})));
+const Adopted_ContactConverter = lazy(() => import("@/pages/tools/AdoptedTools").then(m => ({default:m.ContactConverter})));
+const Adopted_WhatsAppLink = lazy(() => import("@/pages/tools/AdoptedTools").then(m => ({default:m.WhatsAppLink})));
+const Adopted_SolidBackground = lazy(() => import("@/pages/tools/AdoptedTools").then(m => ({default:m.SolidBackground})));
+const New_ImageBatch = lazy(() => import("@/pages/tools/ImageBatch").then(m => ({default:m.ImageBatch})));
+const New_ImageCompressor = lazy(() => import("@/pages/tools/ImageBatch").then(m => ({default:m.ImageCompressor})));
+const New_CsvCleaner = lazy(() => import("@/pages/tools/CsvCleaner").then(m => ({default:m.CsvCleaner})));
+const New_VideoCompressor = lazy(() => import("@/pages/tools/VideoCompressor").then(m => ({default:m.VideoCompressor})));
+const New_FileArchive = lazy(() => import("@/pages/tools/FileArchive").then(m => ({default:m.FileArchive})));
+const New_MoneyValue = lazy(() => import("@/pages/tools/MoneyValue").then(m => ({default:m.MoneyValue})));
+const New_SavingsGoal = lazy(() => import("@/pages/tools/MoneyValue").then(m => ({default:m.SavingsGoal})));
+const New_RealRaise = lazy(() => import("@/pages/tools/MoneyValue").then(m => ({default:m.RealRaise})));
+const NewCtc = lazy(() => import("@/pages/tools/CtcCalculator").then(m => ({default:m.CtcCalculator})));
+const NewSqlMigration = lazy(() => import("@/pages/tools/SqlMigration").then(m => ({default:m.SqlMigration})));
 
 function T({ component: C }: { component: React.ComponentType }) {
   return <ToolShell><C /></ToolShell>;
 }
 
+const PdfEditor = lazy(()=>import('@/pages/tools/PdfRedactor').then(m=>({default:m.PdfRedactor})));
 function Router() {
   return (
     <Switch>
+      {POLICY_KEYS.map(page=><Route key={page} path={`/${page}`}><PolicyPage page={page}/></Route>)}
+      <Route path="/tools/ctc-calculator">{()=><Suspense fallback={<p>Loading calculator…</p>}><T component={NewCtc}/></Suspense>}</Route>
+      <Route path="/tools/time-add-subtract">{()=><T component={TimeArithmetic}/>}</Route>
+      <Route path="/tools/working-hours-calculator">{()=><T component={WorkingHours}/>}</Route>
+      <Route path="/tools/pdf-editor">{()=><Suspense fallback={<p>Loading PDF editor…</p>}><T component={PdfEditor}/></Suspense>}</Route>
+      <Route path="/tools/buy-vs-rent">{()=><T component={BuyRentCalculator}/>}</Route>
+      <Route path="/tools/ev-vs-fuel">{()=><T component={EvFuelCalculator}/>}</Route>
+      <Route path="/tools/sql-data-generator">{()=><T component={SqlDataGenerator}/>}</Route>
+<Route path="/tools/sample-data-generator">{()=><T component={SampleDataGenerator}/>}</Route>
+<Route path="/tools/boundary-data-generator">{()=><T component={BoundaryDataGenerator}/>}</Route>
+<Route path="/tools/advertising-break-even">{()=><T component={AdvertisingBreakEven}/>}</Route>
+      <Route path="/tools/service-break-even">{()=><T component={ServiceBreakEven}/>}</Route>
+      <Route path="/tools/refinance-break-even">{()=><T component={RefinanceBreakEven}/>}</Route>
+      <Route path="/subscriptions" component={Subscriptions}/>
+      <Route path="/my-tools" component={MyTools} />
+      <Route path="/logo-gallery" component={LogoGallery} />
+      <Route path="/tools/pdf-page-organizer">{() => <Suspense fallback={<p role="status">Loading tool…</p>}><T component={New_PdfOrganizer} /></Suspense>}</Route>
+      <Route path="/tools/pdf-form-filler">{() => <Suspense fallback={<p role="status">Loading tool…</p>}><T component={New_PdfFormFiller} /></Suspense>}</Route>
+      <Route path="/tools/pdf-compressor">{() => <Suspense fallback={<p role="status">Loading tool…</p>}><T component={New_PdfCompressor} /></Suspense>}</Route>
+      <Route path="/tools/searchable-pdf">{() => <Suspense fallback={<p role="status">Loading tool…</p>}><T component={New_SearchablePdf} /></Suspense>}</Route>
+      <Route path="/tools/contact-duplicate-merger">{() => <Suspense fallback={<p role="status">Loading tool…</p>}><T component={ContactDuplicateTool} /></Suspense>}</Route>
+<Route path="/tools/contacts-converter">{() => <Suspense fallback={<p role="status">Loading tool…</p>}><T component={Adopted_ContactConverter} /></Suspense>}</Route>
+<Route path="/tools/whatsapp-link-generator">{() => <Suspense fallback={<p role="status">Loading tool…</p>}><T component={Adopted_WhatsAppLink} /></Suspense>}</Route>
+<Route path="/tools/solid-background-remover">{() => <Suspense fallback={<p role="status">Loading tool…</p>}><T component={Adopted_SolidBackground} /></Suspense>}</Route>
+<Route path="/tools/batch-image-processor">{() => <Suspense fallback={<p role="status">Loading tool…</p>}><T component={New_ImageBatch} /></Suspense>}</Route>
+      <Route path="/tools/image-compressor">{() => <Suspense fallback={<p role="status">Loading tool…</p>}><T component={New_ImageCompressor} /></Suspense>}</Route>
+      <Route path="/tools/csv-cleaner">{() => <Suspense fallback={<p role="status">Loading tool…</p>}><T component={New_CsvCleaner} /></Suspense>}</Route>
+      <Route path="/tools/video-compressor">{() => <Suspense fallback={<p role="status">Loading tool…</p>}><T component={New_VideoCompressor} /></Suspense>}</Route>
+      <Route path="/tools/file-compressor">{() => <Suspense fallback={<p role="status">Loading tool…</p>}><T component={New_FileArchive} /></Suspense>}</Route>
+      <Route path="/tools/money-value-calculator">{() => <Suspense fallback={<p role="status">Loading tool…</p>}><T component={New_MoneyValue} /></Suspense>}</Route>
+      <Route path="/tools/savings-goal-calculator">{() => <Suspense fallback={<p role="status">Loading tool…</p>}><T component={New_SavingsGoal} /></Suspense>}</Route>
+      <Route path="/tools/real-salary-raise">{() => <Suspense fallback={<p role="status">Loading tool…</p>}><T component={New_RealRaise} /></Suspense>}</Route>
+      {["about", "contact", "privacy", "terms"].map(page => <Route key={page} path={`/${page}`}><InformationPage page={page} /></Route>)}
       <Route path="/" component={Home} />
       <Route path="/promo" component={Promo} />
       <Route path="/login" component={Login} />
+      <Route path="/profile" component={Profile} />
       <Route path="/admin" component={Admin} />
       <Route path="/category/:slug" component={CategoryPage} />
 
@@ -289,6 +360,7 @@ function Router() {
       <Route path="/tools/jsonpath-tester">{() => <T component={JsonPathTester} />}</Route>
       <Route path="/tools/graphql-formatter">{() => <T component={GraphqlFormatter} />}</Route>
       <Route path="/tools/dockerfile-builder">{() => <T component={DockerfileBuilder} />}</Route>
+      <Route path="/tools/dns-record-reference-ref">{() => <T component={DnsRecordReference} />}</Route>
       <Route path="/tools/dns-record-reference">{() => <T component={DnsRecordReference} />}</Route>
       <Route path="/tools/openapi-validator">{() => <T component={OpenApiValidator} />}</Route>
 
@@ -313,7 +385,7 @@ function Router() {
 
       {/* SQL Tools */}
       <Route path="/tools/csv-to-sql">{() => <T component={CsvToSql} />}</Route>
-      <Route path="/tools/sql-dialect-converter">{() => <T component={SqlDialectConverter} />}</Route>
+      <Route path="/tools/sql-dialect-converter">{() => <Suspense fallback={<p role="status">Loading SQL converter…</p>}><T component={NewSqlMigration} /></Suspense>}</Route>
       <Route path="/tools/sql-column-mapper">{() => <T component={SqlColumnMapper} />}</Route>
 
       {/* Encoding & Ciphers */}
@@ -413,7 +485,12 @@ function Router() {
       <Route path="/tools/pdf-ocr">{() => <T component={PdfOcr} />}</Route>
 
       {/* AI Tools */}
-      <Route path="/tools/ai-summarizer">{() => <T component={AiSummarizer} />}</Route>
+      <Route path="/tools/ai-invoice-extractor">{() => <T component={InvoiceExtractor} />}</Route>
+<Route path="/tools/ai-table-extractor">{() => <T component={TableExtractor} />}</Route>
+<Route path="/tools/ai-scan-assistant">{() => <T component={ScanAssistant} />}</Route>
+<Route path="/tools/ai-document-compare">{() => <T component={DocumentCompare} />}</Route>
+<Route path="/tools/ai-document-intelligence">{() => <T component={DocumentIntelligence} />}</Route>
+<Route path="/tools/ai-summarizer">{() => <Redirect to="/tools/ai-document-intelligence" />}</Route>
       <Route path="/tools/ai-key-points">{() => <T component={AiKeyPoints} />}</Route>
       <Route path="/tools/ai-document-qa">{() => <T component={AiDocumentQa} />}</Route>
       <Route path="/tools/ai-translator">{() => <T component={AiTranslator} />}</Route>
@@ -425,18 +502,19 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <AppErrorBoundary><QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Layout>
+            <PreferencesProvider><Layout>
+              <PageMetadata />
               <Router />
-            </Layout>
+            </Layout></PreferencesProvider>
           </WouterRouter>
         </AuthProvider>
         <Toaster />
       </TooltipProvider>
-    </QueryClientProvider>
+    </QueryClientProvider></AppErrorBoundary>
   );
 }
 

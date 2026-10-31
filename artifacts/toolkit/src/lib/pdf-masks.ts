@@ -1,0 +1,3 @@
+export type Mask={x:number;y:number;width:number;height:number};
+export function checkedMask(mask:Mask):Mask{if(!Object.values(mask).every(Number.isFinite)||mask.x<0||mask.y<0||mask.width<=0||mask.height<=0||mask.x+mask.width>100||mask.y+mask.height>100)throw Error('Mask must fit inside the page (percentages 0–100).');return mask;}
+export function pixelMask(mask:Mask,width:number,height:number){checkedMask(mask);const x=Math.max(0,Math.floor(mask.x*width/100)-2),y=Math.max(0,Math.floor(mask.y*height/100)-2);return {x,y,width:Math.min(width,Math.ceil((mask.x+mask.width)*width/100)+2)-x,height:Math.min(height,Math.ceil((mask.y+mask.height)*height/100)+2)-y};}

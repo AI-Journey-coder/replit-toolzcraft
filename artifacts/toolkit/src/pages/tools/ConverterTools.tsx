@@ -1,3 +1,4 @@
+import { feetAndInches } from '@/lib/length';
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -232,7 +233,10 @@ const pressureUnits: Record<string, UnitDef> = {
 // ─── Exports ─────────────────────────────────────────────────────────────────
 
 export function LengthConverter() {
-  return <UnitConverter title="Length Converter" desc="Convert between length and distance units" units={lengthUnits} defaultUnit="m" />;
+  const [value,setValue]=useState('63'),[unit,setUnit]=useState('in'),[feet,setFeet]=useState('5'),[inches,setInches]=useState('3');
+  const n=unit==='combined'?Number(feet)*12+Number(inches):Number(value)*lengthUnits[unit].factor/0.0254;
+  let result='',error='';try{if((unit==='combined'&&(feet===''||inches===''||!Number.isInteger(Number(feet))||Number(feet)<0||Number(inches)<0||Number(inches)>=12))||(unit!=='combined'&&value===''))throw new Error('Enter a value. Combined input needs whole non-negative feet and inches from 0 to less than 12.');result=feetAndInches(n).symbols+' · '+feetAndInches(n).words;}catch(e){error=(e as Error).message;}
+  return <Card className="max-w-2xl mx-auto"><CardHeader><CardTitle>Length Converter</CardTitle><CardDescription>Convert lengths, including combined feet and inches.</CardDescription></CardHeader><CardContent className="space-y-5"><label className="block">From unit<select className="block w-full border rounded bg-background p-2 mt-1" value={unit} onChange={e=>setUnit(e.target.value)}>{Object.entries(lengthUnits).map(([k,v])=><option key={k} value={k}>{v.label}</option>)}<option value="combined">Feet + inches</option></select></label>{unit==='combined'?<div className="grid grid-cols-2 gap-3"><label>Feet<Input type="number" min="0" step="1" value={feet} onChange={e=>setFeet(e.target.value)}/></label><label>Inches<Input type="number" min="0" max="11.9999" step="any" value={inches} onChange={e=>setInches(e.target.value)}/></label></div>:<label className="block">Value<Input type="number" value={value} onChange={e=>setValue(e.target.value)}/></label>}{error?<p role="alert">{error}</p>:<><div className="bg-muted rounded-lg p-4" aria-live="polite"><h2 className="font-semibold">Feet and inches</h2><p className="text-xl font-mono mt-2">{result}</p></div><ConversionTable value={String(n)} fromKey="in" units={lengthUnits}/></>}<p>12 inches = 1 foot. So 63 inches = 5 ft 3 in, while 75 inches = 6 ft 3 in. Decimal inches are rounded to four places.</p></CardContent></Card>;
 }
 export function WeightConverter() {
   return <UnitConverter title="Weight & Mass Converter" desc="Convert between weight and mass units" units={weightUnits} defaultUnit="kg" />;
