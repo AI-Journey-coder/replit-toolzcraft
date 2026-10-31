@@ -490,6 +490,8 @@ export function DocumentIntelligence() {
       body: JSON.stringify(body),
     });
     const data = await res.json().catch(() => null);
+    if (!res.ok && data?.code === "unverified_evidence")
+      throw Object.assign(new Error(data.message), {code:"unverified_evidence"});
     if (!res.ok)
       throw Error(
         data?.message ||
@@ -573,7 +575,22 @@ export function DocumentIntelligence() {
         );
       }
     } catch (e) {
-      if (alive.current) setError((e as Error).message);
+      if (!alive.current || generation !== accountGeneration.current) return;
+      if ((e as {code?:string})?.code === "unverified_evidence" &&
+          (kind === "invoice" || kind === "receipt") &&
+          ["overview","facts","detailed","amounts"].includes(action)) {
+        const report = localInvoice(sources);
+        if (report.findings.length) {
+          const detail = "AI citations could not be verified. These fields were read locally from your selected pages. No credits charged.";
+          report.checks.unshift({label:"Local invoice review",status:"review",detail});
+          setResult(report);
+          setStatus(detail);
+          setQuote(null);
+          setConsent(false);
+          return;
+        }
+      }
+      setError((e as Error).message);
     } finally {
       lock.current = false;
       if (alive.current) setBusy(false);

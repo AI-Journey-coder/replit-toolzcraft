@@ -140,6 +140,7 @@ router.post("/document-intelligence/analyze", async (req, res) => {
     res.json({ ...receipt, result: JSON.parse(receipt.result) });
   } catch (e) {
     res.status(e instanceof SummaryError ? e.status : 502).json({
+      ...(e instanceof EvidenceValidationError ? {code:"unverified_evidence"} : {}),
       message:
         e instanceof SummaryError || e instanceof EvidenceValidationError
           ? e.message

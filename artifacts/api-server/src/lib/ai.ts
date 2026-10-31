@@ -27,9 +27,9 @@ let model = "";
 export type ProviderUsage={model:string;kind:'chat'|'vision';outcome:'complete'|'incomplete'|'failed';inputTokens:number|null;outputTokens:number|null};
 let usageObserver:((usage:ProviderUsage)=>Promise<void>)|undefined;
 export function configureUsageObserver(observer:(usage:ProviderUsage)=>Promise<void>){usageObserver=observer;}
-async function providerCall(client:OpenAI, model:string, kind:'chat'|'vision', messages:OpenAI.Chat.Completions.ChatCompletionMessageParam[]){
+async function providerCall(client:OpenAI, model:string, kind:'chat'|'vision', messages:OpenAI.Chat.Completions.ChatCompletionMessageParam[], jsonObject=false){
   let response;
-  try{response=await client.chat.completions.create({model,max_tokens:2048,messages});}
+  try{response=await client.chat.completions.create({model,max_tokens:2048,messages,...(jsonObject ? {response_format:{type:'json_object' as const}} : {})});}
   catch(error){await usageObserver?.({model,kind,outcome:'failed',inputTokens:null,outputTokens:null});throw error;}
   await usageObserver?.({model,kind,outcome:response.choices[0]?.finish_reason==='stop'&&response.choices[0]?.message?.content?'complete':'incomplete',inputTokens:response.usage?.prompt_tokens??null,outputTokens:response.usage?.completion_tokens??null});
   return response;
@@ -85,12 +85,13 @@ export async function completeChat(
     outputTokens: number;
     model: string;
   }) => void,
+  jsonObject = false,
 ): Promise<string> {
   const { client, model } = await getClient();
   const response = await providerCall(client,model,'chat',[
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
-    ]);
+    ],jsonObject);
   onUsage?.({
     inputTokens: response.usage?.prompt_tokens || 0,
     outputTokens: response.usage?.completion_tokens || 0,
