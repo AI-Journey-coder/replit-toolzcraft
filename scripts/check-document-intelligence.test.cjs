@@ -473,3 +473,13 @@ test("mixed invoice correction retains cited tax and amount rows and reports the
   assert.equal(result.checks.at(-1).status,"review");
   assert.match(result.missing.at(-1),/1 proposed finding/);
 });
+test("invoice overview replaces repeated tax bases with separate cited tax amounts", () => {
+ const text="Total excluding tax ₹720.34\nSGST - INDIA 9% incl. on ₹720.34 ₹64.83\nCGST - INDIA 9% incl. on ₹720.34\n₹64.83\nAmount due ₹850.00";
+ const docs=[{id:"d",name:"Invoice",pages:[{id:"p",label:"Page 1",text}]}];
+ const tax={label:"Tax components",value:"9% incl. on ₹720.34",quote:"9% incl. on ₹720.34",sourceId:"p",status:"extracted"};
+ const report=core.invoiceOverview({findings:[tax,tax],missing:[],checks:[]},docs);
+ assert.deepEqual(Array.from(report.findings,f=>[f.label,f.value]),[["Before tax","₹720.34"],["SGST","₹64.83"],["CGST","₹64.83"],["Amount due","₹850.00"]]);
+ assert.ok(report.findings.every(f=>text.includes(f.quote)));
+ docs[0].pages[0].text="SGST 9% incl. on ₹720.34\nAmount due ₹850.00";
+ assert.ok(!core.localInvoice(docs).findings.some(f=>f.label==="SGST"));
+});

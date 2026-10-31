@@ -462,6 +462,12 @@ export function localInvoice(documents: DocumentSource[]): IntelligenceResult {
             quote += "\n" + lines[i + 1];
             rest = normalize(lines[i + 1]);
           }
+          if (["SGST","CGST","IGST"].includes(label) && /%.*\bon\b/i.test(rest) && (rest.split("%").pop()!.match(/\d[\d,]*\.\d{2}(?!\d)/g) || []).length < 2) {
+            const next = lines[i+1];
+            if (!next || !/^(?:₹|INR|USD|EUR|GBP|[$€£])?\s*\d[\d,]*\.\d{2}$/.test(next)) continue;
+            quote += "\n" + next;
+            rest = next;
+          }
           const value = money ? lastAmount(rest) : rest;
           if (!value) continue;
           findings.push({
@@ -592,6 +598,15 @@ export function localInvoice(documents: DocumentSource[]): IntelligenceResult {
       "An invoice or due date alone does not establish whether payment has been made.",
   });
   return { findings, missing, checks };
+}
+export function invoiceOverview(result: IntelligenceResult, docs: DocumentSource[]): IntelligenceResult {
+  if (docs.length !== 1) return result;
+  const amounts = localInvoice(docs).findings.filter(f => ["Before tax","SGST","CGST","IGST","Amount due"].includes(f.label));
+  const remaining = result.findings.filter(f => !amounts.some(a => a.sourceId === f.sourceId && (
+    a.label === f.label || (a.value === f.value && ((a.label === "Before tax" && /^before[- ]tax amount$/i.test(f.label)) || (a.label === "Amount due" && /^total and currency$/i.test(f.label)))) ||
+    (/^(SGST|CGST|IGST)$/.test(a.label) && /^tax components?$/i.test(f.label) && normalize(a.quote).includes(normalize(f.quote)))
+  )));
+  return {...result, findings:[...amounts,...remaining]};
 }
 export function verifiedResult(
   raw: string,

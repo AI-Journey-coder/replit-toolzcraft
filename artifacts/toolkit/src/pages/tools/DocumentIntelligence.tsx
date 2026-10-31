@@ -21,6 +21,7 @@ import {
   compareDocumentLines,
   type DiffRow,
   localInvoice,
+  invoiceOverview,
   normalize,
   pagesFromText,
   validateSources,
@@ -555,7 +556,12 @@ export function DocumentIntelligence() {
         requestId: id,
       });
       if (alive.current && generation === accountGeneration.current) {
-        setResult(data.result);
+        const report = (kind === "invoice" || kind === "receipt") && ["overview","facts","amounts","detailed"].includes(action)
+          ? invoiceOverview(data.result, sources) : data.result;
+        const billing = data.replayed ? "Previously completed request. No additional credits deducted."
+          : quote.unlimited ? "Unlimited account. No credits deducted."
+          : "Credits used for this analysis: " + data.credits + ".";
+        setResult({...report, checks:[...report.checks,{label:"Credit usage",status:"pass",detail:billing}]});
         if (action === "questions") {
           const answer = [
             ...data.result.findings.map(
