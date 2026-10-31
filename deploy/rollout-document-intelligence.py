@@ -1,6 +1,7 @@
 """Run in authenticated Google Cloud Shell. Default is a read-only plan.
 No secret values are printed or passed in command-line arguments.
 """
+import time
 import argparse,base64,copy,datetime,json,os,pathlib,re,subprocess,tempfile,urllib.parse,urllib.request
 PROJECT='toolzcraft-062026';REGION='asia-southeast1'
 def run(args,**kwargs):
@@ -14,8 +15,24 @@ def write_json(folder,name,value):
     target=folder/name;target.write_text(json.dumps(value));target.chmod(0o600);return str(target)
 def build(config,release):
     print('Building '+config,flush=True)
-    result=json.loads(gc('builds','submit','--config=deploy/'+config,'--substitutions=_RELEASE='+release,'--format=json','.'))
-    if result.get('status')!='SUCCESS':raise RuntimeError('Cloud Build did not succeed.')
+    build_id=gc('builds','submit','--async','--region=global','--config=deploy/'+config,'--substitutions=_RELEASE='+release,'--format=value(id)','.')
+    if not re.fullmatch(r'[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}',build_id):
+        raise RuntimeError('Submission did not return a build ID. Check Cloud Build history before retrying.')
+    print('Cloud Build: https://console.cloud.google.com/cloud-build/builds/'+build_id+'?project='+PROJECT,flush=True)
+    previous=None
+    while True:
+        try:
+            result=json.loads(gc('builds','describe',build_id,'--region=global','--format=json'))
+        except json.JSONDecodeError:
+            raise RuntimeError('Cannot read status for build '+build_id+'. Open its build link for details.') from None
+        status=result.get('status')
+        if status!=previous:
+            print(config+': '+str(status),flush=True)
+            previous=status
+        if status=='SUCCESS':break
+        if status not in ('PENDING','QUEUED','WORKING'):
+            raise RuntimeError('Cloud Build '+build_id+' ended with status '+str(status)+'. See its build logs.')
+        time.sleep(10)
     images=result.get('results',{}).get('images',[])
     if len(images)!=1 or not re.fullmatch(r'sha256:[0-9a-f]{64}',images[0].get('digest','')):raise RuntimeError('Build did not return one immutable image digest.')
     return images[0]['name'].rsplit(':',1)[0]+'@'+images[0]['digest']
