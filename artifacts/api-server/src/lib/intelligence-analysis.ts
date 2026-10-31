@@ -51,6 +51,27 @@ export async function analyzeEvidence(
           if (line) Object.assign(finding, line);
         }
       }
+      // Validate the response envelope independently. A malformed or incomplete
+      // response must never become a successful partial report.
+      if (data?.complete === true && Array.isArray(data.findings) &&
+          data.findings.length > 0 && data.findings.length <= 24) {
+        const verified = data.findings.filter((finding: unknown) => {
+          try {
+            verifiedResult(JSON.stringify({complete:true, findings:[finding], missing:[]}), documents);
+            return true;
+          } catch {
+            return false;
+          }
+        });
+        const omitted = data.findings.length - verified.length;
+        if (omitted && verified.length) {
+          const result = verifiedResult(JSON.stringify({...data, findings:verified}), documents);
+          const detail = omitted + " proposed finding(s) were omitted because their source evidence could not be verified. Review the original for missing fields.";
+          result.missing.push(detail);
+          result.checks.push({label:"Partial analysis",status:"review",detail});
+          return result;
+        }
+      }
       return verifiedResult(JSON.stringify(data), documents);
     } catch {
       throw new EvidenceValidationError();

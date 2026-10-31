@@ -460,3 +460,16 @@ test("invoice correction resolves line evidence and rejects an invented amount",
     assert.equal(calls,2);
   }
 });
+test("mixed invoice correction retains cited tax and amount rows and reports the omission", async () => {
+  const source = "Total excluding tax\t₹720.34\nSGST - INDIA 9% incl. on ₹720.34\t₹64.83\nCGST - INDIA 9% incl. on ₹720.34\t₹64.83\nAmount due\t₹850.00";
+  const docs = [{id:"doc",name:"Invoice",pages:[{id:"p",label:"Page 1",text:source}]}];
+  const rows = [["Tax base","₹720.34"],["SGST","₹64.83"],["CGST","₹64.83"],["Amount due","₹850.00"],["Payment status","Paid"]];
+  const corrected = {complete:true,missing:[],findings:rows.map(([label,value],i)=>({label,value,status:"extracted",sourceId:"p",quote:"E"+(i+1)}))};
+  let calls=0;
+  const api=load("artifacts/api-server/src/lib/intelligence-analysis.ts",{"@workspace/document-intelligence":core,"./ai":{completeChat:async()=>++calls===1?"{}":JSON.stringify(corrected)}});
+  const result=await api.analyzeEvidence(docs,"invoice","overview","");
+  assert.equal(result.findings.length,4);
+  assert.ok(result.findings.every(f=>source.includes(f.quote)&&f.quote.includes(f.value)));
+  assert.equal(result.checks.at(-1).status,"review");
+  assert.match(result.missing.at(-1),/1 proposed finding/);
+});
