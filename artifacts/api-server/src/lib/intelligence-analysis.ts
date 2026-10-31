@@ -31,7 +31,7 @@ export async function analyzeEvidence(
     const indexed = documents.map(document => ({
       ...document,
       pages: document.pages.map(page => {
-        const lines = page.text.match(/[^\r\n]{1,1200}/gu) || [];
+        const lines: string[] = page.text.match(/[^\r\n]{1,1200}/gu) || [];
         const text = lines.filter(line => line.trim()).map(quote => {
           const key = "E" + (evidence.size + 1);
           evidence.set(key, { sourceId: page.id, quote });
