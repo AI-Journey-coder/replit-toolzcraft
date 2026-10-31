@@ -445,3 +445,18 @@ test("intelligence quote binds source, action and options; malformed jobs fail b
     else process.env.ENABLE_AI = old;
   }
 });
+test("invoice correction resolves line evidence and rejects an invented amount", async () => {
+  const docs = [{id:"doc",name:"Invoice",pages:[{id:"upload-page",label:"Page 1",text:"Base INR 720.34\nSGST   64.83\nAmount due INR 850.00"}]}];
+  for (const value of ["850.00","950.00"]) {
+    let calls=0;
+    const api=load("artifacts/api-server/src/lib/intelligence-analysis.ts",{"@workspace/document-intelligence":core,"./ai":{completeChat:async (_system,prompt)=>{
+      if (++calls===1) return "{}";
+      assert.match(prompt,/E3 Amount due INR 850.00/);
+      return JSON.stringify({complete:true,missing:[],findings:[{label:"Amount due",status:"extracted",value,quote:"E3",sourceId:"upload-page"}]});
+    }}});
+    const result=api.analyzeEvidence(docs,"invoice","amounts","");
+    if (value==="850.00") assert.equal((await result).findings[0].quote,"Amount due INR 850.00");
+    else await assert.rejects(result,/could not verify/);
+    assert.equal(calls,2);
+  }
+});

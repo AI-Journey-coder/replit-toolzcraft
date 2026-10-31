@@ -14,7 +14,7 @@ import { requireAuth } from "../middlewares/auth";
 import { requireAccount } from "../middlewares/account";
 import { summarize, SummaryError } from "../lib/summary";
 import { completeChat } from "../lib/ai";
-import { analyzeEvidence } from "../lib/intelligence-analysis";
+import { analyzeEvidence, EvidenceValidationError } from "../lib/intelligence-analysis";
 import { pool } from "@workspace/db";
 const router = Router();
 let active = 0;
@@ -141,12 +141,13 @@ router.post("/document-intelligence/analyze", async (req, res) => {
   } catch (e) {
     res.status(e instanceof SummaryError ? e.status : 502).json({
       message:
-        e instanceof SummaryError
+        e instanceof SummaryError || e instanceof EvidenceValidationError
           ? e.message
-          : "Analysis could not be completed with valid source evidence. No credits charged for failed processing. Retry the unchanged request.",
+          : "The analysis service could not complete this request. Try the same analysis again using the retry button.",
     });
   } finally {
     active--;
   }
 });
 export default router;
+
