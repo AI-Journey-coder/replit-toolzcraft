@@ -1,12 +1,3 @@
-/*
-|| श्री गणेशाय नमः - SHRI GANESHAY NAMAH ||
-|| सर्व मंगल मांगल्ये शिवे सर्वार्थ साधिके शरण्ये त्र्यंबके गौरी नारायणी नमोऽस्तुते - SARV MANGAL MANGALYAII SHIVE SARVATH SADHIKE SHARANYE TRYAMBAKE GOURI NARYAYANI NAMOSTUTE ||
-|| श्री बालाजी देवाय नमः - SHRI BALAJI DEVAY NAMAH ||
-|| श्री दत्तात्रेयाय नमः - SHRI DATTATREYAY NAMAH ||
-|| श्री नवनाथाय नमः - SHRI NAVNATHAY NAMAH ||
-|| जय श्री राम - JAY SHREE RAM ||
-|| जय हनुमान - JAY HANUMAN ||
-*/
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
