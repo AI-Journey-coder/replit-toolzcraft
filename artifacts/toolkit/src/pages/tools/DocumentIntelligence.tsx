@@ -1,4 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { SupportRequests } from "@/components/SupportRequests";
+import { DocumentBatch } from "./DocumentBatch";
+import { DocumentFinancialChecks } from "./DocumentFinancialChecks";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "wouter";
 import {
   FileText,
@@ -11,9 +14,12 @@ import {
 } from "lucide-react";
 import {
   ACTIONS,
+  ADVANCED_TASKS,
   DOCUMENT_TYPES,
   DOCUMENT_PROFILES,
   classify,
+  compareDocumentLines,
+  type DiffRow,
   localInvoice,
   normalize,
   pagesFromText,
@@ -28,20 +34,42 @@ import {
   type Finding,
 } from "@workspace/document-intelligence";
 import { readDocument } from "@/lib/document-reader";
+import { DocumentReference } from './DocumentReference';
+import {
+  detectDocumentLanguage,
+  documentStructure,
+} from "@/lib/document-metadata";
+import {
+  exportWord,
+  exportExcel,
+  expandDocumentZip,
+} from "@/lib/document-package";
+import { redactText } from "@/lib/document-redaction";
 import { apiUrl } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { DocumentPreview } from "./DocumentPreview";
 import { DocumentThumbnails } from "./DocumentThumbnails";
+import { DocumentWorkspaceShelf } from "./DocumentWorkspaceShelf";
+import { DocumentRules } from "./DocumentRules";
+import { DocumentJobs } from "./DocumentJobs";
+import { DocumentSignatureReview } from "./DocumentSignatureReview";
+import { DocumentVisualReview } from "./DocumentVisualReview";
+import { DocumentWorkflows } from "./DocumentAutomationPanel";
+import { documentReminder } from "@/lib/document-calendar";
 import { downloadDocumentReport } from "@/lib/document-report";
 import { csv } from "@/lib/document-results";
 type LocalDocument = DocumentSource & {
   file?: File;
   hash?: string;
+  password?: string;
   originals: Record<string, string>;
 };
 const labels: Record<IntelligenceAction, string> = {
+  ...(Object.fromEntries(
+    Object.entries(ADVANCED_TASKS).map(([key, t]) => [key, t.label]),
+  ) as Record<keyof typeof ADVANCED_TASKS, string>),
   overview: "Executive overview",
   detailed: "Detailed findings",
   facts: "Key facts",
@@ -74,6 +102,26 @@ export function DocumentIntelligence() {
     [kind, setKind] = useState<DocumentType>("general"),
     [action, setAction] = useState<IntelligenceAction>("overview"),
     [question, setQuestion] = useState(""),
+    [templateName, setTemplateName] = useState(""),
+    [templates, setTemplates] = useState<
+      { name: string; action: IntelligenceAction; question: string }[]
+    >([]),
+    [reportTheme, setReportTheme] = useState("classic"),
+    [reportTitle, setReportTitle] = useState("Document evidence report"),
+    [reportIntroduction, setReportIntroduction] = useState(""),
+    [reportFooter, setReportFooter] = useState(""),
+    [reminderDate, setReminderDate] = useState(""),
+    [reminderIndex, setReminderIndex] = useState(0),
+    [pdfPassword, setPdfPassword] = useState(""),
+    [ocrLanguage, setOcrLanguage] = useState("eng"),
+    [forceOcr, setForceOcr] = useState(false),
+    [scanAvailable, setScanAvailable] = useState(false),
+    [scanConsent, setScanConsent] = useState(false),
+    [maxMegabytes, setMaxMegabytes] = useState(20),
+    [maxPdfPages, setMaxPdfPages] = useState(20),
+    [comparison, setComparison] = useState<DiffRow[] | null>(null),
+    [redactionTerms, setRedactionTerms] = useState(""),
+    [redactIdentifiers, setRedactIdentifiers] = useState(false),
     [history, setHistory] = useState<ConversationTurn[]>([]),
     [tables, setTables] = useState<SourceTable[] | null>(null),
     [result, setResult] = useState<IntelligenceResult | null>(null),
@@ -89,12 +137,98 @@ export function DocumentIntelligence() {
       unlimited: boolean;
     } | null>(null);
   const alive = useRef(true),
+    accountGeneration = useRef(0),
+    previousAccount = useRef<string | null>(null),
+    restoredHistory = useRef<ConversationTurn[] | null>(null),
     lock = useRef(false),
     extractLock = useRef(false),
     controller = useRef<AbortController | null>(null),
     retry = useRef<{ fingerprint: string; id: string } | null>(null),
     receipts = useRef<string[]>([]);
   const enabled = import.meta.env.VITE_ENABLE_AI === "true";
+  useEffect(() => {
+    let current = true;
+    setScanAvailable(false); setScanConsent(false);
+    if (firebaseUser) void firebaseUser.getIdToken().then(token => fetch(apiUrl('/document-scan'), { headers: { Authorization: 'Bearer ' + token } })).then(async response => {
+      const data = response.ok ? await response.json() : null;
+      if (current) setScanAvailable(data?.available === true);
+    }).catch(() => {});
+    return () => { current = false; };
+  }, [firebaseUser?.uid]);
+  useEffect(() => {
+    const next = firebaseUser?.uid || null;
+    if (previousAccount.current && previousAccount.current !== next) {
+      accountGeneration.current++;
+      controller.current?.abort();
+      receipts.current = [];
+      retry.current = null;
+      setDocuments([]);
+      setSelected([]);
+      setFocus("");
+      setQuestion("");
+      setHistory([]);
+      setPdfPassword("");
+      setTemplates([]);
+      setTemplateName("");
+      setReportTitle("Document evidence report");
+      setReportTheme("classic");
+      setReportIntroduction("");
+      setReportFooter("");
+      setReminderDate("");
+      setRedactionTerms("");
+      changed();
+      setStatus(
+        "Local document workspace cleared because the signed-in account changed.",
+      );
+    }
+    previousAccount.current = next;
+  }, [firebaseUser?.uid]);
+  const anonymousStarted = useRef<number | null>(null);
+  useEffect(() => {
+    if (firebaseUser || !documents.length) {
+      anonymousStarted.current = null;
+      return;
+    }
+    anonymousStarted.current ??= Date.now();
+    const expire = () => {
+      if (
+        anonymousStarted.current === null ||
+        Date.now() - anonymousStarted.current < 60 * 60 * 1000
+      )
+        return;
+      controller.current?.abort();
+      setDocuments([]);
+      setSelected([]);
+      setFocus("");
+      setQuestion("");
+      setHistory([]);
+      setPdfPassword("");
+      setRedactionTerms("");
+      setTemplates([]);
+      setTemplateName("");
+      setReportTitle("Document evidence report");
+      setReportTheme("classic");
+      setReportIntroduction("");
+      setReportFooter("");
+      setReminderDate("");
+      changed();
+      setStatus(
+        "Your anonymous workspace expired after 60 minutes. Local documents and results have been cleared.",
+      );
+      anonymousStarted.current = null;
+    };
+    const timer = window.setTimeout(
+      expire,
+      Math.max(0, 60 * 60 * 1000 - (Date.now() - anonymousStarted.current)),
+    );
+    window.addEventListener("focus", expire);
+    document.addEventListener("visibilitychange", expire);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("focus", expire);
+      document.removeEventListener("visibilitychange", expire);
+    };
+  }, [!!firebaseUser, documents.length]);
   useEffect(() => {
     alive.current = true;
     return () => {
@@ -111,7 +245,8 @@ export function DocumentIntelligence() {
     .filter((d) => d.pages.length);
   const sourceVersion = JSON.stringify(sources);
   useEffect(() => {
-    setHistory([]);
+    setHistory(restoredHistory.current || []);
+    restoredHistory.current = null;
   }, [sourceVersion, kind]);
   const context = action === "questions" ? history : [];
   const contextLength = context.reduce(
@@ -127,6 +262,13 @@ export function DocumentIntelligence() {
     contextLength;
   const current = documents.find((d) => d.pages.some((p) => p.id === focus));
   const page = current?.pages.find((p) => p.id === focus);
+  const sourceInfo = useMemo(() => {
+    const text = current?.pages.map((p) => p.text).join("\n") || "";
+    return {
+      language: detectDocumentLanguage(text),
+      ...documentStructure(text),
+    };
+  }, [current]);
   const blocked = busy || reading;
   const valid =
     sources.length > 0 &&
@@ -135,6 +277,7 @@ export function DocumentIntelligence() {
     context.length <= 6 &&
     sources.some((d) => d.pages.some((p) => p.text.trim()));
   function changed() {
+    setComparison(null);
     setTables(null);
     setResult(null);
     setEvidence(null);
@@ -173,14 +316,35 @@ export function DocumentIntelligence() {
     const ctrl = new AbortController();
     controller.current = ctrl;
     try {
-      const list = Array.from(files);
+      if(!Number.isInteger(maxMegabytes)||maxMegabytes<1||maxMegabytes>20||!Number.isInteger(maxPdfPages)||maxPdfPages<1||maxPdfPages>20)throw Error('Choose whole-number extraction limits from 1 to 20.');
+      const list: File[] = [];
+      if (files.length > 5) throw Error('Choose up to five files at a time.');
+      for (const file of Array.from(files)) {
+        if (scanConsent) {
+          if (!firebaseUser || !scanAvailable) throw Error('Sign in and enable an available scanner before uploading.');
+          if (!file.size || file.size > maxMegabytes * 1024 * 1024) throw Error('File exceeds the configured scan size limit.');
+          setStatus('Scanning ' + file.name + ' before local extraction…');
+          const token = await firebaseUser.getIdToken();
+          const response = await fetch(apiUrl('/document-scan?consent=upload-for-scan'), {
+            method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/octet-stream' }, body: file, signal: ctrl.signal,
+          });
+          const outcome = await response.json().catch(() => null);
+          if (!response.ok || outcome?.status !== 'clean') throw Error(outcome?.message || 'Scanning did not complete. Extraction stopped.');
+        }
+        if (ctrl.signal.aborted) throw Error('Extraction cancelled.');
+        list.push(
+          ...(file.name.toLowerCase().endsWith(".zip")
+            ? await expandDocumentZip(file)
+            : [file]),
+        );
+      }
       if (list.length + documents.length > 5)
         throw Error("Choose up to five documents in total.");
       const hashes = new Set(documents.map((d) => d.hash).filter(Boolean));
       for (const file of list) {
         if (ctrl.signal.aborted) break;
-        if (file.size > 20 * 1024 * 1024)
-          throw Error(file.name + ": maximum size is 20 MB.");
+        if (file.size > maxMegabytes * 1024 * 1024)
+          throw Error(file.name + ": maximum size is " + maxMegabytes + " MB.");
         const hash = Array.from(
           new Uint8Array(
             await crypto.subtle.digest("SHA-256", await file.arrayBuffer()),
@@ -196,10 +360,21 @@ export function DocumentIntelligence() {
           id,
           (s) => alive.current && setStatus(s),
           ctrl.signal,
+          {
+            password: pdfPassword,
+            language: ocrLanguage,
+            forceOcr,
+            maxMegabytes,
+            maxPdfPages,
+          },
         );
         if (ctrl.signal.aborted || !alive.current) break;
-        if (!d.pages.length || !d.pages.some((p) => p.text.trim()))
-          throw Error("No text found. Try a clearer scan.");
+        if (!d.pages.length) throw Error("No readable pages found.");
+        if (
+          !d.pages.some((p) => p.text.trim()) &&
+          !/\.(pdf|png|jpe?g)$/i.test(file.name)
+        )
+          throw Error("No text found. Choose a document with content.");
         hashes.add(hash);
         setDocuments((ds) => [
           ...ds,
@@ -207,6 +382,9 @@ export function DocumentIntelligence() {
             ...d,
             file,
             hash,
+            password: file.name.toLowerCase().endsWith(".pdf")
+              ? pdfPassword
+              : undefined,
             originals: Object.fromEntries(d.pages.map((p) => [p.id, p.text])),
           },
         ]);
@@ -218,7 +396,7 @@ export function DocumentIntelligence() {
         setStatus(
           ctrl.signal.aborted
             ? "Extraction cancelled. Completed documents remain available."
-            : "Files read locally. Review the source before analysis.",
+            : scanConsent ? "Scan found no malware; files extracted locally. Scanning cannot guarantee safety. Review the source before analysis." : "Files read locally. Review the source before analysis.",
         );
     } catch (e) {
       if (alive.current) setError((e as Error).message);
@@ -261,43 +439,32 @@ export function DocumentIntelligence() {
       );
       return;
     }
-    const lines = (d: DocumentSource) =>
-      d.pages.flatMap((p) =>
-        p.text
-          .split("\n")
-          .filter((s) => s.trim())
-          .map((s) => ({ text: s, page: p.id })),
-      );
-    const a = lines(sources[0]),
-      b = lines(sources[1]),
-      aSet = new Set(a.map((l) => normalize(l.text))),
-      bSet = new Set(b.map((l) => normalize(l.text)));
-    const findings: Finding[] = [
-      ...a
-        .filter((l) => !bSet.has(normalize(l.text)))
-        .map((l) => ({
-          label: "Removed line",
-          value: l.text,
-          sourceId: l.page,
-          quote: l.text,
-          status: "extracted" as const,
-        })),
-      ...b
-        .filter((l) => !aSet.has(normalize(l.text)))
-        .map((l) => ({
-          label: "Added line",
-          value: l.text,
-          sourceId: l.page,
-          quote: l.text,
-          status: "extracted" as const,
-        })),
-    ];
+    let rows: DiffRow[];
+    try {
+      rows = compareDocumentLines(sources[0], sources[1]);
+    } catch (e) {
+      setError((e as Error).message);
+      return;
+    }
+    const findings: Finding[] = rows
+      .filter((r) => r.kind !== "same")
+      .map((r) => {
+        const line = (r.before || r.after)!;
+        return {
+          label: r.kind === "added" ? "Added line" : "Removed line",
+          value: line.text,
+          quote: line.text,
+          sourceId: line.sourceId,
+          status: "extracted",
+        };
+      });
     if (findings.length > 500) {
       setError(
         "More than 500 changed lines. Select smaller sections to compare; no lines were silently omitted.",
       );
       return;
     }
+    setComparison(rows);
     setResult({
       findings,
       missing: [],
@@ -306,8 +473,8 @@ export function DocumentIntelligence() {
           label: "Text comparison",
           status: "pass",
           detail: findings.length
-            ? `${findings.length} added/removed lines. This ignores whitespace, line order and repetition counts; it does not assess meaning or legal significance.`
-            : "No added or removed normalized lines. This does not check layout, ordering or repeated-line counts.",
+            ? `${findings.length} added/removed lines. Order and repeated lines are compared; moved lines appear as a removal and addition. Whitespace and empty lines are ignored. No legal significance is inferred.`
+            : "No changes in the ordered non-empty text lines after whitespace normalization. Visual layout is not compared.",
         },
       ],
     });
@@ -342,9 +509,10 @@ export function DocumentIntelligence() {
     lock.current = true;
     setBusy(true);
     setError("");
+    const generation = accountGeneration.current;
     try {
       const q = await request("quote", body());
-      if (alive.current) {
+      if (alive.current && generation === accountGeneration.current) {
         setQuote(q);
         setConsent(false);
       }
@@ -362,6 +530,7 @@ export function DocumentIntelligence() {
     setError("");
     setResult(null);
     setEvidence(null);
+    const generation = accountGeneration.current;
     try {
       if (retry.current?.fingerprint !== quote.fingerprint) {
         const key =
@@ -383,7 +552,7 @@ export function DocumentIntelligence() {
         consent: true,
         requestId: id,
       });
-      if (alive.current) {
+      if (alive.current && generation === accountGeneration.current) {
         setResult(data.result);
         if (action === "questions") {
           const answer = [
@@ -424,6 +593,15 @@ export function DocumentIntelligence() {
         receipts.current = [];
       }
       setDocuments([]);
+      setPdfPassword("");
+      setRedactionTerms("");
+      setTemplates([]);
+      setTemplateName("");
+      setReportTitle("Document evidence report");
+      setReportTheme("classic");
+      setReportIntroduction("");
+      setReportFooter("");
+      setReminderDate("");
       setSelected([]);
       setFocus("");
       setQuestion("");
@@ -446,7 +624,26 @@ export function DocumentIntelligence() {
     const d = documents.find((d) => d.pages.some((p) => p.id === id));
     return d ? `${d.name} · ${d.pages.find((p) => p.id === id)!.label}` : id;
   };
-  const exportText = () =>
+  const redact = (text: string) =>
+    redactText(text, redactionTerms.split("\n"), redactIdentifiers);
+  const exportResult = result
+    ? {
+        ...result,
+        findings: result.findings.map((f) => ({
+          ...f,
+          label: redact(f.label),
+          value: redact(f.value),
+          quote: redact(f.quote),
+        })),
+        missing: result.missing.map(redact),
+        checks: result.checks.map((c) => ({
+          ...c,
+          label: redact(c.label),
+          detail: redact(c.detail),
+        })),
+      }
+    : null;
+  const rawExportText = () =>
     result
       ? result.findings
           .map(
@@ -461,6 +658,20 @@ export function DocumentIntelligence() {
           .map((c) => `${c.label} (${c.status}): ${c.detail}`)
           .join("\n")
       : "";
+  const exportText = () =>
+    redact(
+      reportTitle +
+        "\n\n" +
+        (reportIntroduction
+          ? "Author introduction (not source evidence):\n" +
+            reportIntroduction +
+            "\n\n"
+          : "") +
+        rawExportText() +
+        (reportFooter
+          ? "\n\nAuthor closing note (not source evidence):\n" + reportFooter
+          : ""),
+    );
   return (
     <div className="min-w-0 space-y-6">
       <header className="rounded-2xl border bg-primary/5 p-6">
@@ -487,6 +698,106 @@ export function DocumentIntelligence() {
           <span>3 · Analyze & verify</span>
         </div>
       </header>
+      <SupportRequests />
+      <DocumentWorkflows />
+      <DocumentBatch
+        documents={sources}
+        documentType={kind}
+        disabled={blocked}
+      />
+      <DocumentWorkspaceShelf
+        disabled={blocked}
+        compare={(data, version) => {
+          const incoming = validateSources(data.documents);
+          if (documents.length + incoming.length > 5)
+            throw Error(
+              "Keep up to five documents for comparison. Remove an existing document first.",
+            );
+          const added = incoming.map((d) => {
+            const id = crypto.randomUUID();
+            const pages = d.pages.map((p, i) => ({
+              ...p,
+              id: id + "-saved-" + i,
+            }));
+            return {
+              ...d,
+              id,
+              name: ("Saved v" + version + " · " + d.name).slice(0, 200),
+              pages,
+              originals: Object.fromEntries(pages.map((p) => [p.id, p.text])),
+            };
+          });
+          changed();
+          setDocuments((ds) => [...ds, ...added]);
+          setSelected((ids) => [
+            ...ids,
+            ...added.flatMap((d) => d.pages.map((p) => p.id)),
+          ]);
+        }}
+        snapshot={() => ({
+          documents: sources,
+          history,
+          documentType: kind,
+          action,
+          question,
+          templates,
+          reportTemplate: {
+            title: reportTitle,
+            theme: reportTheme,
+            introduction: reportIntroduction,
+            footer: reportFooter,
+          },
+        })}
+        restore={(data) => {
+          const restored = validateSources(data.documents);
+          changed();
+          restoredHistory.current =
+            JSON.stringify(restored) !== sourceVersion ||
+            data.documentType !== kind
+              ? data.history || []
+              : null;
+          setDocuments(
+            restored.map((d) => ({
+              ...d,
+              originals: Object.fromEntries(d.pages.map((p) => [p.id, p.text])),
+            })),
+          );
+          setSelected(restored.flatMap((d) => d.pages.map((p) => p.id)));
+          setFocus(restored[0]?.pages[0]?.id || "");
+          setKind(data.documentType);
+          setAction(data.action);
+          setQuestion(data.question);
+          setHistory(data.history || []);
+          setTemplates(data.templates || []);
+          setReportTitle(
+            data.reportTemplate?.title || "Document evidence report",
+          );
+          setReportTheme(data.reportTemplate?.theme || "classic");
+          setReportIntroduction(data.reportTemplate?.introduction || "");
+          setReportFooter(data.reportTemplate?.footer || "");
+        }}
+      />
+      <DocumentJobs
+        body={body}
+        quote={quote}
+        consent={consent}
+        disabled={blocked}
+        onResult={(r, d) => {
+          const restored = validateSources(d);
+          changed();
+          setDocuments(
+            restored.map((doc) => ({
+              ...doc,
+              originals: Object.fromEntries(
+                doc.pages.map((p) => [p.id, p.text]),
+              ),
+            })),
+          );
+          setSelected(restored.flatMap((doc) => doc.pages.map((p) => p.id)));
+          setFocus(restored[0]?.pages[0]?.id || "");
+          setResult(r);
+        }}
+      />
       <section
         className="space-y-4 rounded-xl border p-5"
         aria-label="Add documents"
@@ -501,16 +812,107 @@ export function DocumentIntelligence() {
           Add documents
         </h2>
         <p className="text-sm">
-          Drop PDF, DOCX, TXT, JPG or PNG files here. Up to 5 files, 20 MB each
-          and 20 pages per PDF. Extraction stays on this device. Scanned text
-          currently uses English OCR.
+          Drop PDF, DOCX, TXT, JPG, PNG or a document ZIP here. Up to 5 files,
+          20 MB each and 20 pages per PDF. Standard text extraction and OCR stay
+          on this device. Optional visual AI sends a page preview only after
+          separate consent. Scanned text uses your selected OCR language.
         </p>
+        <details className="rounded border p-3 text-sm">
+          <summary className="cursor-pointer font-medium">
+            Extraction settings
+          </summary>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {scanAvailable && <label className="sm:col-span-2 flex items-start gap-2">
+              <input type="checkbox" checked={scanConsent} disabled={blocked} onChange={e => setScanConsent(e.target.checked)} />
+              <span>Scan before extraction. I agree to upload original files (including ZIP contents) to ToolzCraft's malware scanner. Files are processed temporarily, not saved to my workspace or sent to AI. A failed scan stops extraction. Scanning cannot guarantee safety.</span>
+            </label>}
+            <label>
+              Maximum file size (MB)
+              <input
+                type="number"
+                min={1}
+                max={20}
+                step={1}
+                value={maxMegabytes}
+                disabled={blocked}
+                onChange={(e) => setMaxMegabytes(Number(e.target.value))}
+                className="block w-full rounded border bg-background p-2"
+              />
+            </label>
+            <label>
+              Maximum PDF pages
+              <input
+                type="number"
+                min={1}
+                max={20}
+                step={1}
+                value={maxPdfPages}
+                disabled={blocked}
+                onChange={(e) => setMaxPdfPages(Number(e.target.value))}
+                className="block w-full rounded border bg-background p-2"
+              />
+            </label>
+            <label>
+              PDF password (if required)
+              <input
+                type="password"
+                autoComplete="off"
+                value={pdfPassword}
+                disabled={blocked}
+                onChange={(e) => setPdfPassword(e.target.value)}
+                className="mt-1 block w-full rounded border bg-background p-2"
+              />
+            </label>
+            <label>
+              OCR language
+              <select
+                aria-label="OCR language"
+                value={ocrLanguage}
+                disabled={blocked}
+                onChange={(e) => setOcrLanguage(e.target.value)}
+                className="mt-1 block w-full rounded border bg-background p-2"
+              >
+                {Object.entries({
+                  eng: "English",
+                  "eng+hin": "English + Hindi",
+                  "eng+mar": "English + Marathi",
+                  fra: "French",
+                  deu: "German",
+                  spa: "Spanish",
+                  ara: "Arabic",
+                  jpn: "Japanese",
+                  chi_sim: "Simplified Chinese",
+                }).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <label className="mt-3 flex gap-2">
+            <input
+              type="checkbox"
+              checked={forceOcr}
+              disabled={blocked}
+              onChange={(e) => setForceOcr(e.target.checked)}
+            />
+            OCR every PDF page, including pages with existing text (use for
+            mixed scans).
+          </label>
+          <p className="mt-2 text-xs">
+            Settings apply to newly added files. Passwords stay in this tab and
+            are cleared with the workspace. OCR may download language files;
+            document images stay local. Anonymous workspaces clear after 60
+            minutes; suspended tabs clear when resumed.
+          </p>
+        </details>
         <input
           aria-label="Upload documents"
           className="block w-full min-w-0 max-w-full text-sm"
           type="file"
           multiple
-          accept=".pdf,.docx,.txt,.jpg,.jpeg,.png"
+          accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.zip"
           disabled={blocked}
           onChange={(e) => {
             if (e.target.files) void upload(e.target.files);
@@ -552,6 +954,14 @@ export function DocumentIntelligence() {
           )}
         </div>
       </section>
+      <DocumentReference disabled={blocked || documents.length >= 5} onImport={reference=>{
+        if(blocked || documents.length>=5)throw Error('Wait for the current operation or remove a document before importing.');
+        changed();const id=crypto.randomUUID(),pageId=id+'-reference';
+        const text='Published reference: '+reference.url+'\nRetrieved: '+reference.retrievedAt+'\n\n'+reference.text;
+        const page={id:pageId,label:'Published reference',text};
+        setDocuments(ds=>[...ds,{id,name:'Reference: '+new URL(reference.url).hostname,pages:[page],hash:reference.sha256,originals:{[pageId]:text}}]);
+        setSelected(ids=>[...ids,pageId]);setFocus(pageId);setStatus('Reference imported. Select it with another document to compare their claims.');
+      }}/>
       {status && (
         <p role="status" className="rounded-lg bg-muted p-3 text-sm">
           {status}
@@ -603,6 +1013,36 @@ export function DocumentIntelligence() {
                   >
                     Remove document
                   </button>
+                  <div className="flex gap-2">
+                    <button
+                      className="text-xs underline"
+                      disabled={blocked || di === 0}
+                      onClick={() => {
+                        changed();
+                        setDocuments((ds) => {
+                          const copy = [...ds];
+                          [copy[di - 1], copy[di]] = [copy[di], copy[di - 1]];
+                          return copy;
+                        });
+                      }}
+                    >
+                      Move document earlier
+                    </button>
+                    <button
+                      className="text-xs underline"
+                      disabled={blocked || di === documents.length - 1}
+                      onClick={() => {
+                        changed();
+                        setDocuments((ds) => {
+                          const copy = [...ds];
+                          [copy[di], copy[di + 1]] = [copy[di + 1], copy[di]];
+                          return copy;
+                        });
+                      }}
+                    >
+                      Move document later
+                    </button>
+                  </div>
                   {d.pages.map((p, pi) => (
                     <div key={p.id} className="flex items-center gap-2">
                       <input
@@ -655,6 +1095,7 @@ export function DocumentIntelligence() {
                   ))}
                   <DocumentThumbnails
                     file={d.file}
+                    password={d.password}
                     pages={d.pages}
                     onSelect={setFocus}
                   />
@@ -667,8 +1108,65 @@ export function DocumentIntelligence() {
                   <h2 className="font-semibold">
                     {current.name} · {page.label}
                   </h2>
+                  <details className="rounded border p-3 text-sm">
+                    <summary className="cursor-pointer">
+                      Language, metadata & structure
+                    </summary>
+                    <p className="mt-2">
+                      Estimated language: {sourceInfo.language}
+                    </p>
+                    <p>
+                      Paragraph groups: {sourceInfo.paragraphs}. Heading
+                      candidates: {sourceInfo.headings.length}.
+                    </p>
+                    {Object.entries(current.metadata || {}).map(
+                      ([key, value]) => (
+                        <p key={key} className="break-words">
+                          {key}: {value}
+                        </p>
+                      ),
+                    )}
+                    {!Object.keys(current.metadata || {}).length && (
+                      <p>No embedded title or author metadata found.</p>
+                    )}
+                    {!!sourceInfo.dates.length && (
+                      <p>Date strings: {sourceInfo.dates.join(" · ")}</p>
+                    )}
+                    <p className="mt-2 text-xs">
+                      Metadata is supplied by the file and does not establish
+                      identity or authenticity. Language and headings are
+                      estimates; mixed or short text may be ambiguous. Date
+                      formats are not inferred.
+                    </p>
+                  </details>
+                  {page.ocrConfidence !== undefined && (
+                    <div
+                      className="rounded border border-amber-500 p-3 text-sm"
+                      aria-label="OCR quality"
+                    >
+                      <p>
+                        OCR engine score: {Math.round(page.ocrConfidence)} /
+                        100. This is not a probability of accuracy.
+                      </p>
+                      {!!page.uncertainWords?.length && (
+                        <p className="mt-2">
+                          Review uncertain words:{" "}
+                          {page.uncertainWords.map((word, i) => (
+                            <mark key={i} className="mr-2 inline-block">
+                              {word}
+                            </mark>
+                          ))}
+                        </p>
+                      )}
+                      <p className="mt-2">
+                        Compare the text with the image before analysis.
+                        Handwriting and mixed layouts need particular care.
+                      </p>
+                    </div>
+                  )}
                   <div className="grid min-w-0 gap-4 lg:grid-cols-2">
                     <DocumentPreview
+                      password={current.password}
                       file={current.file}
                       page={Number(page.id.match(/-p(\d+)$/)?.[1] || 1) - 1}
                     />
@@ -766,7 +1264,7 @@ export function DocumentIntelligence() {
               Type detection is a suggestion; correct it if needed. Source
               selection controls what is analyzed.
             </p>
-            {["questions", "checklist"].includes(action) && (
+            {["questions", "checklist", "specialist"].includes(action) && (
               <div
                 className="rounded-lg bg-muted/40 p-3 text-sm"
                 aria-label="Document field profile"
@@ -791,11 +1289,17 @@ export function DocumentIntelligence() {
                 </p>
               </div>
             )}
-            {["questions", "checklist"].includes(action) && (
+            {["questions", "checklist", "translate", "specialist"].includes(
+              action,
+            ) && (
               <label className="block text-sm">
                 {action === "questions"
                   ? "Your question or follow-up"
-                  : "Required fields or checklist"}
+                  : action === "translate"
+                    ? "Target language"
+                    : action === "specialist"
+                      ? "Review focus (optional)"
+                      : "Required fields or checklist"}
                 <Textarea
                   value={question}
                   maxLength={2000}
@@ -888,6 +1392,99 @@ export function DocumentIntelligence() {
                 silently truncated.
               </p>
             )}
+            <details className="space-y-3 rounded border p-3">
+              <summary className="cursor-pointer font-semibold">
+                Custom analysis templates
+              </summary>
+              <p className="text-xs">
+                Save the current action and question/checklist. Templates stay
+                in this tab unless included in an explicitly saved workspace.
+              </p>
+              <label className="block text-sm">
+                Template name
+                <input
+                  className="block w-full rounded border bg-background p-2"
+                  maxLength={100}
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                />
+              </label>
+              <Button
+                variant="outline"
+                disabled={
+                  blocked || !templateName.trim() || templates.length >= 20
+                }
+                onClick={() => {
+                  setTemplates([
+                    ...templates,
+                    { name: templateName.trim(), action, question },
+                  ]);
+                  setTemplateName("");
+                }}
+              >
+                Save analysis template
+              </Button>
+              {templates.map((t, i) => (
+                <div key={i} className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    disabled={blocked}
+                    onClick={() => {
+                      changed();
+                      setAction(t.action);
+                      setQuestion(t.question);
+                    }}
+                  >
+                    Apply {t.name}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    disabled={blocked}
+                    onClick={() =>
+                      setTemplates(templates.filter((_, j) => j !== i))
+                    }
+                  >
+                    Remove template {i + 1}
+                  </Button>
+                </div>
+              ))}
+            </details>
+            <DocumentRules
+              documents={sources}
+              disabled={blocked || !valid}
+              onResult={(r) => {
+                changed();
+                setResult(r);
+              }}
+            />
+            <DocumentFinancialChecks
+              documents={sources}
+              disabled={blocked || !valid}
+              onResult={(r) => {
+                changed();
+                setResult(r);
+              }}
+            />
+            <DocumentSignatureReview file={current?.file} />
+            <DocumentVisualReview
+              file={current?.file}
+              pageNumber={Number(focus.match(/-p(\d+)$/)?.[1] || 1)}
+              password={current?.password}
+              onReceipt={(id) => {
+                if (!receipts.current.includes(id)) receipts.current.push(id);
+              }}
+              onApply={(text) => {
+                changed();
+                setDocuments((ds) =>
+                  ds.map((d) => ({
+                    ...d,
+                    pages: d.pages.map((p) =>
+                      p.id === focus ? { ...p, text } : p,
+                    ),
+                  })),
+                );
+              }}
+            />
             <div className="flex flex-wrap gap-3">
               <Button
                 variant="outline"
@@ -972,6 +1569,265 @@ export function DocumentIntelligence() {
           </section>
         </>
       )}
+      {!!documents.length && (
+        <section
+          aria-label="Export privacy"
+          className="space-y-3 rounded-xl border p-4"
+        >
+          <h2 className="font-semibold">Export & privacy review</h2>
+          <label className="block text-sm">
+            Report title
+            <input
+              className="block w-full rounded border bg-background p-2"
+              maxLength={120}
+              value={reportTitle}
+              onChange={(e) => setReportTitle(e.target.value)}
+            />
+          </label>
+          <details className="space-y-3 rounded border p-3">
+            <summary className="cursor-pointer font-semibold">
+              Custom report template
+            </summary>
+            <p className="text-xs">
+              Add your introduction and closing note to TXT, Word, PDF and
+              copied reports. These notes are explicitly labeled as authored
+              content, never document evidence. The template is included when
+              you save a workspace. Citations, checks and missing-information
+              disclosures are always retained.
+            </p>
+            <label className="block">Word/PDF layout<select className="block rounded border bg-background p-2" value={reportTheme} onChange={e=>setReportTheme(e.target.value)}><option value="classic">Classic</option><option value="compact">Compact</option><option value="large-print">Large print</option></select></label>
+            <label className="block">
+              Report introduction
+              <textarea
+                className="block w-full rounded border bg-background p-2"
+                maxLength={2000}
+                value={reportIntroduction}
+                onChange={(e) => setReportIntroduction(e.target.value)}
+              />
+            </label>
+            <label className="block">
+              Report closing note
+              <textarea
+                className="block w-full rounded border bg-background p-2"
+                maxLength={2000}
+                value={reportFooter}
+                onChange={(e) => setReportFooter(e.target.value)}
+              />
+            </label>
+          </details>
+          {!!result?.findings.length && (
+            <details className="space-y-3 rounded border p-3">
+              <summary className="cursor-pointer font-semibold">
+                Create an evidence-linked deadline reminder
+              </summary>
+              <p className="text-xs">
+                Confirm the date yourself. Download an all-day calendar event
+                with a one-day reminder; import it into your calendar. No
+                notification is sent automatically.
+              </p>
+              <label className="block">
+                Finding
+                <select
+                  className="block w-full rounded border bg-background p-2"
+                  value={reminderIndex}
+                  onChange={(e) => setReminderIndex(Number(e.target.value))}
+                >
+                  {result.findings.map((f, i) => (
+                    <option key={i} value={i}>
+                      {f.label}: {f.value.slice(0, 80)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                Confirmed deadline
+                <input
+                  type="date"
+                  className="block rounded border bg-background p-2"
+                  value={reminderDate}
+                  onChange={(e) => setReminderDate(e.target.value)}
+                />
+              </label>
+              <Button
+                variant="outline"
+                disabled={!reminderDate}
+                onClick={() => {
+                  try {
+                    const finding = result.findings[reminderIndex];
+                    if (!finding) throw Error("Select a finding.");
+                    save(
+                      documentReminder(
+                        reminderDate,
+                        redact(finding.label).slice(0, 200),
+                        redact(
+                          finding.value +
+                            "\nEvidence: " +
+                            finding.quote +
+                            "\n" +
+                            sourceLabel(finding.sourceId),
+                        ),
+                        crypto.randomUUID(),
+                      ),
+                      "document-reminder.ics",
+                      "text/calendar;charset=utf-8",
+                    );
+                  } catch (e) {
+                    setError((e as Error).message);
+                  }
+                }}
+              >
+                Download calendar reminder
+              </Button>
+            </details>
+          )}
+          <label className="block text-sm">
+            Redact exact text (one phrase per line)
+            <Textarea
+              value={redactionTerms}
+              maxLength={5000}
+              onChange={(e) => setRedactionTerms(e.target.value)}
+              placeholder="Names, account numbers, addresses or other text to remove from exports"
+            />
+          </label>
+          <label className="flex gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={redactIdentifiers}
+              onChange={(e) => setRedactIdentifiers(e.target.checked)}
+            />
+            Also mask email addresses and international phone-number patterns
+          </label>
+          <p className="text-xs">
+            Redaction applies to copied/downloaded text and reports, not the
+            original file or text sent for AI analysis. Pattern detection is
+            incomplete; review the preview before sharing. Source references may
+            point to private originals.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              onClick={() =>
+                save(
+                  redact(
+                    sources
+                      .map(
+                        (d) =>
+                          d.name +
+                          "\n" +
+                          d.pages
+                            .map((p) => p.label + "\n" + p.text)
+                            .join("\n\n"),
+                      )
+                      .join("\n\n"),
+                  ),
+                  "extracted-source.txt",
+                )
+              }
+            >
+              Download extracted text
+            </Button>
+            <Button variant="outline" disabled={blocked || !sources.length} onClick={()=>{
+              try{exportWord(redact(sources.map(d=>d.name+'\n'+d.pages.map(p=>p.label+'\n'+p.text).join('\n\n')).join('\n\n')));}catch(e){setError((e as Error).message);}
+            }}>Convert reviewed text to Word</Button>
+            <Button variant="outline" disabled={blocked || !sources.length} onClick={async()=>{
+              try{await downloadDocumentReport(redact(sources.map(d=>d.name+'\n'+d.pages.map(p=>p.label+'\n'+p.text).join('\n\n')).join('\n\n')));}catch(e){setError((e as Error).message);}
+            }}>Convert reviewed text to PDF</Button>
+            <p className="w-full text-xs">Conversions normalize the reviewed text and page references; they do not reproduce the original layout.</p>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(
+                    redact(
+                      sources
+                        .map((d) => d.pages.map((p) => p.text).join("\n\n"))
+                        .join("\n\n"),
+                    ),
+                  );
+                  setStatus("Reviewed extraction copied.");
+                } catch {
+                  setError(
+                    "Clipboard unavailable; download the extraction instead.",
+                  );
+                }
+              }}
+            >
+              Copy extracted text
+            </Button>
+          </div>
+          {result && (
+            <details>
+              <summary className="cursor-pointer text-sm">
+                Preview redacted report
+              </summary>
+              <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs">
+                {exportText()}
+              </pre>
+            </details>
+          )}
+        </section>
+      )}
+      {comparison && (
+        <section
+          aria-label="Side-by-side comparison"
+          className="min-w-0 space-y-3 rounded-xl border p-4"
+        >
+          <h2 className="font-semibold">Original ↔ Revised</h2>
+          <p className="text-xs">
+            {sources[0]?.name} → {sources[1]?.name}. Removed and added rows
+            preserve original source locations.
+          </p>
+          <div className="max-h-[36rem] overflow-auto">
+            <div className="grid grid-cols-2 gap-2 font-semibold">
+              <span>Original</span>
+              <span>Revised</span>
+            </div>
+            {comparison.map((row, i) => (
+              <div
+                key={i}
+                className={
+                  "grid grid-cols-2 gap-2 border-b text-sm " +
+                  (row.kind === "same" ? "" : "bg-primary/5")
+                }
+              >
+                {[row.before, row.after].map((line, j) => (
+                  <div key={j} className="min-w-0 p-2">
+                    {line && (
+                      <>
+                        <span className="text-xs font-semibold">
+                          {row.kind === "same"
+                            ? "Unchanged"
+                            : row.kind === "added"
+                              ? "Added"
+                              : "Removed"}
+                        </span>
+                        <p className="whitespace-pre-wrap break-words">
+                          {line.text}
+                        </p>
+                        <button
+                          className="text-xs underline"
+                          onClick={() => {
+                            setFocus(line.sourceId);
+                            setEvidence({
+                              label: "Compared line",
+                              value: line.text,
+                              quote: line.text,
+                              sourceId: line.sourceId,
+                              status: "extracted",
+                            });
+                          }}
+                        >
+                          View source
+                        </button>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
       {tables && (
         <section
           aria-label="Extracted tables"
@@ -1001,7 +1857,7 @@ export function DocumentIntelligence() {
                     save(
                       csv(
                         t.rows[0].map((_, n) => "Column " + (n + 1)),
-                        t.rows,
+                        t.rows.map((row) => row.map(redact)),
                       ),
                       "document-table-" + (i + 1) + ".csv",
                       "text/csv;charset=utf-8",
@@ -1009,6 +1865,21 @@ export function DocumentIntelligence() {
                   }
                 >
                   Export table {i + 1} CSV
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    try {
+                      exportExcel(
+                        t.rows.map((row) => row.map(redact)),
+                        "document-table-" + (i + 1) + ".xlsx",
+                      );
+                    } catch (e) {
+                      setError((e as Error).message);
+                    }
+                  }}
+                >
+                  Export table {i + 1} Excel
                 </Button>
               </div>
               <div className="max-w-full overflow-x-auto">
@@ -1073,12 +1944,24 @@ export function DocumentIntelligence() {
               </Button>
               <Button
                 variant="outline"
+                onClick={() => {
+                  try {
+                    exportWord(exportText(), reportTheme);
+                  } catch (e) {
+                    setError((e as Error).message);
+                  }
+                }}
+              >
+                Export Word
+              </Button>
+              <Button
+                variant="outline"
                 disabled={blocked}
                 onClick={async () => {
                   setBusy(true);
                   setError("");
                   try {
-                    await downloadDocumentReport(exportText());
+                    await downloadDocumentReport(exportText(), reportTheme);
                   } catch (e) {
                     setError((e as Error).message);
                   } finally {
@@ -1109,9 +1992,9 @@ export function DocumentIntelligence() {
                       {
                         documents: sources.map((d) => ({
                           id: d.id,
-                          name: d.name,
+                          name: redact(d.name),
                         })),
-                        ...result,
+                        ...exportResult,
                       },
                       null,
                       2,
@@ -1129,7 +2012,7 @@ export function DocumentIntelligence() {
                   save(
                     csv(
                       ["Finding", "Value", "Source", "Quote", "Status"],
-                      result.findings.map((f) => [
+                      (exportResult?.findings || []).map((f) => [
                         f.label,
                         f.value,
                         f.sourceId,

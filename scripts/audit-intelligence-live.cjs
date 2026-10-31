@@ -11,18 +11,20 @@ async function main() {
   const followup = process.argv.includes("--followup");
   for (const action of followup
     ? ["questions"]
-    : [
-        "overview",
-        "detailed",
-        "facts",
-        "amounts",
-        "questions",
-        "deadlines",
-        "actions",
-        "simplify",
-        "checklist",
-        "compare",
-      ]) {
+    : process.argv.includes("--advanced")
+      ? Object.keys(core.ADVANCED_TASKS)
+      : [
+          "overview",
+          "detailed",
+          "facts",
+          "amounts",
+          "questions",
+          "deadlines",
+          "actions",
+          "simplify",
+          "checklist",
+          "compare",
+        ]) {
     const documents = [
       {
         id: "a",
@@ -30,7 +32,11 @@ async function main() {
         pages: [{ id: "a-p1", label: "Page 1", text }],
       },
     ];
-    if (action === "compare")
+    if (
+      ["compare", "semantic_compare", "reconcile", "contradictions"].includes(
+        action,
+      )
+    )
       documents.push({
         id: "b",
         name: "Revised",
@@ -59,7 +65,9 @@ async function main() {
         ? "What is the customer bank account number?"
         : action === "checklist"
           ? "Invoice reference, supplier bank account number and due date"
-          : "";
+          : action === "translate"
+            ? "Hindi"
+            : "";
     try {
       const response = await fetch(
         "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",

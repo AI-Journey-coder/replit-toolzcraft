@@ -43,6 +43,76 @@
       "when": 1792963200000,
       "tag": "0005_summary_results",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793145600000,
+      "tag": "0006_document_workspaces",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793145600001,
+      "tag": "0007_document_jobs",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793145600002,
+      "tag": "0008_document_workflows",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793232000000,
+      "tag": "0009_support_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793232000001,
+      "tag": "0010_ai_configuration",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793232000002,
+      "tag": "0011_document_reporting_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793318400000,
+      "tag": "0012_support_rate_limit",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793318400001,
+      "tag": "0013_document_transfers",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793318400002,
+      "tag": "0014_publication_pages",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1793318400003,
+      "tag": "0015_ai_call_metrics",
+      "breakpoints": true
     }
   ]
 }

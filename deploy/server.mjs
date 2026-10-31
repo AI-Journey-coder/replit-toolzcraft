@@ -3,6 +3,7 @@ import https from 'node:https';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { guideHtml,guideIndex,escapeHtml } from './publication.mjs';
 
 // Metadata is available only to the Cloud Run runtime; tokens never reach the browser.
 export function cloudRunIdentity(audience, transport=fetch) {
@@ -26,14 +27,22 @@ export function cloudRunIdentity(audience, transport=fetch) {
 }
 
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.wasm':'application/wasm','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.ico':'image/x-icon','.xml':'application/xml','.txt':'text/plain; charset=utf-8','.zip':'application/zip','.whl':'application/zip','.pdf':'application/pdf','.woff2':'font/woff2'};
-export function createServer({root=path.resolve('artifacts/toolkit/dist/public'),upstream=process.env.API_UPSTREAM,production=process.env.NODE_ENV==='production',staging=process.env.STAGING==='true',canonicalOrigin=process.env.CANONICAL_ORIGIN,cloudRunAuth=process.env.API_CLOUD_RUN_AUTH==='true',identityProvider}={}){
+export function createServer({root=path.resolve('artifacts/toolkit/dist/public'),upstream=process.env.API_UPSTREAM,binaryUpstream=process.env.API_BINARY_UPSTREAM,production=process.env.NODE_ENV==='production',staging=process.env.STAGING==='true',canonicalOrigin=process.env.CANONICAL_ORIGIN,cloudRunAuth=process.env.API_CLOUD_RUN_AUTH==='true',identityProvider}={}){
  root=fs.realpathSync(root);
  let canonical;
  if(canonicalOrigin){canonical=new URL(canonicalOrigin);if(canonical.protocol!=='https:'||canonical.origin!==canonicalOrigin)throw new Error('CANONICAL_ORIGIN must be an HTTPS origin');}
  staging=staging||fs.existsSync(path.join(root,'.staging-build'));
  let api;if(upstream){api=new URL(upstream);if(!['http:','https:'].includes(api.protocol)||api.username||api.password||api.pathname!=='/'||api.search||api.hash)throw new Error('API_UPSTREAM must be an HTTP(S) origin without credentials or path.');}
  if(cloudRunAuth&&(!api||api.protocol!=='https:'))throw new Error('Cloud Run authentication requires an HTTPS API_UPSTREAM.');
+ let binaryApi;if(binaryUpstream){binaryApi=new URL(binaryUpstream);if(binaryApi.protocol!=='https:'||binaryApi.username||binaryApi.password||binaryApi.pathname!=='/'||binaryApi.search||binaryApi.hash)throw Error('API_BINARY_UPSTREAM must be an HTTPS origin.');}
+ const getBinaryIdentity=binaryApi&&cloudRunAuth?cloudRunIdentity(binaryApi.origin):null;
  const getIdentity=identityProvider||(cloudRunAuth?cloudRunIdentity(api.origin):null);
+ const publication=async(slug='')=>{
+  if(!api)return slug?null:[];
+  const headers=getIdentity?{'X-Serverless-Authorization':'Bearer '+await getIdentity()}:{};
+  const response=await fetch(new URL('/api/publication-pages'+(slug?'/'+slug:''),api),{headers,signal:AbortSignal.timeout(5000),redirect:'error'});
+  if(response.status===404)return null;if(!response.ok)throw Error('Publication service unavailable');return response.json();
+ };
  const server=http.createServer(async(req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');res.setHeader('X-Frame-Options','DENY');res.setHeader('Permissions-Policy','camera=(), microphone=(), geolocation=()');
   // same-origin-allow-popups preserves the Firebase Google sign-in popup.
@@ -47,16 +56,26 @@ export function createServer({root=path.resolve('artifacts/toolkit/dist/public')
   let pathname;try{const raw=(req.url||'/').split('?')[0];pathname=decodeURIComponent(raw);if(!pathname.startsWith('/')||pathname.includes('\\')||pathname.includes('\0')||pathname.split('/').some(x=>x==='..'||x.startsWith('.')))return finish(404,'Not found');}catch{return finish(400,'Invalid URL');}
   if(pathname==='/tools/ai-summarizer'||pathname==='/tools/ai-summarizer/'){res.statusCode=308;res.setHeader('Location','/tools/ai-document-intelligence');res.end();return;}
   if(pathname==='/healthz')return finish(200,'ok');
+  if(req.method==='GET'||req.method==='HEAD'){
   if(canonical&&req.headers.host?.toLowerCase()==='www.'+canonical.host){
    res.statusCode=308;res.setHeader('Location',canonical.origin+req.url);res.setHeader('Cache-Control','no-store');return res.end();
   }
+   if(pathname==='/guides'||/^\/guides\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pathname)){
+    try{const slug=pathname==='/guides'?'':pathname.slice(8),data=await publication(slug);if(!data)return finish(404,'Guide not found');res.setHeader('Content-Type','text/html; charset=utf-8');res.setHeader('Cache-Control','no-store');if(staging||data.noindex||Array.isArray(data)&&data.length===0)res.setHeader('X-Robots-Tag','noindex, nofollow');res.end(req.method==='HEAD'?undefined:slug?guideHtml(data,canonical?.origin,staging):guideIndex(data));return;}catch{return finish(503,'Guides are temporarily unavailable. Please try again.');}
+   }
+   if(pathname==='/guides-sitemap.xml'){
+    try{const pages=await publication();res.setHeader('Content-Type','application/xml; charset=utf-8');res.setHeader('Cache-Control','no-store');res.end(req.method==='HEAD'?undefined:'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+(!staging&&canonical?pages.filter(p=>!p.noindex).map(p=>'<url><loc>'+escapeHtml(canonical.origin+'/guides/'+p.slug)+'</loc></url>').join(''):'')+'</urlset>');return;}catch{return finish(503,'Sitemap temporarily unavailable');}
+   }
+  }
+
   if(pathname==='/api'||pathname.startsWith('/api/')){
    if(!api)return finish(503,'Online features are not enabled.');
    const headers={...req.headers,host:api.host};delete headers['forwarded'];delete headers['x-forwarded-for'];delete headers['x-forwarded-host'];delete headers['x-forwarded-proto'];delete headers['x-serverless-authorization'];
    if(getIdentity){try{headers['x-serverless-authorization']='Bearer '+await getIdentity();}catch{return finish(503,'Online service authentication unavailable');}}
    if(req.destroyed||res.destroyed)return;
-   const proxy=(api.protocol==='https:'?https:http).request(new URL(req.url,api),{method:req.method,headers,timeout:30000},r=>{res.statusCode=r.statusCode||502;for(const [k,v] of Object.entries(r.headers))if(v!==undefined&&!['connection','transfer-encoding','content-security-policy'].includes(k))res.setHeader(k,v);res.setHeader('Cache-Control','no-store');r.pipe(res);});
-   let size=0;req.on('data',chunk=>{size+=chunk.length;if(size>262144){proxy.destroy();if(!res.headersSent)finish(413,'Request body too large');}});proxy.on('timeout',()=>proxy.destroy());proxy.on('error',()=>{if(!res.headersSent)finish(502,'Online service unavailable');else res.destroy();});res.on('close',()=>proxy.destroy());req.pipe(proxy);return;
+   const targetApi=['/api/document-scan','/api/document-extract'].includes(pathname)&&binaryApi?binaryApi:api;headers.host=targetApi.host;if(targetApi===binaryApi&&getBinaryIdentity){try{headers['x-serverless-authorization']='Bearer '+await getBinaryIdentity();}catch{return finish(503,'Document service unavailable');}}
+   const proxy=(targetApi.protocol==='https:'?https:http).request(new URL(req.url,targetApi),{method:req.method,headers,timeout:['/api/document-extract','/api/document-scan'].includes(pathname)?90000:30000},r=>{res.statusCode=r.statusCode||502;for(const [k,v] of Object.entries(r.headers))if(v!==undefined&&!['connection','transfer-encoding','content-security-policy'].includes(k))res.setHeader(k,v);res.setHeader('Cache-Control','no-store');r.pipe(res);});
+   const bodyLimit=['/api/document-scan','/api/document-extract'].includes(pathname)&&req.method==='POST'?20*1024*1024:262144;let size=0;req.on('data',chunk=>{size+=chunk.length;if(size>bodyLimit){proxy.destroy();if(!res.headersSent)finish(413,'Request body too large');}});proxy.on('timeout',()=>proxy.destroy());proxy.on('error',()=>{if(!res.headersSent)finish(502,'Online service unavailable');else res.destroy();});res.on('close',()=>proxy.destroy());req.pipe(proxy);return;
   }
   if(!['GET','HEAD'].includes(req.method||'')){res.setHeader('Allow','GET, HEAD');return finish(405,'Method not allowed');}
   let file=path.join(root,pathname);try{let stat=fs.statSync(file);if(stat.isDirectory()){file=path.join(file,'index.html');stat=fs.statSync(file);}if(!stat.isFile())return finish(404,'Not found');const real=fs.realpathSync(file);if(!real.startsWith(root+path.sep))return finish(404,'Not found');

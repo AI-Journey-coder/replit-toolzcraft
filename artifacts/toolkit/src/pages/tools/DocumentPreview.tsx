@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { getPdfjs } from "@/lib/pdfjs";
-export function DocumentPreview({ file, page }: { file?: File; page: number }) {
+export function DocumentPreview({
+  file,
+  page,
+  password,
+}: {
+  file?: File;
+  page: number;
+  password?: string;
+}) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [error, setError] = useState(""),
     [zoom, setZoom] = useState(1),
@@ -25,7 +33,7 @@ export function DocumentPreview({ file, page }: { file?: File; page: number }) {
       try {
         const lib = await getPdfjs();
         if (cancelled) return;
-        loading = lib.getDocument({ data: await file.arrayBuffer() });
+        loading = lib.getDocument({ data: await file.arrayBuffer(), password });
         const doc = await loading.promise;
         if (cancelled) return;
         const p = await doc.getPage(page + 1);
@@ -54,7 +62,7 @@ export function DocumentPreview({ file, page }: { file?: File; page: number }) {
       render?.cancel();
       void loading?.destroy();
     };
-  }, [file, page, zoom, rotation]);
+  }, [file, page, zoom, rotation, password]);
   if (!file)
     return (
       <p className="text-sm text-muted-foreground">

@@ -29,7 +29,7 @@ ENV CANONICAL_ORIGIN=$VITE_SITE_URL
 WORKDIR /app
 ENV NODE_ENV=production PORT=8080
 COPY --from=build --chown=node:node /app/artifacts/toolkit/dist/public ./artifacts/toolkit/dist/public
-COPY --chown=node:node deploy/server.mjs ./deploy/server.mjs
+COPY --chown=node:node deploy/server.mjs deploy/publication.mjs ./deploy/
 USER node
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s CMD node -e "fetch('http://127.0.0.1:8080/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"

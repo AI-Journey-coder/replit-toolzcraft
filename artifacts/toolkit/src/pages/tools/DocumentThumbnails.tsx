@@ -6,10 +6,12 @@ export function DocumentThumbnails({
   file,
   pages,
   onSelect,
+  password,
 }: {
   file?: File;
   pages: SourcePage[];
   onSelect: (id: string) => void;
+  password?: string;
 }) {
   const [images, setImages] = useState<Record<number, string>>({});
   const [error, setError] = useState("");
@@ -26,7 +28,7 @@ export function DocumentThumbnails({
         if (cancelled) return;
         const data = await file.arrayBuffer();
         if (cancelled) return;
-        loading = lib.getDocument({ data });
+        loading = lib.getDocument({ data, password });
         const pdf = await loading.promise;
         for (let n = 1; n <= Math.min(pdf.numPages, 20); n++) {
           if (cancelled) break;
@@ -66,7 +68,7 @@ export function DocumentThumbnails({
       render?.cancel();
       void loading?.destroy();
     };
-  }, [file]);
+  }, [file, password]);
   if (!file?.name.toLowerCase().endsWith(".pdf")) return null;
   return (
     <div className="grid grid-cols-2 gap-2" aria-label="PDF page thumbnails">

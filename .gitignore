@@ -73,3 +73,7 @@ artifacts/toolkit/public/vendor/pyodide/
 # Private deployment rollback notes
 /ENV Variables Old.txt
 /Neon.txt
+
+# Python parser verification artifacts
+__pycache__/
+*.pyc

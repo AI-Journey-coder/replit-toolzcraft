@@ -102,7 +102,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       <footer className="border-t border-border py-6 mt-auto">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground font-sans">
-          <nav aria-label="Site information" className="flex flex-wrap justify-center gap-5 mb-4 underline underline-offset-4"><Link href="/about">About</Link><Link href="/contact">Contact</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/cookies">Cookies & storage</Link><Link href="/disclaimer">Disclaimer</Link><Link href="/accessibility">Accessibility</Link><Link href="/compliance">Policies</Link><Link href="/subscriptions">Subscriptions</Link></nav>
+          <nav aria-label="Site information" className="flex flex-wrap justify-center gap-5 mb-4 underline underline-offset-4"><a href="/guides">Guides</a><Link href="/about">About</Link><Link href="/contact">Contact</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/cookies">Cookies & storage</Link><Link href="/disclaimer">Disclaimer</Link><Link href="/accessibility">Accessibility</Link><Link href="/compliance">Policies</Link><Link href="/subscriptions">Subscriptions</Link></nav>
           <p>ToolzCraft &copy; {new Date().getFullYear()}. Precision instruments for the web. &nbsp;·&nbsp; {preferredDate(new Date(),preferences.dateFormat)}</p>
         </div>
       </footer>

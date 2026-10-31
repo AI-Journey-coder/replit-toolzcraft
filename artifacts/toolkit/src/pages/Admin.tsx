@@ -1,8 +1,25 @@
-import {OperationsTab} from "./admin/OperationsTab";
+import { ProductAnalytics } from "@/components/ProductAnalytics";
+import { PublicationControls } from "@/components/PublicationControls";
+import { SupportRequests } from "@/components/SupportRequests";
+import { OperationsTab } from "./admin/OperationsTab";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DocumentOperations } from "@/components/DocumentOperations";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -24,7 +41,11 @@ interface AdminUser {
   disabled: boolean;
   createdAt: string;
   lastLoginAt: string;
-  access:{remaining:number|null;unlimited:boolean;creditOverride:boolean};
+  access: {
+    remaining: number | null;
+    unlimited: boolean;
+    creditOverride: boolean;
+  };
 }
 interface ToolSetting {
   toolSlug: string;
@@ -66,13 +87,16 @@ function useToken() {
 export function Admin() {
   const { user, loading } = useAuth();
 
-  if (loading) return <p className="text-muted-foreground font-mono text-sm">Loading…</p>;
+  if (loading)
+    return <p className="text-muted-foreground font-mono text-sm">Loading…</p>;
   if (!user || user.role !== "admin") {
     return (
       <Card className="max-w-md mx-auto">
         <CardHeader>
           <CardTitle>Admin access required</CardTitle>
-          <CardDescription>You must be signed in as an administrator to view this page.</CardDescription>
+          <CardDescription>
+            You must be signed in as an administrator to view this page.
+          </CardDescription>
         </CardHeader>
       </Card>
     );
@@ -87,18 +111,51 @@ export function Admin() {
       <Tabs defaultValue="users">
         <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="operations">Billing & operations</TabsTrigger>
-          <TabsTrigger value="users" data-testid="tab-users">Users</TabsTrigger>
-          <TabsTrigger value="tools" data-testid="tab-tools">Tools</TabsTrigger>
-          <TabsTrigger value="packages" data-testid="tab-packages">Legacy packages</TabsTrigger>
-          <TabsTrigger value="stats" data-testid="tab-stats">Usage</TabsTrigger>
-          <TabsTrigger value="apikeys" data-testid="tab-apikeys">API Keys</TabsTrigger>
+          <TabsTrigger value="support">Support</TabsTrigger>
+          <TabsTrigger value="documents">Document processing</TabsTrigger>
+          <TabsTrigger value="publication">Content & SEO</TabsTrigger>
+          <TabsTrigger value="users" data-testid="tab-users">
+            Users
+          </TabsTrigger>
+          <TabsTrigger value="tools" data-testid="tab-tools">
+            Tools
+          </TabsTrigger>
+          <TabsTrigger value="packages" data-testid="tab-packages">
+            Legacy packages
+          </TabsTrigger>
+          <TabsTrigger value="stats" data-testid="tab-stats">
+            Usage
+          </TabsTrigger>
+          <TabsTrigger value="apikeys" data-testid="tab-apikeys">
+            API Keys
+          </TabsTrigger>
         </TabsList>
-        <TabsContent value="operations"><OperationsTab /></TabsContent>
-        <TabsContent value="users"><UsersTab /></TabsContent>
-        <TabsContent value="tools"><ToolsTab /></TabsContent>
-        <TabsContent value="packages"><PackagesTab /></TabsContent>
-        <TabsContent value="stats"><StatsTab /></TabsContent>
-        <TabsContent value="apikeys"><ApiKeysTab /></TabsContent>
+        <TabsContent value="operations">
+          <OperationsTab />
+        </TabsContent>
+        <TabsContent value="support">
+          <SupportRequests admin />
+        </TabsContent>
+        <TabsContent value="documents">
+          <DocumentOperations />
+        </TabsContent>
+        <TabsContent value="publication"><PublicationControls /></TabsContent>
+        <TabsContent value="users">
+          <UsersTab />
+        </TabsContent>
+        <TabsContent value="tools">
+          <ToolsTab />
+        </TabsContent>
+        <TabsContent value="packages">
+          <PackagesTab />
+        </TabsContent>
+        <TabsContent value="stats">
+          <ProductAnalytics />
+          <StatsTab />
+        </TabsContent>
+        <TabsContent value="apikeys">
+          <ApiKeysTab />
+        </TabsContent>
       </Tabs>
     </div>
   );
@@ -109,32 +166,66 @@ function UsersTab() {
   const { toast } = useToast();
   const { user: me } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
-  const [filter,setFilter]=useState('');
-  const [offset,setOffset]=useState(0);
+  const [filter, setFilter] = useState("");
+  const [offset, setOffset] = useState(0);
 
   const load = useCallback(async () => {
-    setUsers(await authedFetch<AdminUser[]>(await getToken(), "admin/users?offset="+offset));
-  }, [getToken,offset]);
+    setUsers(
+      await authedFetch<AdminUser[]>(
+        await getToken(),
+        "admin/users?offset=" + offset,
+      ),
+    );
+  }, [getToken, offset]);
 
   useEffect(() => {
-    load().catch((e) => toast({ title: "Failed to load users", description: String(e.message ?? e), variant: "destructive" }));
+    load().catch((e) =>
+      toast({
+        title: "Failed to load users",
+        description: String(e.message ?? e),
+        variant: "destructive",
+      }),
+    );
   }, [load, toast]);
 
-  const update = async (id: number, patch: Partial<Pick<AdminUser, "role" | "plan" | "disabled">>) => {
+  const update = async (
+    id: number,
+    patch: Partial<Pick<AdminUser, "role" | "plan" | "disabled">>,
+  ) => {
     try {
-      const updated = await authedFetch<AdminUser>(await getToken(), `admin/users/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(patch),
-      });
+      const updated = await authedFetch<AdminUser>(
+        await getToken(),
+        `admin/users/${id}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(patch),
+        },
+      );
       setUsers((prev) => prev.map((u) => (u.id === id ? updated : u)));
     } catch (e) {
-      toast({ title: "Update failed", description: e instanceof Error ? e.message : "Error", variant: "destructive" });
+      toast({
+        title: "Update failed",
+        description: e instanceof Error ? e.message : "Error",
+        variant: "destructive",
+      });
     }
   };
 
   return (
     <Card>
-      <CardHeader><CardTitle>Users · page {offset/20+1}</CardTitle><CardDescription>Activate accounts and manage AI credits. Administrators have unlimited credits; rate and request limits still apply.</CardDescription><Input aria-label="Search users" placeholder="Search this page by name or email" value={filter} onChange={e=>setFilter(e.target.value)}/></CardHeader>
+      <CardHeader>
+        <CardTitle>Users · page {offset / 20 + 1}</CardTitle>
+        <CardDescription>
+          Activate accounts and manage AI credits. Administrators have unlimited
+          credits; rate and request limits still apply.
+        </CardDescription>
+        <Input
+          aria-label="Search users"
+          placeholder="Search this page by name or email"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        />
+      </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
@@ -147,54 +238,189 @@ function UsersTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.filter(u=>[u.displayName,u.email,u.phoneNumber].some(v=>v?.toLowerCase().includes(filter.toLowerCase()))).map((u) => (
-              <TableRow key={u.id} data-testid={`row-user-${u.id}`}>
-                <TableCell className="font-mono text-xs">
-                  {u.displayName || u.email || u.phoneNumber || `#${u.id}`}<div className="text-muted-foreground">{u.email}</div>
-                  {me?.id === u.id && <Badge variant="secondary" className="ml-2">you</Badge>}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
-                    disabled={me?.id === u.id}
-                    onClick={() => update(u.id, { role: u.role === "admin" ? "user" : "admin" })}
-                    data-testid={`button-role-${u.id}`}
-                  >
-                    {u.role}
-                  </Button>
-                </TableCell>
-                <TableCell>
-                  <UserCredits user={u} getToken={getToken} onSaved={load}/>
-                </TableCell>
-                <TableCell className="font-mono text-xs">{new Date(u.lastLoginAt).toLocaleString()}</TableCell>
-                <TableCell>
-                  <Switch
-                    aria-label={`Activate ${u.email||u.id}`}
-                    checked={!u.disabled}
-                    disabled={me?.id === u.id}
-                    onCheckedChange={(v) => update(u.id, { disabled: !v })}
-                    data-testid={`switch-enabled-${u.id}`}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
+            {users
+              .filter((u) =>
+                [u.displayName, u.email, u.phoneNumber].some((v) =>
+                  v?.toLowerCase().includes(filter.toLowerCase()),
+                ),
+              )
+              .map((u) => (
+                <TableRow key={u.id} data-testid={`row-user-${u.id}`}>
+                  <TableCell className="font-mono text-xs">
+                    {u.displayName || u.email || u.phoneNumber || `#${u.id}`}
+                    <div className="text-muted-foreground">{u.email}</div>
+                    {me?.id === u.id && (
+                      <Badge variant="secondary" className="ml-2">
+                        you
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      disabled={me?.id === u.id}
+                      onClick={() =>
+                        update(u.id, {
+                          role: u.role === "admin" ? "user" : "admin",
+                        })
+                      }
+                      data-testid={`button-role-${u.id}`}
+                    >
+                      {u.role}
+                    </Button>
+                  </TableCell>
+                  <TableCell>
+                    <UserCredits user={u} getToken={getToken} onSaved={load} />
+                  </TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {new Date(u.lastLoginAt).toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    <Switch
+                      aria-label={`Activate ${u.email || u.id}`}
+                      checked={!u.disabled}
+                      disabled={me?.id === u.id}
+                      onCheckedChange={(v) => update(u.id, { disabled: !v })}
+                      data-testid={`switch-enabled-${u.id}`}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
-        <div className="flex gap-3 mt-4"><Button variant="outline" disabled={offset===0} onClick={()=>{setFilter('');setOffset(n=>Math.max(0,n-20));}}>Previous page</Button><Button variant="outline" disabled={users.length<20} onClick={()=>{setFilter('');setOffset(n=>n+20);}}>Next page</Button></div>
-        {users.length === 0 && <p className="text-sm text-muted-foreground py-4">No users yet.</p>}
+        <div className="flex gap-3 mt-4">
+          <Button
+            variant="outline"
+            disabled={offset === 0}
+            onClick={() => {
+              setFilter("");
+              setOffset((n) => Math.max(0, n - 20));
+            }}
+          >
+            Previous page
+          </Button>
+          <Button
+            variant="outline"
+            disabled={users.length < 20}
+            onClick={() => {
+              setFilter("");
+              setOffset((n) => n + 20);
+            }}
+          >
+            Next page
+          </Button>
+        </div>
+        {users.length === 0 && (
+          <p className="text-sm text-muted-foreground py-4">No users yet.</p>
+        )}
       </CardContent>
     </Card>
   );
 }
 
-function UserCredits({user,getToken,onSaved}:{user:AdminUser;getToken:()=>Promise<string>;onSaved:()=>Promise<void>}){
- const [value,setValue]=useState('');const [reason,setReason]=useState('');const [busy,setBusy]=useState(false);const [message,setMessage]=useState('');
- if(user.role==='admin')return <Badge>Unlimited</Badge>;
- async function save(reset=false){const n=Number(value);if(!reason.trim()||(!reset&&(!value.trim()||!Number.isInteger(n)||n<0||n>1000000))){setMessage('Enter a whole number from 0 to 1,000,000 and a reason.');return;}
- setBusy(true);setMessage('');try{await authedFetch(await getToken(),'admin/users/'+user.id+'/credits',{method:'PUT',body:JSON.stringify({remaining:reset?null:n,reason})});await onSaved();setMessage('Saved');setValue('');setReason('');}catch(e){setMessage(e instanceof Error?e.message:'Could not save');}finally{setBusy(false);}}
- return <div className="min-w-56 space-y-2"><strong>{user.access?.remaining??0} remaining</strong><p className="text-xs text-muted-foreground">{user.access?.creditOverride?'Manual balance · no automatic renewal':'Trial / paid plan allowance'}</p><details><summary className="cursor-pointer text-primary">Edit credits</summary><div className="mt-2 space-y-2"><Input aria-label={'Credits for '+user.email} type="number" min={0} max={1000000} step={1} value={value} disabled={busy} onChange={e=>setValue(e.target.value)} placeholder="Set available balance"/><Input aria-label={'Reason for '+user.email} value={reason} maxLength={300} disabled={busy} onChange={e=>setReason(e.target.value)} placeholder="Reason (required)"/><p className="text-xs">Replaces the available balance until reset. Paid invoices are unchanged.</p><div className="flex flex-wrap gap-2"><Button size="sm" disabled={busy} onClick={()=>void save()}>Set credits</Button><Button size="sm" variant="outline" disabled={busy||!user.access?.creditOverride} onClick={()=>void save(true)}>Use plan allowance</Button></div></div></details>{message&&<p role="status" className="text-xs">{message}</p>}</div>;
+function UserCredits({
+  user,
+  getToken,
+  onSaved,
+}: {
+  user: AdminUser;
+  getToken: () => Promise<string>;
+  onSaved: () => Promise<void>;
+}) {
+  const [value, setValue] = useState("");
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  if (user.role === "admin") return <Badge>Unlimited</Badge>;
+  async function save(reset = false) {
+    const n = Number(value);
+    if (
+      !reason.trim() ||
+      (!reset &&
+        (!value.trim() || !Number.isInteger(n) || n < 0 || n > 1000000))
+    ) {
+      setMessage("Enter a whole number from 0 to 1,000,000 and a reason.");
+      return;
+    }
+    setBusy(true);
+    setMessage("");
+    try {
+      await authedFetch(
+        await getToken(),
+        "admin/users/" + user.id + "/credits",
+        {
+          method: "PUT",
+          body: JSON.stringify({ remaining: reset ? null : n, reason }),
+        },
+      );
+      await onSaved();
+      setMessage("Saved");
+      setValue("");
+      setReason("");
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Could not save");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="min-w-56 space-y-2">
+      <strong>{user.access?.remaining ?? 0} remaining</strong>
+      <p className="text-xs text-muted-foreground">
+        {user.access?.creditOverride
+          ? "Manual balance · no automatic renewal"
+          : "Trial / paid plan allowance"}
+      </p>
+      <details>
+        <summary className="cursor-pointer text-primary">Edit credits</summary>
+        <div className="mt-2 space-y-2">
+          <Input
+            aria-label={"Credits for " + user.email}
+            type="number"
+            min={0}
+            max={1000000}
+            step={1}
+            value={value}
+            disabled={busy}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="Set available balance"
+          />
+          <Input
+            aria-label={"Reason for " + user.email}
+            value={reason}
+            maxLength={300}
+            disabled={busy}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Reason (required)"
+          />
+          <p className="text-xs">
+            Replaces the available balance until reset. Paid invoices are
+            unchanged.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" disabled={busy} onClick={() => void save()}>
+              Set credits
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy || !user.access?.creditOverride}
+              onClick={() => void save(true)}
+            >
+              Use plan allowance
+            </Button>
+          </div>
+        </div>
+      </details>
+      {message && (
+        <p role="status" className="text-xs">
+          {message}
+        </p>
+      )}
+    </div>
+  );
 }
 
 function ToolsTab() {
@@ -205,13 +431,29 @@ function ToolsTab() {
 
   useEffect(() => {
     (async () => {
-      const rows = await authedFetch<ToolSetting[]>(await getToken(), "admin/tools");
+      const rows = await authedFetch<ToolSetting[]>(
+        await getToken(),
+        "admin/tools",
+      );
       setSettings(Object.fromEntries(rows.map((r) => [r.toolSlug, r])));
-    })().catch((e) => toast({ title: "Failed to load tool settings", description: String(e.message ?? e), variant: "destructive" }));
+    })().catch((e) =>
+      toast({
+        title: "Failed to load tool settings",
+        description: String(e.message ?? e),
+        variant: "destructive",
+      }),
+    );
   }, [getToken, toast]);
 
-  const setTool = async (slug: string, patch: Partial<Pick<ToolSetting, "enabled" | "premium">>) => {
-    const current = settings[slug] ?? { toolSlug: slug, enabled: true, premium: false };
+  const setTool = async (
+    slug: string,
+    patch: Partial<Pick<ToolSetting, "enabled" | "premium">>,
+  ) => {
+    const current = settings[slug] ?? {
+      toolSlug: slug,
+      enabled: true,
+      premium: false,
+    };
     const next = { ...current, ...patch };
     setSettings((prev) => ({ ...prev, [slug]: next }));
     try {
@@ -221,7 +463,11 @@ function ToolsTab() {
       });
     } catch (e) {
       setSettings((prev) => ({ ...prev, [slug]: current }));
-      toast({ title: "Update failed", description: e instanceof Error ? e.message : "Error", variant: "destructive" });
+      toast({
+        title: "Update failed",
+        description: e instanceof Error ? e.message : "Error",
+        variant: "destructive",
+      });
     }
   };
 
@@ -240,7 +486,9 @@ function ToolsTab() {
     <Card>
       <CardHeader>
         <CardTitle>Tools ({TOOLS.length})</CardTitle>
-        <CardDescription>Disable tools site-wide or mark them premium-only.</CardDescription>
+        <CardDescription>
+          Disable tools site-wide or mark them premium-only.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <Input
@@ -261,15 +509,29 @@ function ToolsTab() {
             </TableHeader>
             <TableBody>
               {visible.map((t) => {
-                const s = settings[t.slug] ?? { toolSlug: t.slug, enabled: true, premium: false };
+                const s = settings[t.slug] ?? {
+                  toolSlug: t.slug,
+                  enabled: true,
+                  premium: false,
+                };
                 return (
                   <TableRow key={t.slug}>
-                    <TableCell className="font-mono text-xs">{t.name}</TableCell>
-                    <TableCell>
-                      <Switch checked={s.enabled} onCheckedChange={(v) => setTool(t.slug, { enabled: v })} data-testid={`switch-tool-enabled-${t.slug}`} />
+                    <TableCell className="font-mono text-xs">
+                      {t.name}
                     </TableCell>
                     <TableCell>
-                      <Switch checked={s.premium} onCheckedChange={(v) => setTool(t.slug, { premium: v })} data-testid={`switch-tool-premium-${t.slug}`} />
+                      <Switch
+                        checked={s.enabled}
+                        onCheckedChange={(v) => setTool(t.slug, { enabled: v })}
+                        data-testid={`switch-tool-enabled-${t.slug}`}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={s.premium}
+                        onCheckedChange={(v) => setTool(t.slug, { premium: v })}
+                        data-testid={`switch-tool-premium-${t.slug}`}
+                      />
                     </TableCell>
                   </TableRow>
                 );
@@ -282,7 +544,14 @@ function ToolsTab() {
   );
 }
 
-const emptyPkg = { name: "", description: "", priceCents: 0, currency: "USD", periodDays: 30, active: true };
+const emptyPkg = {
+  name: "",
+  description: "",
+  priceCents: 0,
+  currency: "USD",
+  periodDays: 30,
+  active: true,
+};
 
 function PackagesTab() {
   const getToken = useToken();
@@ -295,41 +564,76 @@ function PackagesTab() {
   }, [getToken]);
 
   useEffect(() => {
-    load().catch((e) => toast({ title: "Failed to load packages", description: String(e.message ?? e), variant: "destructive" }));
+    load().catch((e) =>
+      toast({
+        title: "Failed to load packages",
+        description: String(e.message ?? e),
+        variant: "destructive",
+      }),
+    );
   }, [load, toast]);
 
   const create = async () => {
     try {
       await authedFetch(await getToken(), "admin/packages", {
         method: "POST",
-        body: JSON.stringify({ ...draft, description: draft.description || null }),
+        body: JSON.stringify({
+          ...draft,
+          description: draft.description || null,
+        }),
       });
       setDraft({ ...emptyPkg });
       await load();
     } catch (e) {
-      toast({ title: "Create failed", description: e instanceof Error ? e.message : "Error", variant: "destructive" });
+      toast({
+        title: "Create failed",
+        description: e instanceof Error ? e.message : "Error",
+        variant: "destructive",
+      });
     }
   };
 
   const update = async (p: Pkg, patch: Partial<Pkg>) => {
     try {
-      const body = { name: p.name, description: p.description, priceCents: p.priceCents, currency: p.currency, periodDays: p.periodDays, active: p.active, ...patch };
-      const updated = await authedFetch<Pkg>(await getToken(), `admin/packages/${p.id}`, {
-        method: "PATCH",
-        body: JSON.stringify(body),
-      });
+      const body = {
+        name: p.name,
+        description: p.description,
+        priceCents: p.priceCents,
+        currency: p.currency,
+        periodDays: p.periodDays,
+        active: p.active,
+        ...patch,
+      };
+      const updated = await authedFetch<Pkg>(
+        await getToken(),
+        `admin/packages/${p.id}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(body),
+        },
+      );
       setPkgs((prev) => prev.map((x) => (x.id === p.id ? updated : x)));
     } catch (e) {
-      toast({ title: "Update failed", description: e instanceof Error ? e.message : "Error", variant: "destructive" });
+      toast({
+        title: "Update failed",
+        description: e instanceof Error ? e.message : "Error",
+        variant: "destructive",
+      });
     }
   };
 
   const remove = async (id: number) => {
     try {
-      await authedFetch(await getToken(), `admin/packages/${id}`, { method: "DELETE" });
+      await authedFetch(await getToken(), `admin/packages/${id}`, {
+        method: "DELETE",
+      });
       setPkgs((prev) => prev.filter((x) => x.id !== id));
     } catch (e) {
-      toast({ title: "Delete failed", description: e instanceof Error ? e.message : "Error", variant: "destructive" });
+      toast({
+        title: "Delete failed",
+        description: e instanceof Error ? e.message : "Error",
+        variant: "destructive",
+      });
     }
   };
 
@@ -338,27 +642,66 @@ function PackagesTab() {
       <Card>
         <CardHeader>
           <CardTitle>New package</CardTitle>
-          <CardDescription>Legacy records only. These do not change Razorpay pricing or grant subscription access.</CardDescription>
+          <CardDescription>
+            Legacy records only. These do not change Razorpay pricing or grant
+            subscription access.
+          </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-5">
           <div className="space-y-1">
             <Label>Name</Label>
-            <Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} data-testid="input-pkg-name" />
+            <Input
+              value={draft.name}
+              onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+              data-testid="input-pkg-name"
+            />
           </div>
           <div className="space-y-1">
             <Label>Price (cents)</Label>
-            <Input type="number" min={0} value={draft.priceCents} onChange={(e) => setDraft({ ...draft, priceCents: Math.max(0, Number(e.target.value) || 0) })} data-testid="input-pkg-price" />
+            <Input
+              type="number"
+              min={0}
+              value={draft.priceCents}
+              onChange={(e) =>
+                setDraft({
+                  ...draft,
+                  priceCents: Math.max(0, Number(e.target.value) || 0),
+                })
+              }
+              data-testid="input-pkg-price"
+            />
           </div>
           <div className="space-y-1">
             <Label>Currency</Label>
-            <Input value={draft.currency} onChange={(e) => setDraft({ ...draft, currency: e.target.value.toUpperCase() })} data-testid="input-pkg-currency" />
+            <Input
+              value={draft.currency}
+              onChange={(e) =>
+                setDraft({ ...draft, currency: e.target.value.toUpperCase() })
+              }
+              data-testid="input-pkg-currency"
+            />
           </div>
           <div className="space-y-1">
             <Label>Period (days)</Label>
-            <Input type="number" min={1} value={draft.periodDays} onChange={(e) => setDraft({ ...draft, periodDays: Math.max(1, Number(e.target.value) || 30) })} data-testid="input-pkg-period" />
+            <Input
+              type="number"
+              min={1}
+              value={draft.periodDays}
+              onChange={(e) =>
+                setDraft({
+                  ...draft,
+                  periodDays: Math.max(1, Number(e.target.value) || 30),
+                })
+              }
+              data-testid="input-pkg-period"
+            />
           </div>
           <div className="flex items-end">
-            <Button onClick={create} disabled={!draft.name.trim()} data-testid="button-create-pkg">
+            <Button
+              onClick={create}
+              disabled={!draft.name.trim()}
+              data-testid="button-create-pkg"
+            >
               <Plus className="h-4 w-4 mr-1" /> Create
             </Button>
           </div>
@@ -366,7 +709,9 @@ function PackagesTab() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Packages ({pkgs.length})</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Packages ({pkgs.length})</CardTitle>
+        </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
@@ -382,13 +727,26 @@ function PackagesTab() {
               {pkgs.map((p) => (
                 <TableRow key={p.id} data-testid={`row-pkg-${p.id}`}>
                   <TableCell className="font-mono text-xs">{p.name}</TableCell>
-                  <TableCell className="font-mono text-xs">{(p.priceCents / 100).toFixed(2)} {p.currency}</TableCell>
-                  <TableCell className="font-mono text-xs">{p.periodDays} days</TableCell>
-                  <TableCell>
-                    <Switch checked={p.active} onCheckedChange={(v) => update(p, { active: v })} data-testid={`switch-pkg-active-${p.id}`} />
+                  <TableCell className="font-mono text-xs">
+                    {(p.priceCents / 100).toFixed(2)} {p.currency}
+                  </TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {p.periodDays} days
                   </TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="icon" onClick={() => remove(p.id)} data-testid={`button-delete-pkg-${p.id}`}>
+                    <Switch
+                      checked={p.active}
+                      onCheckedChange={(v) => update(p, { active: v })}
+                      data-testid={`switch-pkg-active-${p.id}`}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => remove(p.id)}
+                      data-testid={`button-delete-pkg-${p.id}`}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
@@ -396,7 +754,11 @@ function PackagesTab() {
               ))}
             </TableBody>
           </Table>
-          {pkgs.length === 0 && <p className="text-sm text-muted-foreground py-4">No packages yet.</p>}
+          {pkgs.length === 0 && (
+            <p className="text-sm text-muted-foreground py-4">
+              No packages yet.
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -409,42 +771,75 @@ function StatsTab() {
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
-    (async () => setStats(await authedFetch<Stats>(await getToken(), "admin/stats")))().catch((e) =>
-      toast({ title: "Failed to load stats", description: String(e.message ?? e), variant: "destructive" }),
+    (async () =>
+      setStats(
+        await authedFetch<Stats>(await getToken(), "admin/stats"),
+      ))().catch((e) =>
+      toast({
+        title: "Failed to load stats",
+        description: String(e.message ?? e),
+        variant: "destructive",
+      }),
     );
   }, [getToken, toast]);
 
-  if (!stats) return <p className="text-sm text-muted-foreground font-mono">Loading…</p>;
+  if (!stats)
+    return <p className="text-sm text-muted-foreground font-mono">Loading…</p>;
 
   return (
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-3">
         {[
           { label: "Total users", value: stats.totalUsers, id: "stat-users" },
-          { label: "Total tool uses", value: stats.totalEvents, id: "stat-events" },
-          { label: "Uses (last 7 days)", value: stats.eventsLast7Days, id: "stat-recent" },
+          {
+            label: "Total tool uses",
+            value: stats.totalEvents,
+            id: "stat-events",
+          },
+          {
+            label: "Uses (last 7 days)",
+            value: stats.eventsLast7Days,
+            id: "stat-recent",
+          },
         ].map((s) => (
           <Card key={s.label}>
-            <CardHeader className="pb-2"><CardDescription>{s.label}</CardDescription></CardHeader>
-            <CardContent><p className="text-3xl font-bold font-mono" data-testid={s.id}>{s.value}</p></CardContent>
+            <CardHeader className="pb-2">
+              <CardDescription>{s.label}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold font-mono" data-testid={s.id}>
+                {s.value}
+              </p>
+            </CardContent>
           </Card>
         ))}
       </div>
       <Card>
-        <CardHeader><CardTitle>Top tools</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Top tools</CardTitle>
+        </CardHeader>
         <CardContent>
           {stats.topTools.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No usage recorded yet.</p>
+            <p className="text-sm text-muted-foreground">
+              No usage recorded yet.
+            </p>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow><TableHead>Tool</TableHead><TableHead>Uses</TableHead></TableRow>
+                <TableRow>
+                  <TableHead>Tool</TableHead>
+                  <TableHead>Uses</TableHead>
+                </TableRow>
               </TableHeader>
               <TableBody>
                 {stats.topTools.map((t) => (
                   <TableRow key={t.toolSlug}>
-                    <TableCell className="font-mono text-xs">{t.toolSlug}</TableCell>
-                    <TableCell className="font-mono text-xs">{t.count}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {t.toolSlug}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {t.count}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -464,45 +859,75 @@ function ApiKeysTab() {
   const [newKey, setNewKey] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    setKeys(await authedFetch<ApiKeyInfo[]>(await getToken(), "admin/api-keys"));
+    setKeys(
+      await authedFetch<ApiKeyInfo[]>(await getToken(), "admin/api-keys"),
+    );
   }, [getToken]);
 
   useEffect(() => {
-    load().catch((e) => toast({ title: "Failed to load API keys", description: String(e.message ?? e), variant: "destructive" }));
+    load().catch((e) =>
+      toast({
+        title: "Failed to load API keys",
+        description: String(e.message ?? e),
+        variant: "destructive",
+      }),
+    );
   }, [load, toast]);
 
   const create = async () => {
     try {
-      const created = await authedFetch<{ key: string }>(await getToken(), "admin/api-keys", {
-        method: "POST",
-        body: JSON.stringify({ name: name.trim() }),
-      });
+      const created = await authedFetch<{ key: string }>(
+        await getToken(),
+        "admin/api-keys",
+        {
+          method: "POST",
+          body: JSON.stringify({ name: name.trim() }),
+        },
+      );
       setNewKey(created.key);
       setName("");
       await load();
     } catch (e) {
-      toast({ title: "Create failed", description: e instanceof Error ? e.message : "Error", variant: "destructive" });
+      toast({
+        title: "Create failed",
+        description: e instanceof Error ? e.message : "Error",
+        variant: "destructive",
+      });
     }
   };
 
   const toggle = async (k: ApiKeyInfo) => {
     try {
-      const updated = await authedFetch<ApiKeyInfo>(await getToken(), `admin/api-keys/${k.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ active: !k.active }),
-      });
+      const updated = await authedFetch<ApiKeyInfo>(
+        await getToken(),
+        `admin/api-keys/${k.id}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ active: !k.active }),
+        },
+      );
       setKeys((prev) => prev.map((x) => (x.id === k.id ? updated : x)));
     } catch (e) {
-      toast({ title: "Update failed", description: e instanceof Error ? e.message : "Error", variant: "destructive" });
+      toast({
+        title: "Update failed",
+        description: e instanceof Error ? e.message : "Error",
+        variant: "destructive",
+      });
     }
   };
 
   const remove = async (id: number) => {
     try {
-      await authedFetch(await getToken(), `admin/api-keys/${id}`, { method: "DELETE" });
+      await authedFetch(await getToken(), `admin/api-keys/${id}`, {
+        method: "DELETE",
+      });
       setKeys((prev) => prev.filter((x) => x.id !== id));
     } catch (e) {
-      toast({ title: "Delete failed", description: e instanceof Error ? e.message : "Error", variant: "destructive" });
+      toast({
+        title: "Delete failed",
+        description: e instanceof Error ? e.message : "Error",
+        variant: "destructive",
+      });
     }
   };
 
@@ -510,23 +935,45 @@ function ApiKeysTab() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><KeyRound className="h-4 w-4" /> New API key</CardTitle>
-          <CardDescription>The full key is shown only once after creation — copy it immediately.</CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <KeyRound className="h-4 w-4" /> New API key
+          </CardTitle>
+          <CardDescription>
+            The full key is shown only once after creation — copy it
+            immediately.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex gap-2 max-w-md">
-            <Input placeholder="Key name (e.g. OCR service)" value={name} onChange={(e) => setName(e.target.value)} data-testid="input-key-name" />
-            <Button onClick={create} disabled={!name.trim()} data-testid="button-create-key">
+            <Input
+              placeholder="Key name (e.g. OCR service)"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              data-testid="input-key-name"
+            />
+            <Button
+              onClick={create}
+              disabled={!name.trim()}
+              data-testid="button-create-key"
+            >
               <Plus className="h-4 w-4 mr-1" /> Create
             </Button>
           </div>
           {newKey && (
             <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border border-border">
-              <code className="font-mono text-xs break-all flex-1" data-testid="text-new-key">{newKey}</code>
+              <code
+                className="font-mono text-xs break-all flex-1"
+                data-testid="text-new-key"
+              >
+                {newKey}
+              </code>
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => { navigator.clipboard.writeText(newKey); toast({ title: "Copied" }); }}
+                onClick={() => {
+                  navigator.clipboard.writeText(newKey);
+                  toast({ title: "Copied" });
+                }}
                 data-testid="button-copy-key"
               >
                 <Copy className="h-4 w-4" />
@@ -537,7 +984,9 @@ function ApiKeysTab() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>API keys ({keys.length})</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>API keys ({keys.length})</CardTitle>
+        </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
@@ -553,13 +1002,28 @@ function ApiKeysTab() {
               {keys.map((k) => (
                 <TableRow key={k.id} data-testid={`row-key-${k.id}`}>
                   <TableCell className="font-mono text-xs">{k.name}</TableCell>
-                  <TableCell className="font-mono text-xs">{k.keyPrefix}…</TableCell>
-                  <TableCell className="font-mono text-xs">{k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleString() : "never"}</TableCell>
-                  <TableCell>
-                    <Switch checked={k.active} onCheckedChange={() => toggle(k)} data-testid={`switch-key-active-${k.id}`} />
+                  <TableCell className="font-mono text-xs">
+                    {k.keyPrefix}…
+                  </TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {k.lastUsedAt
+                      ? new Date(k.lastUsedAt).toLocaleString()
+                      : "never"}
                   </TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="icon" onClick={() => remove(k.id)} data-testid={`button-delete-key-${k.id}`}>
+                    <Switch
+                      checked={k.active}
+                      onCheckedChange={() => toggle(k)}
+                      data-testid={`switch-key-active-${k.id}`}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => remove(k.id)}
+                      data-testid={`button-delete-key-${k.id}`}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
@@ -567,7 +1031,11 @@ function ApiKeysTab() {
               ))}
             </TableBody>
           </Table>
-          {keys.length === 0 && <p className="text-sm text-muted-foreground py-4">No API keys yet.</p>}
+          {keys.length === 0 && (
+            <p className="text-sm text-muted-foreground py-4">
+              No API keys yet.
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -29,6 +29,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: python3 scripts/check-document-rollout.py
       - run: pnpm typecheck
       - run: pnpm audit --audit-level high
       - run: pnpm test:new-tools && pnpm test:adopted-tools && pnpm test:release && pnpm test:document-workflows && node --test scripts/check-admin-audit.test.cjs && pnpm test:media
@@ -59,3 +60,12 @@ jobs:
             sleep 2
           done
           exit 1
+
+  document-native:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f deploy/Dockerfile.document-tests -t toolzcraft-document-tests .
+      - run: docker run --rm toolzcraft-document-tests
+      - run: docker build -f Dockerfile.scanner -t toolzcraft-scanner:test .
+      - run: docker run --rm --entrypoint /bin/sh toolzcraft-scanner:test -c 'test "$(id -u)" != 0 && PYTHONPYCACHEPREFIX=/tmp/pycache python3 -m py_compile /usr/local/bin/scanner-health.py && clamd --version'

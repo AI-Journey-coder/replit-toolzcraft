@@ -1,6 +1,15 @@
+import aiConfiguration from "./ai-configuration";
+import documentScan from "./document-scan";
+import publication from "./publication";
+import documentReference from "./document-reference";
+import supportRouter from "./support";
 import intelligenceRouter from "./document-intelligence";
-import summaryRouter from './summary';
-import billingRouter from './billing';
+import documentWorkspaces from "./document-workspaces";
+import documentJobs from "./document-jobs";
+import documentVision from "./document-vision";
+import documentWorkflows from "./document-workflows";
+import summaryRouter from "./summary";
+import billingRouter from "./billing";
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
 import authRouter from "./auth";
@@ -11,11 +20,20 @@ import aiRouter from "./ai";
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(documentScan);
+router.use(publication);
+router.use(documentReference);
 router.use(billingRouter);
 router.use(authRouter);
 router.use(toolsRouter);
 router.use(adminRouter);
+router.use(aiConfiguration);
+router.use(supportRouter);
 router.use(intelligenceRouter);
+router.use(documentWorkspaces);
+router.use(documentJobs);
+router.use(documentVision);
+router.use(documentWorkflows);
 router.use(summaryRouter);
 router.use(aiRouter);
 

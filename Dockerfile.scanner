@@ -1,0 +1,8 @@
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates python3 clamav-daemon clamav-freshclam && rm -rf /var/lib/apt/lists/*
+COPY deploy/clamd.conf /etc/clamav/toolzcraft.conf
+COPY deploy/scanner-entrypoint.sh /usr/local/bin/toolzcraft-scanner
+COPY deploy/scanner-health.py /usr/local/bin/scanner-health.py
+RUN chmod 755 /usr/local/bin/toolzcraft-scanner
+USER clamav
+ENTRYPOINT ["/usr/local/bin/toolzcraft-scanner"]

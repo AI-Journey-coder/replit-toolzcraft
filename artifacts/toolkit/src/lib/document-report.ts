@@ -1,6 +1,6 @@
 // Rasterized pages preserve the browser's Unicode text rendering in exported reports.
 // The TXT/JSON alternatives preserve machine-readable text and source identifiers.
-export async function downloadDocumentReport(text: string) {
+export async function downloadDocumentReport(text: string, theme: string = "classic") {
   if (text.length > 100000)
     throw Error(
       "Select a smaller report for PDF export (100,000 characters maximum). TXT and JSON remain available.",
@@ -13,9 +13,10 @@ export async function downloadDocumentReport(text: string) {
   const c = canvas.getContext("2d");
   if (!c) throw Error("Canvas is unavailable. Use TXT export.");
   const width = 1030,
-    lineHeight = 31;
+    lineHeight = theme === "compact" ? 25 : theme === "large-print" ? 38 : 31;
+  const fontSize = theme === "compact" ? 18 : theme === "large-print" ? 28 : 22;
   const lines: string[] = [];
-  c.font = "22px sans-serif";
+  c.font = fontSize + "px sans-serif";
   for (const paragraph of text.split("\n")) {
     let line = "";
     for (const character of Array.from(paragraph)) {
@@ -26,7 +27,7 @@ export async function downloadDocumentReport(text: string) {
     }
     lines.push(line);
   }
-  const perPage = 46;
+  const perPage = theme === "compact" ? 55 : theme === "large-print" ? 36 : 46;
   if (Math.ceil(lines.length / perPage) > 50)
     throw Error(
       "Report exceeds 50 PDF pages. Use TXT or select fewer findings.",
@@ -38,7 +39,7 @@ export async function downloadDocumentReport(text: string) {
       c.fillStyle = "#12382e";
       c.font = "bold 28px sans-serif";
       c.fillText("ToolzCraft · Document Intelligence", 80, 80);
-      c.font = "22px sans-serif";
+      c.font = fontSize + "px sans-serif";
       c.fillStyle = "#16221f";
       lines
         .slice(start, start + perPage)

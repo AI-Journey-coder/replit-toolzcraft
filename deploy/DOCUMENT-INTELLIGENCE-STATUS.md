@@ -1,37 +1,32 @@
-# Document Intelligence implementation checkpoint — 28 October 2026
+# Document Intelligence implementation status — 31 October 2026
 
-This is an initial replacement workspace, not completion of the full A–L blueprint. The exact supplied blueprint remains in DOCUMENT-INTELLIGENCE-SOURCE.md; the shared conversation has not been independently retrieved.
+The authoritative scope is DOCUMENT-INTELLIGENCE-SOURCE.md. The independent feature implementation is present in this release; only Google Drive/OneDrive imports, enterprise SSO and issuer/registry integrations are deferred by the user. This is not a claim that the new release has been deployed or that AI outputs cannot fail.
 
-## Implemented
+## Implemented scope
 
-- Removed the summarizer UI, three-mode selector and sentence-ranking implementation. Old browser URLs redirect permanently to `/tools/ai-document-intelligence`; favourites migrate. Historical billing receipts remain. The old API accepts only existing receipt retries and rejects new requests without charging.
-- Local PDF/DOCX/UTF-8 TXT/JPG/PNG extraction, English OCR for images and PDF pages with no selectable text, duplicate-file detection, extraction cancellation, editable source, document rename/removal, page selection/reordering, PDF/image preview with zoom/rotation. DOCX citations use paragraph sections, not invented page numbers.
-- Manual classification override, executive overview, detailed findings, facts, dates, amounts, actions, simplification, cited questions, comparison and checklist actions. Quotes and extracted values are validated against reviewed source text before any successful credit settlement.
-- Local invoice fields with ambiguity/missing states, separate GST components, strict minor-unit arithmetic and no inferred payment status. Local comparison identifies normalized added/removed lines and explicitly does not assess order, repeated-line counts or meaning.
-- Server-calculated 1–4 credit cost at one credit per 6,000 selected characters including the question; explicit consent; atomic existing ledger; idempotent retries; owner-bound result clearing; malformed output rolls back. Original files stay local. Selected reviewed text is sent to the AI provider only after confirmation.
-- TXT/CSV/JSON/PDF result exports and copy. PDF uses rendered pages to preserve Unicode; use TXT/JSON for selectable machine-readable text. Exports include evidence and warnings.
-- PDF thumbnail navigation preserves original page anchors after reordering. Thumbnails are bounded local previews and are released with the workspace.
-- Conversational follow-ups retain up to six prior turns and 6,000 context characters. Context counts toward the 24,000-character request limit and quoted credit cost. Source edits/selection changes reset context; users can start a new conversation explicitly. Earlier answers are context, never evidence.
-- Local candidate-table extraction preserves consistent tab/pipe-delimited rows, including Word table cells. Each row links to its source and exports to formula-safe CSV; no first-row/header inference or invented missing cells. Complex visual/merged-cell layouts remain unsupported by this local extractor.
-- Document-specific field profiles, suggested questions and editable checklist templates cover invoices/receipts, agreements, reports, financial statements, resumes and technical documents. These are extraction targets, not professional assessments or complete specialist result schemas.
+- Document upload/preview/OCR, bounded ZIP imports, language selection, password-protected local PDFs, reviewed source editing and normalized Word/PDF conversion.
+- Grounded document profiles and 14 advanced actions, exact evidence validation, visual extraction with consent/review, comparisons, rules, financial reconciliation and signature integrity checks with explicit trust limitations.
+- PDF/Word/Excel/CSV/JSON/text exports, redaction, calendar reminders and saved classic/compact/large-print report templates.
+- Encrypted saved workspaces, versions, groups, shared roles, approvals, access events, queued/batch processing, cancellation, scheduled workflows and bounded signed webhooks.
+- Authenticated binary extraction API for PDF/DOCX/TXT/PNG/JPEG. Original files require explicit upload consent and a successful fresh-signature ClamAV scan. Native OCR/extraction is bounded; temporary files are removed after processing. Default browser uploads remain local.
+- Approved public-reference import with consent, exact-host allowlist, pinned public DNS, download limits and URL/date/hash provenance. This does not authenticate issuers.
+- Admin processing/upload metrics, direct/vision/queued provider usage, unknown-cost handling, runtime model selection, support requests, signup activation, retention and live-payment conversion.
+- Admin guide publishing, metadata/noindex controls and guide-only ad-placement configuration. Guides render server-side; draft pages are unavailable publicly. Ad serving remains off.
+- Additive migrations 0006–0015, worker/cleanup/migration entry points, separate private scanner service and Cloud Shell rollout automation with backup, recovery records and staging acceptance gate.
 
-## Explicit limits and incomplete blueprint requirements
+## Verification evidence
 
-- Maximum five files, 20 MB each, 20 pages per PDF, 200,000 extracted characters per file and 24,000 selected characters per AI request. No silent truncation; large-document background processing is not implemented.
-- Automatic language/author metadata, complex layout-preserving table extraction and fully structured specialist result schemas remain outstanding. The newly added profiles do not claim to complete every specialized workflow in the blueprint.
-- English OCR only. Mixed pages with selectable text do not currently OCR additional embedded image regions. Source review remains necessary. No signature authenticity, legal-compliance or external issuer verification is claimed.
-- No persistent original-file storage or server upload; therefore no server malware-scanning claim. Local parsing is bounded but not a guarantee against all malformed files.
-- Result text is retained for retry recovery. Existing code clears expired text on the user's next request; `node scripts/database.cjs prune-summaries` clears older text globally. A scheduled deployment cleanup job is still required for an enforceable time-based deletion guarantee. Manual clear removes result text while preserving accounting metadata. Closing the tab clears local state but does not delete server receipts.
-- No new job polling/cancellation API or admin job dashboard. Requests are synchronous and use existing credit operations. Browser cancellation is supported during local extraction, not after paid analysis is submitted.
-- Full P2/P3 scope remains in the plan. It is not implemented or silently excluded.
+- Full release suite: 98 passed, zero skipped. PostgreSQL integration covers billing, ownership/sharing, jobs, support throttling, publication, cleanup and cost estimates.
+- Full browser suite: 35 passed against the final website build, including reviewed-text Word/PDF conversion.
+- Full TypeScript checks and API build passed, including migration/worker/cleanup bundles. Website build passed.
+- Native extraction: five tests passed using real searchable/scanned PDFs, images, DOCX/text and malformed/oversized inputs in Debian.
+- Real ClamAV with official definitions accepted clean text and blocked the harmless standard EICAR test fixture. Production startup scripts ran as the unprivileged clamav user in the native-runtime test image; readiness returned HTTP 200 and the daemon reported current signatures. Final API and scanner images built successfully. The final API image started as non-root, contained the migration/native extraction runtime, and returned HTTP 200 with status ok.
+- Rollout unit checks: three passed for namespace/private-service preservation, failed-build rejection, immutable digests and recovery records. These do not substitute for running the rollout against GCP.
+- Synthetic live AI audit previously exercised all 14 advanced actions; timeline and numerical review required targeted reruns. Model outputs remain variable and human review is required.
+- Dependency audit passed the high-severity release gate; five moderate dependency findings remain. Pending-source sensitive-pattern scan found no private credentials. Public Firebase browser configuration is intentionally public.
 
-## Verification and release gate
+## Deployment status
 
-- TypeScript checks and API/web builds pass locally.
-- 75 release tests passed, including real disposable PostgreSQL charging, rollback, concurrency and retry tests, plus conversation cost/limits and candidate-table extraction. Ten existing document workflow tests passed at the previous checkpoint.
-- Previous full browser suite: 29 passed. Enhanced full run: 30 passed and one form-label selector failure; after adding explicit accessible labels, all eight workspace tests passed in the focused rerun. Thumbnail navigation, real OCR, Word tables, specialist profiles, local clearing, mobile layout, exports and corrupt input preservation are covered.
-- Ten synthetic live Gemini actions passed after prompt corrections. This is evidence for those samples, not a universal quality guarantee. Invalid outputs continue to fail closed without successful credit settlement.
-- All ten actions passed again with document profiles. A separate live follow-up test supplied an incorrect previous amount (999.00) and verified that the response cited the source amount (850.00) instead.
-- Authenticated staging verification through Firebase, Cloud Run proxy/API and the credit ledger is still required. These changes are not on staging or production until both images are built and deployed.
+No new cloud migration or deployment has been performed in this continuation. The local Cloud SDK is absent and computer/browser automation fails to initialize. The prepared rollout must run in the user's authenticated Cloud Shell, followed by signed-in staging acceptance before production promotion. Existing production remains unchanged.
 
-The incomplete P1 items above must be delivered or explicitly agreed as deferred before calling the complete blueprint MVP finished. This checkpoint must not be advertised as full production readiness or an AdSense approval guarantee.
+The rollout's read-only plan is the default. It never prints secret values. Production reuses the accepted API/scanner digests and requires an explicit staging acceptance flag. Recovery information and database backup are saved before mutation. AdSense approval, provider contractual data-use terms and production operational acceptance are external validations, not code-test guarantees.

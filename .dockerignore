@@ -26,3 +26,6 @@ test-results
 # Private deployment rollback notes
 /ENV Variables Old.txt
 /Neon.txt
+
+**/__pycache__
+**/*.pyc

@@ -1,5 +1,72 @@
 import { test, expect } from "@playwright/test";
 
+test("anonymous workspace expires without retaining reviewed text", async ({
+  page,
+}) => {
+  await page.clock.install();
+  await page.goto("/tools/ai-document-intelligence");
+  await page.getByRole("button", { name: "Paste text", exact: true }).click();
+  await page
+    .getByLabel("Reviewed source text")
+    .fill("Private document content");
+  await page.clock.fastForward(60 * 60 * 1000 + 1000);
+  await expect(page.getByLabel("Reviewed source text")).toHaveCount(0);
+  await expect(
+    page.getByText(
+      "Your anonymous workspace expired after 60 minutes. Local documents and results have been cleared.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+});
+
+test("ZIP documents extract locally and redaction applies only to exported text", async ({
+  page,
+}) => {
+  const scanUploads: string[] = [];
+  page.on('request', request => { if (request.method() === 'POST' && request.url().includes('/document-scan')) scanUploads.push(request.url()); });
+  const { zipSync, strToU8 } =
+    await import("../artifacts/toolkit/node_modules/fflate/lib/index.cjs");
+  await page.goto("/tools/ai-document-intelligence");
+  await page.getByLabel("Upload documents").setInputFiles({
+    name: "documents.zip",
+    mimeType: "application/zip",
+    buffer: Buffer.from(
+      zipSync({
+        "nested/example.txt": strToU8(
+          "Account SECRET-123\nContact demo@example.com",
+        ),
+      }),
+    ),
+  });
+  await expect(page.getByLabel("Reviewed source text")).toHaveValue(
+    /SECRET-123/,
+  );
+  await page
+    .getByLabel("Redact exact text (one phrase per line)")
+    .fill("SECRET-123");
+  await page
+    .getByLabel(
+      "Also mask email addresses and international phone-number patterns",
+    )
+    .check();
+  const pending = page.waitForEvent("download");
+  await page
+    .getByRole("button", { name: "Download extracted text", exact: true })
+    .click();
+  const download = await pending;
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream!) chunks.push(Buffer.from(chunk));
+  const text = Buffer.concat(chunks).toString("utf8");
+  expect(scanUploads).toEqual([]);
+  expect(text).toContain("[REDACTED]");
+  expect(text).not.toContain("SECRET-123");
+  expect(text).not.toContain("demo@example.com");
+  await expect(page.getByLabel("Reviewed source text")).toHaveValue(
+    /SECRET-123/,
+  );
+});
+
 test("specialist questions and checklists follow the chosen document type", async ({
   page,
 }) => {
@@ -253,4 +320,61 @@ test("oversize source is preserved and local comparison shows real differences",
   await expect(r).toContainText("Added line");
   await expect(r).toContainText("30 days");
   await expect(r).toContainText("15 days");
+});
+
+test("financial calculations retain source evidence and distinguish matching totals", async ({
+  page,
+}) => {
+  await page.goto("/tools/ai-document-intelligence");
+  await page.getByRole("button", { name: "Paste text", exact: true }).click();
+  await page
+    .getByLabel("Reviewed source text")
+    .fill("Base 720.34\nSGST 64.83\nCGST 64.83\nTotal 850.00");
+  await page
+    .getByText("Financial arithmetic & reconciliation · Free", { exact: true })
+    .click();
+  await page.getByLabel("Financial source page").selectOption({ index: 1 });
+  await page.getByLabel("Currency/unit and scale").fill("INR units");
+  for (const [quote, value] of [
+    ["Base 720.34", "720.34"],
+    ["SGST 64.83", "64.83"],
+    ["CGST 64.83", "64.83"],
+    ["Total 850.00", "850.00"],
+  ]) {
+    await page.getByLabel("Exact financial evidence excerpt").fill(quote);
+    await page.getByLabel("Printed decimal value").fill(value);
+    await page
+      .getByRole("button", { name: "Add source value", exact: true })
+      .click();
+  }
+  await page
+    .getByRole("button", { name: "Verify selected calculation", exact: true })
+    .click();
+  await expect(
+    page
+      .getByRole("region", { name: "Evidence-backed results" })
+      .getByText(
+        /Selected components total 850; stated total 850; difference 0 INR units/,
+      ),
+  ).toBeVisible();
+  await page.getByLabel("Reviewed source text").fill("Changed source");
+  await expect(
+    page.getByRole("button", {
+      name: "Verify selected calculation",
+      exact: true,
+    }),
+  ).toBeDisabled();
+});
+
+test('reviewed document converts to Word and PDF without an AI call', async ({ page }) => {
+  await page.goto('/tools/ai-document-intelligence');
+  await page.getByRole('button', { name: 'Paste text', exact: true }).click();
+  await page.getByLabel('Reviewed source text').fill('Invoice total INR 850.00. Tax base INR 720.34. Review the original before payment.');
+  for (const format of ['Word', 'PDF']) {
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Convert reviewed text to ' + format, exact: true }).click();
+    const file = await download;
+    expect(file.suggestedFilename()).toMatch(format === 'Word' ? /\.docx$/ : /\.pdf$/);
+    expect(await file.failure()).toBeNull();
+  }
 });

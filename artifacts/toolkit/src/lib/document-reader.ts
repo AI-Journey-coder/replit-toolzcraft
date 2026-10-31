@@ -5,9 +5,27 @@ export async function readDocument(
   id: string,
   progress: (s: string) => void,
   signal: AbortSignal,
+  options: {
+    password?: string;
+    language?: string;
+    forceOcr?: boolean;
+    maxMegabytes?: number;
+    maxPdfPages?: number;
+  } = {},
 ): Promise<DocumentSource> {
-  if (!file.size || file.size > 20 * 1024 * 1024)
-    throw Error("Choose a non-empty file up to 20 MB.");
+  const maxMegabytes = options.maxMegabytes ?? 20,
+    maxPdfPages = options.maxPdfPages ?? 20;
+  if (
+    !Number.isInteger(maxMegabytes) ||
+    maxMegabytes < 1 ||
+    maxMegabytes > 20 ||
+    !Number.isInteger(maxPdfPages) ||
+    maxPdfPages < 1 ||
+    maxPdfPages > 20
+  )
+    throw Error("Choose whole-number extraction limits from 1 to 20.");
+  if (!file.size || file.size > maxMegabytes * 1024 * 1024)
+    throw Error(`Choose a non-empty file up to ${maxMegabytes} MB.`);
   const name = file.name.slice(0, 200),
     extension = file.name.split(".").pop()?.toLowerCase();
   const bytes = new Uint8Array(await file.arrayBuffer());
@@ -27,11 +45,41 @@ export async function readDocument(
     check();
     if (!worker) {
       const { createWorker } = await import("tesseract.js");
-      worker = await createWorker("eng");
+      const language = options.language || "eng";
+      if (
+        ![
+          "eng",
+          "eng+hin",
+          "eng+mar",
+          "fra",
+          "deu",
+          "spa",
+          "ara",
+          "jpn",
+          "chi_sim",
+        ].includes(language)
+      )
+        throw Error("Unsupported OCR language.");
+      worker = await createWorker(language);
       check();
     }
-    return (await worker.recognize(input)).data.text;
+    return (await worker.recognize(input, {}, { text: true, blocks: true }))
+      .data;
   };
+  const ocrDetails = (data: Awaited<ReturnType<typeof ocr>>) => ({
+    ocrConfidence: data.confidence,
+    uncertainWords: Array.from(
+      new Set(
+        (data.blocks || []).flatMap((b) =>
+          b.paragraphs.flatMap((p) =>
+            p.lines.flatMap((l) =>
+              l.words.filter((w) => w.confidence < 70).map((w) => w.text),
+            ),
+          ),
+        ),
+      ),
+    ),
+  });
   try {
     check();
     progress("Validating file locally…");
@@ -54,7 +102,8 @@ export async function readDocument(
       const { unzipSync, strFromU8 } = await import("fflate");
       const entries = unzipSync(bytes, {
         filter: (e) =>
-          e.name === "word/document.xml" && e.originalSize <= 4000000,
+          (e.name === "word/document.xml" && e.originalSize <= 4000000) ||
+          (e.name === "docProps/core.xml" && e.originalSize <= 64000),
       });
       if (!entries["word/document.xml"])
         throw Error("DOCX is damaged or its document content exceeds 4 MB.");
@@ -105,17 +154,54 @@ export async function readDocument(
           text: paragraphs.slice(i, i + 20).join("\n"),
         });
       check();
-      return { id, name, pages };
+      const metadata: Record<string, string> = {};
+      if (entries["docProps/core.xml"]) {
+        const coreXml = strFromU8(entries["docProps/core.xml"]);
+        if (!/<!DOCTYPE|<!ENTITY/i.test(coreXml)) {
+          const core = new DOMParser().parseFromString(
+            coreXml,
+            "application/xml",
+          );
+          for (const [tag, label] of [
+            ["title", "Title"],
+            ["creator", "Author"],
+            ["created", "Created"],
+            ["modified", "Modified"],
+            ["language", "Declared language"],
+          ]) {
+            const value = core
+              .getElementsByTagNameNS("*", tag)[0]
+              ?.textContent?.trim();
+            if (value) metadata[label] = value.slice(0, 1000);
+          }
+        }
+      }
+      return { id, name, pages, metadata };
     }
     if (extension === "pdf") {
       if (new TextDecoder().decode(bytes.slice(0, 5)) !== "%PDF-")
         throw Error("Invalid PDF signature.");
       const lib = await getPdfjs();
-      loading = lib.getDocument({ data: bytes });
+      loading = lib.getDocument({ data: bytes, password: options.password });
       const pdf = await loading.promise;
-      if (pdf.numPages > 20)
+      const metadata: Record<string, string> = {};
+      try {
+        const { info } = await pdf.getMetadata();
+        for (const field of [
+          "Title",
+          "Author",
+          "Subject",
+          "CreationDate",
+          "ModDate",
+        ]) {
+          const value = (info as any)[field];
+          if (typeof value === "string" && value.trim())
+            metadata[field] = value.slice(0, 1000);
+        }
+      } catch {}
+      if (pdf.numPages > maxPdfPages)
         throw Error(
-          "Choose a PDF with up to 20 pages. Split larger files first.",
+          `Choose a PDF with up to ${maxPdfPages} pages. Split larger files first.`,
         );
       const pages = [];
       let characters = 0;
@@ -128,7 +214,30 @@ export async function readDocument(
           let text = content.items
             .map((x: any) => (x.str || "") + (x.hasEOL ? "\n" : "\t"))
             .join("");
-          if (!text.trim()) {
+          const annotations = await page.getAnnotations({ intent: "display" });
+          const fields = annotations
+            .filter((a: any) => a.subtype === "Widget")
+            .map((a: any) => {
+              const label = String(
+                a.fieldName || a.alternativeText || "Unnamed field",
+              ).slice(0, 200);
+              if (a.fieldType === "Sig")
+                return (
+                  label +
+                  ": PDF signature field present; cryptographic validity and actual signing are not established."
+                );
+              if (a.checkBox)
+                return (
+                  label +
+                  ": checkbox value " +
+                  JSON.stringify(a.fieldValue ?? "not supplied")
+                );
+              return (
+                label + ": " + String(a.fieldValue ?? "(empty)").slice(0, 2000)
+              );
+            });
+          let details: ReturnType<typeof ocrDetails> | undefined;
+          if (!text.trim() || options.forceOcr) {
             const viewport = page.getViewport({ scale: 1.5 });
             if (viewport.width * viewport.height > 16000000)
               throw Error(
@@ -143,22 +252,33 @@ export async function readDocument(
                 canvasContext: canvas.getContext("2d")!,
                 viewport,
               }).promise;
-              text = await ocr(canvas);
+              const recognized = await ocr(canvas);
+              text = recognized.text;
+              details = ocrDetails(recognized);
             } finally {
               canvas.width = canvas.height = 0;
             }
           }
+          if (fields.length)
+            text +=
+              "\n[Embedded PDF form values — review against the visible page]\n" +
+              fields.join("\n");
           characters += text.length;
           if (characters > 200000)
             throw Error(
               "Document exceeds 200,000 extracted characters. Split it first.",
             );
-          pages.push({ id: id + "-p" + i, label: "Page " + i, text });
+          pages.push({
+            id: id + "-p" + i,
+            label: "Page " + i,
+            text,
+            ...details,
+          });
         } finally {
           page.cleanup();
         }
       }
-      return { id, name, pages };
+      return { id, name, pages, metadata };
     }
     if (["jpg", "jpeg", "png"].includes(extension || "")) {
       const png =
@@ -173,13 +293,21 @@ export async function readDocument(
       bitmap.close();
       if (pixels > 16000000)
         throw Error("Image exceeds 16 megapixels. Resize it first.");
-      progress("Recognizing English text locally…");
-      const text = await ocr(file);
+      progress("Recognizing text locally in the selected language…");
+      const recognized = await ocr(file);
+      const text = recognized.text;
       check();
       return {
         id,
         name,
-        pages: [{ id: id + "-image", label: "Image 1", text }],
+        pages: [
+          {
+            id: id + "-image",
+            label: "Image 1",
+            text,
+            ...ocrDetails(recognized),
+          },
+        ],
       };
     }
     throw Error("Supported files: PDF, DOCX, UTF-8 TXT, JPG and PNG.");
@@ -187,7 +315,7 @@ export async function readDocument(
     if (signal.aborted) throw Error("Extraction cancelled.");
     if ((e as Error).name === "PasswordException")
       throw Error(
-        "This PDF is password-protected. Unlock a copy with your password before uploading.",
+        "This PDF needs the correct password. Enter it in extraction settings, then select the file again.",
       );
     throw e;
   } finally {

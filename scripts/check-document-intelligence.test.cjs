@@ -3,6 +3,117 @@ const test = require("node:test"),
   load = require("./load-ts-test.cjs");
 const core = load("lib/document-intelligence/src/index.ts");
 
+test("ordered comparison preserves repetitions and evidence on both sides", () => {
+  const doc = (id, text) => ({
+    id,
+    name: id,
+    pages: [{ id: id + "-p", label: "Page 1", text }],
+  });
+  const rows = core.compareDocumentLines(
+    doc("a", "Alpha\nRepeat\nRepeat\nOmega"),
+    doc("b", "Omega\nAlpha\nRepeat"),
+  );
+  assert.equal(
+    rows
+      .filter((r) => r.before)
+      .map((r) => r.before.text)
+      .join("\n"),
+    "Alpha\nRepeat\nRepeat\nOmega",
+  );
+  assert.equal(
+    rows
+      .filter((r) => r.after)
+      .map((r) => r.after.text)
+      .join("\n"),
+    "Omega\nAlpha\nRepeat",
+  );
+  assert.ok(
+    rows.some((r) => r.kind === "removed" && r.before.text === "Repeat"),
+  );
+  assert.ok(
+    rows.every(
+      (r) =>
+        (!r.before || r.before.sourceId === "a-p") &&
+        (!r.after || r.after.sourceId === "b-p"),
+    ),
+  );
+  assert.throws(
+    () =>
+      core.compareDocumentLines(
+        doc("a", Array(1501).fill("line").join("\n")),
+        doc("b", "line"),
+      ),
+    /1,500/,
+  );
+});
+
+test("redaction is literal and removes identifiers without changing original text", () => {
+  const { redactText } = load(
+    "artifacts/toolkit/src/lib/document-redaction.ts",
+  );
+  const text = "Client A+B: demo@example.com +91 98765 43210";
+  const result = redactText(text, ["A+B"], true);
+  assert.equal(result, "Client [REDACTED]: [EMAIL REDACTED] [PHONE REDACTED]");
+  assert.ok(text.includes("demo@example.com"));
+});
+
+test("editable Office exports preserve Unicode and keep spreadsheet formulas inert", () => {
+  const path = require("node:path");
+  const fflate = require(
+    require.resolve("fflate", { paths: [path.resolve("artifacts/toolkit")] }),
+  );
+  const { buildWord, buildExcel } = load(
+    "artifacts/toolkit/src/lib/document-package.ts",
+    { fflate },
+  );
+  const word = fflate.unzipSync(buildWord("₹850.00\nA & B <review>"));
+  const wordXml = fflate.strFromU8(word["word/document.xml"]);
+  assert.match(wordXml, /₹850.00/);
+  assert.match(wordXml, /A &amp; B &lt;review&gt;/);
+  const excel = fflate.unzipSync(
+    buildExcel([['=HYPERLINK("https://example.com")', "₹850.00"]]),
+  );
+  const sheet = fflate.strFromU8(excel["xl/worksheets/sheet1.xml"]);
+  assert.match(sheet, /t="inlineStr"/);
+  assert.doesNotMatch(sheet, /<f[ >]/);
+  assert.match(sheet, /₹850.00/);
+  assert.throws(() => buildExcel([Array(101).fill("x")]), /100 columns/);
+  assert.throws(() => buildWord("x".repeat(200001)), /200,000/);
+});
+
+test("ZIP input rejects empty, unsupported and excessive document batches", async () => {
+  const path = require("node:path");
+  const fflate = require(
+    require.resolve("fflate", { paths: [path.resolve("artifacts/toolkit")] }),
+  );
+  const { expandDocumentZip } = load(
+    "artifacts/toolkit/src/lib/document-package.ts",
+    { fflate },
+  );
+  const archive = (entries) => ({
+    size: 100,
+    arrayBuffer: async () => fflate.zipSync(entries).buffer,
+  });
+  await assert.rejects(expandDocumentZip(archive({})), /no supported/);
+  await assert.rejects(
+    expandDocumentZip(archive({ "run.exe": new Uint8Array([1]) })),
+    /unsupported/,
+  );
+  await assert.rejects(
+    expandDocumentZip(
+      archive(
+        Object.fromEntries(
+          Array.from({ length: 6 }, (_, i) => [
+            i + ".txt",
+            new Uint8Array([1]),
+          ]),
+        ),
+      ),
+    ),
+    /five documents/,
+  );
+});
+
 test("tables retain rows, empty cells and source anchors without guessing missing columns", () => {
   const d = [
     {
@@ -322,11 +433,12 @@ test("intelligence quote binds source, action and options; malformed jobs fail b
       400,
     );
     assert.equal((await send("clear", { requestIds: [id] })).status, 200);
-    assert.equal(queries.length, 1);
-    assert.match(queries[0].sql, /WHERE user_id=\$1/);
-    assert.equal(queries[0].args[0], 1);
-    assert.equal(queries[0].args[1].length, 1);
-    assert.equal(queries[0].args[1][0], id);
+    const mutations = queries.filter((q) => /^UPDATE/.test(q.sql));
+    assert.equal(mutations.length, 1);
+    assert.match(mutations[0].sql, /WHERE user_id=\$1/);
+    assert.equal(mutations[0].args[0], 1);
+    assert.equal(mutations[0].args[1].length, 1);
+    assert.equal(mutations[0].args[1][0], id);
   } finally {
     await new Promise((r) => server.close(r));
     if (old === undefined) delete process.env.ENABLE_AI;
