@@ -467,7 +467,7 @@ test("mixed invoice correction retains cited tax and amount rows and reports the
   const corrected = {complete:true,missing:[],findings:rows.map(([label,value],i)=>({label,value,status:"extracted",sourceId:"p",quote:"E"+(i+1)}))};
   let calls=0;
   const api=load("artifacts/api-server/src/lib/intelligence-analysis.ts",{"@workspace/document-intelligence":core,"./ai":{completeChat:async()=>++calls===1?"{}":JSON.stringify(corrected)}});
-  const result=await api.analyzeEvidence(docs,"invoice","overview","");
+  const result=await api.analyzeEvidence(docs,"invoice","amounts","");
   assert.equal(result.findings.length,4);
   assert.ok(result.findings.every(f=>source.includes(f.quote)&&f.quote.includes(f.value)));
   assert.equal(result.checks.at(-1).status,"review");
@@ -482,4 +482,19 @@ test("invoice overview replaces repeated tax bases with separate cited tax amoun
  assert.ok(report.findings.every(f=>text.includes(f.quote)));
  docs[0].pages[0].text="SGST 9% incl. on ₹720.34\nAmount due ₹850.00";
  assert.ok(!core.localInvoice(docs).findings.some(f=>f.label==="SGST"));
+});
+test("executive overview requires cited implications, while extraction-only responses cannot settle as an executive review", async () => {
+  const docs=[{id:"inv",name:"Sample",pages:[{id:"page",label:"Page 1",text:"Amount due ₹850.00\nPayment due September 1"}]}];
+  const field={label:"Amount due",value:"₹850.00",quote:"Amount due ₹850.00",sourceId:"page",status:"extracted"};
+  const insights=[
+    {...field,label:"Key takeaway",status:"analysis",value:"The invoice states an amount due; this line alone cannot establish whether it was paid."},
+    {...field,label:"What to check",status:"analysis",quote:"Payment due September 1",value:"Compare the listed deadline with your payment record before acting."},
+  ];
+  for (const [rows,pass] of [[[field],false],[[{...field,label:"Key takeaway",status:"analysis"},insights[1]],false],[insights,true]]) {
+    let calls=0;
+    const api=load("artifacts/api-server/src/lib/intelligence-analysis.ts",{"@workspace/document-intelligence":core,"./ai":{completeChat:async()=>{calls++;return JSON.stringify({complete:true,findings:rows,missing:[]})}}});
+    const task=api.analyzeEvidence(docs,"invoice","overview","");
+    if(pass){assert.ok((await task).checks.some(c=>c.label==="Executive brief"));assert.equal(calls,1);}
+    else {await assert.rejects(task,/could not verify/);assert.equal(calls,2);}
+  }
 });

@@ -410,9 +410,10 @@ export function DocumentIntelligence() {
     changed();
     try {
       validateSources(sources);
-      if (kind === "invoice" || kind === "receipt")
-        setResult(localInvoice(sources));
-      else
+      if (kind === "invoice" || kind === "receipt") {
+        const local = localInvoice(sources);
+        setResult({...local, checks: [...local.checks, {label:"Local invoice review",status:"pass",detail:"Printed fields and arithmetic checked on this device. No credits used."}]});
+      } else
         setResult({
           findings: [],
           missing: [],
@@ -695,6 +696,9 @@ export function DocumentIntelligence() {
           ? "\n\nAuthor closing note (not source evidence):\n" + reportFooter
           : ""),
     );
+  const isExecutive = result?.checks.some(c => c.label === "Executive brief");
+  const isLocal = result?.checks.some(c => c.label === "Local invoice review");
+  const isBriefFinding = (f: Finding) => f.status !== "extracted" && /^(key takeaway|what to check)$/i.test(f.label.trim());
   return (
     <div className="min-w-0 space-y-6">
       <header className="rounded-2xl border bg-primary/5 p-6">
@@ -1527,6 +1531,7 @@ export function DocumentIntelligence() {
               >
                 Review & validate locally · Free
               </Button>
+              {action === "overview" && <p className="text-sm">Local review shows printed fields and checks the figures. Executive overview adds a cited takeaway and a specific next step. Review the credit quote before running it.</p>}
               <Button
                 variant="outline"
                 disabled={blocked || !valid || sources.length !== 2}
@@ -1957,7 +1962,7 @@ export function DocumentIntelligence() {
           aria-label="Evidence-backed results"
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-xl font-semibold">Findings & evidence</h2>
+            <h2 className="text-xl font-semibold">{isExecutive ? "AI executive brief" : isLocal ? "Free local invoice review" : "Findings & evidence"}</h2>
             <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
@@ -2085,8 +2090,14 @@ export function DocumentIntelligence() {
               </ul>
             </div>
           )}
+          {(isExecutive ? [
+            {title:"Decision brief", findings:result.findings.filter(isBriefFinding)},
+            {title:"Supporting findings", findings:result.findings.filter(f => !isBriefFinding(f))},
+          ] : [{title:"",findings:result.findings}]).filter(group => group.findings.length).map(group => (
+          <div key={group.title}>
+          {group.title && <h3 className="mb-2 font-semibold">{group.title}</h3>}
           <div className="grid min-w-0 gap-3 md:grid-cols-2">
-            {result.findings.map((f, i) => (
+            {group.findings.map((f, i) => (
               <article
                 key={i}
                 className="min-w-0 space-y-2 rounded-xl bg-muted/40 p-4"
@@ -2131,6 +2142,7 @@ export function DocumentIntelligence() {
               </article>
             ))}
           </div>
+          </div>))}
           <p className="text-xs text-muted-foreground">
             A matching excerpt establishes provenance, not document authenticity
             or professional verification. Review AI interpretations and any
