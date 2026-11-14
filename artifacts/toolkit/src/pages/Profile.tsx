@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 export function Profile() {
   const { user, loading, error } = useAuth();
@@ -9,7 +9,7 @@ export function Profile() {
     return (
       <Card className="max-w-xl mx-auto">
         <CardHeader>
-          <CardTitle>Your profile</CardTitle>
+          <h1 className="text-xl font-semibold">Your profile</h1>
         </CardHeader>
         <CardContent>
           <p>{error || "Sign in to see your account details."}</p>
@@ -22,7 +22,7 @@ export function Profile() {
   return (
     <Card className="max-w-xl mx-auto">
       <CardHeader>
-        <CardTitle>My profile</CardTitle>
+        <h1 className="text-xl font-semibold">My profile</h1>
       </CardHeader>
       <CardContent className="space-y-6">
         <dl className="grid gap-4">

@@ -1,7 +1,7 @@
-import {DocumentIntelligence} from "@/pages/tools/DocumentIntelligence";
+
 import {Redirect} from 'wouter';
 import { Profile } from "@/pages/Profile";
-import {InvoiceExtractor,TableExtractor,ScanAssistant,DocumentCompare} from '@/pages/tools/DocumentWorkflows';
+
 import {SqlDataGenerator,SampleDataGenerator,BoundaryDataGenerator} from '@/pages/tools/TestData';
 import {AdvertisingBreakEven,ServiceBreakEven,RefinanceBreakEven} from '@/pages/tools/BreakEvenExtra';
 import {BuyRentCalculator,EvFuelCalculator} from '@/pages/tools/OwnershipCalculator';
@@ -48,7 +48,7 @@ import { JsonFormatter, Base64Tool, UrlEncodeTool, RegexTester, CodeDiff, JsMini
 // Text
 import { WordCounter, CaseConverter, LoremIpsum, MarkdownPreview } from "@/pages/tools/TextTools";
 import { TextDiff, FindReplace, LineSorter, SlugGenerator, ExtractEmailsUrls, UrlParser, TokenCounter, NatoPhonetic, TextTransform } from "@/pages/tools/TextTools2";
-import { MarkdownToHtml, HtmlToMarkdown, CsvColumnExtractor, ReadabilityScore, FancyText, TextToSpeech, PromptFormatter, TextToAsciiArt } from "@/pages/tools/TextTools3";
+
 import { TextToHandwriting, PromptToJson, MarkdownReadmeGuide, PunycodeTool } from "@/pages/tools/TextTools4";
 
 // Math
@@ -63,13 +63,10 @@ import { BcryptGenerator, SriHashGenerator, TotpGenerator, RsaKeyGenerator, Hash
 
 // Web Dev
 import { ColorPicker, CssGradient, ImageToBase64, MetaTagGenerator } from "@/pages/tools/WebDevTools";
-import { Html5BoilerplateGenerator, HeadingHierarchyChecker, FontPreview, PlaceholderImageGenerator, BarcodeGeneratorTool, ChangelogFormatter, FaviconGenerator } from "@/pages/tools/WebContentTools";
+
 
 // Data Tools
-import {
-  JsonValidator, JsonDiff, JsonTreeViewer, JsonSchemaGenerator,
-  JsonToCsv, CsvToJson, JsonToYaml, YamlToJson, JsonToXml, XmlToJson,
-} from "@/pages/tools/DataTools";
+
 import {
   TomlToJson, JsonToToml, IniToJson, YamlToXml, CsvToXml,
   JsonMinifier, JsonTableViewer, PropertiesToJson, StructuredDataGenerator,
@@ -91,7 +88,7 @@ import {
   HtmlFormatter, CssFormatter, XmlFormatter, YamlFormatter, TomlFormatter,
   Json5Formatter, JsonToPythonDict, JsonToGoStruct, JsonToJavaClass, RegexVisualizer,
 } from "@/pages/tools/FormatterTools";
-import { JavaScriptFormatter, TypeScriptFormatter, HtmlMinifier, CssMinifier, XmlMinifier, SvgMinifier, DdlFormatter } from "@/pages/tools/FormatterTools2";
+
 
 // SQL Tools
 import { CsvToSql, SqlDialectConverter, SqlColumnMapper } from "@/pages/tools/SqlTools";
@@ -132,12 +129,69 @@ import { UnicodeTableBrowser, UnicodeCharLookup, InvisibleCharDetector, Develope
 // Image Tools
 import { ExifViewer, ColorPickerFromImage, ColorPaletteFromImage, SvgToPngConverter, ImageResizer } from "@/pages/tools/ImageTools";
 // PDF Tools
-import { MergePdf, SplitPdf, ImagesToPdf, RotatePdf, WatermarkPdf, PdfPageNumbers, PdfMetadata } from "@/pages/tools/PdfTools";
-import { PdfToImages, PdfTextExtractor } from "@/pages/tools/PdfTools2";
+
+
 // OCR & Documents
-import { ImageOcr, PdfOcr } from "@/pages/tools/OcrTools";
+
 // AI Tools
 import { AiKeyPoints, AiDocumentQa, AiTranslator } from "@/pages/tools/AiTools";
+
+const DocumentIntelligence = lazy(() => import("@/pages/tools/DocumentIntelligence").then(m => ({ default: m.DocumentIntelligence })));
+
+const InvoiceExtractor = lazy(() => import("@/pages/tools/DocumentWorkflows").then(m => ({ default: m.InvoiceExtractor })));
+const TableExtractor = lazy(() => import("@/pages/tools/DocumentWorkflows").then(m => ({ default: m.TableExtractor })));
+const ScanAssistant = lazy(() => import("@/pages/tools/DocumentWorkflows").then(m => ({ default: m.ScanAssistant })));
+const DocumentCompare = lazy(() => import("@/pages/tools/DocumentWorkflows").then(m => ({ default: m.DocumentCompare })));
+
+const MergePdf = lazy(() => import("@/pages/tools/PdfTools").then(m => ({ default: m.MergePdf })));
+const SplitPdf = lazy(() => import("@/pages/tools/PdfTools").then(m => ({ default: m.SplitPdf })));
+const ImagesToPdf = lazy(() => import("@/pages/tools/PdfTools").then(m => ({ default: m.ImagesToPdf })));
+const RotatePdf = lazy(() => import("@/pages/tools/PdfTools").then(m => ({ default: m.RotatePdf })));
+const WatermarkPdf = lazy(() => import("@/pages/tools/PdfTools").then(m => ({ default: m.WatermarkPdf })));
+const PdfPageNumbers = lazy(() => import("@/pages/tools/PdfTools").then(m => ({ default: m.PdfPageNumbers })));
+const PdfMetadata = lazy(() => import("@/pages/tools/PdfTools").then(m => ({ default: m.PdfMetadata })));
+
+const PdfToImages = lazy(() => import("@/pages/tools/PdfTools2").then(m => ({ default: m.PdfToImages })));
+const PdfTextExtractor = lazy(() => import("@/pages/tools/PdfTools2").then(m => ({ default: m.PdfTextExtractor })));
+
+const ImageOcr = lazy(() => import("@/pages/tools/OcrTools").then(m => ({ default: m.ImageOcr })));
+const PdfOcr = lazy(() => import("@/pages/tools/OcrTools").then(m => ({ default: m.PdfOcr })));
+
+const JsonValidator = lazy(() => import("@/pages/tools/DataTools").then(m => ({ default: m.JsonValidator })));
+const JsonDiff = lazy(() => import("@/pages/tools/DataTools").then(m => ({ default: m.JsonDiff })));
+const JsonTreeViewer = lazy(() => import("@/pages/tools/DataTools").then(m => ({ default: m.JsonTreeViewer })));
+const JsonSchemaGenerator = lazy(() => import("@/pages/tools/DataTools").then(m => ({ default: m.JsonSchemaGenerator })));
+const JsonToCsv = lazy(() => import("@/pages/tools/DataTools").then(m => ({ default: m.JsonToCsv })));
+const CsvToJson = lazy(() => import("@/pages/tools/DataTools").then(m => ({ default: m.CsvToJson })));
+const JsonToYaml = lazy(() => import("@/pages/tools/DataTools").then(m => ({ default: m.JsonToYaml })));
+const YamlToJson = lazy(() => import("@/pages/tools/DataTools").then(m => ({ default: m.YamlToJson })));
+const JsonToXml = lazy(() => import("@/pages/tools/DataTools").then(m => ({ default: m.JsonToXml })));
+const XmlToJson = lazy(() => import("@/pages/tools/DataTools").then(m => ({ default: m.XmlToJson })));
+
+const JavaScriptFormatter = lazy(() => import("@/pages/tools/FormatterTools2").then(m => ({ default: m.JavaScriptFormatter })));
+const TypeScriptFormatter = lazy(() => import("@/pages/tools/FormatterTools2").then(m => ({ default: m.TypeScriptFormatter })));
+const HtmlMinifier = lazy(() => import("@/pages/tools/FormatterTools2").then(m => ({ default: m.HtmlMinifier })));
+const CssMinifier = lazy(() => import("@/pages/tools/FormatterTools2").then(m => ({ default: m.CssMinifier })));
+const XmlMinifier = lazy(() => import("@/pages/tools/FormatterTools2").then(m => ({ default: m.XmlMinifier })));
+const SvgMinifier = lazy(() => import("@/pages/tools/FormatterTools2").then(m => ({ default: m.SvgMinifier })));
+const DdlFormatter = lazy(() => import("@/pages/tools/FormatterTools2").then(m => ({ default: m.DdlFormatter })));
+
+const MarkdownToHtml = lazy(() => import("@/pages/tools/TextTools3").then(m => ({ default: m.MarkdownToHtml })));
+const HtmlToMarkdown = lazy(() => import("@/pages/tools/TextTools3").then(m => ({ default: m.HtmlToMarkdown })));
+const CsvColumnExtractor = lazy(() => import("@/pages/tools/TextTools3").then(m => ({ default: m.CsvColumnExtractor })));
+const ReadabilityScore = lazy(() => import("@/pages/tools/TextTools3").then(m => ({ default: m.ReadabilityScore })));
+const FancyText = lazy(() => import("@/pages/tools/TextTools3").then(m => ({ default: m.FancyText })));
+const TextToSpeech = lazy(() => import("@/pages/tools/TextTools3").then(m => ({ default: m.TextToSpeech })));
+const PromptFormatter = lazy(() => import("@/pages/tools/TextTools3").then(m => ({ default: m.PromptFormatter })));
+const TextToAsciiArt = lazy(() => import("@/pages/tools/TextTools3").then(m => ({ default: m.TextToAsciiArt })));
+
+const Html5BoilerplateGenerator = lazy(() => import("@/pages/tools/WebContentTools").then(m => ({ default: m.Html5BoilerplateGenerator })));
+const HeadingHierarchyChecker = lazy(() => import("@/pages/tools/WebContentTools").then(m => ({ default: m.HeadingHierarchyChecker })));
+const FontPreview = lazy(() => import("@/pages/tools/WebContentTools").then(m => ({ default: m.FontPreview })));
+const PlaceholderImageGenerator = lazy(() => import("@/pages/tools/WebContentTools").then(m => ({ default: m.PlaceholderImageGenerator })));
+const BarcodeGeneratorTool = lazy(() => import("@/pages/tools/WebContentTools").then(m => ({ default: m.BarcodeGeneratorTool })));
+const ChangelogFormatter = lazy(() => import("@/pages/tools/WebContentTools").then(m => ({ default: m.ChangelogFormatter })));
+const FaviconGenerator = lazy(() => import("@/pages/tools/WebContentTools").then(m => ({ default: m.FaviconGenerator })));
 
 const queryClient = new QueryClient();
 
@@ -161,7 +215,7 @@ const NewCtc = lazy(() => import("@/pages/tools/CtcCalculator").then(m => ({defa
 const NewSqlMigration = lazy(() => import("@/pages/tools/SqlMigration").then(m => ({default:m.SqlMigration})));
 
 function T({ component: C }: { component: React.ComponentType }) {
-  return <ToolShell><C /></ToolShell>;
+  return <ToolShell><Suspense fallback={<p role="status">Loading tool…</p>}><C /></Suspense></ToolShell>;
 }
 
 const PdfEditor = lazy(()=>import('@/pages/tools/PdfRedactor').then(m=>({default:m.PdfRedactor})));
@@ -360,7 +414,7 @@ function Router() {
       <Route path="/tools/jsonpath-tester">{() => <T component={JsonPathTester} />}</Route>
       <Route path="/tools/graphql-formatter">{() => <T component={GraphqlFormatter} />}</Route>
       <Route path="/tools/dockerfile-builder">{() => <T component={DockerfileBuilder} />}</Route>
-      <Route path="/tools/dns-record-reference-ref">{() => <T component={DnsRecordReference} />}</Route>
+      <Route path="/tools/dns-record-reference-ref">{() => <Redirect replace to="/tools/dns-record-reference" />}</Route>
       <Route path="/tools/dns-record-reference">{() => <T component={DnsRecordReference} />}</Route>
       <Route path="/tools/openapi-validator">{() => <T component={OpenApiValidator} />}</Route>
 

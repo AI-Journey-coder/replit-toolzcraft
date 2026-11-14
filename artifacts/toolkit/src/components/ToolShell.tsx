@@ -69,7 +69,9 @@ export function ToolShell({ children }: ToolShellProps) {
         {tool && (
           <>
             <span>/</span>
-            <span className="text-foreground font-medium">{tool.name}</span>
+            {["ai-document-intelligence", "advertising-break-even", "service-break-even", "refinance-break-even", "buy-vs-rent", "ev-vs-fuel", "time-add-subtract", "working-hours-calculator"].includes(slug)
+              ? <span className="text-foreground font-medium">{tool.name}</span>
+              : <h1 className="text-foreground font-semibold">{tool.name}</h1>}
           </>
         )}
       </div>

@@ -331,7 +331,7 @@ const REGISTERED_TOOLS: Tool[] = [
   { name: "Sitemap Generator", slug: "sitemap-generator", category: "webstandards", description: "Generate XML sitemaps from URL lists", icon: Globe },
   { name: "ARIA Roles Reference", slug: "aria-roles-reference", category: "webstandards", description: "Complete reference for ARIA roles and accessibility attributes", icon: Accessibility },
   { name: "WCAG Reference", slug: "wcag-reference", category: "webstandards", description: "WCAG 2.1 guidelines reference with A, AA, AAA levels", icon: ShieldCheck },
-  { name: "HTTP Status Codes", slug: "http-status-codes-reference", category: "webstandards", description: "Complete reference for all HTTP status codes", icon: Globe },
+  { name: "HTTP Status Codes", slug: "http-status-codes-reference", category: "webstandards", description: "Search common HTTP status codes by number, name or description", icon: Globe },
 
   // ── Reference ─────────────────────────────────────────────────────────────
   { name: "ASCII Table", slug: "ascii-table", category: "reference", description: "Complete ASCII character code reference table", icon: Hash },
@@ -342,7 +342,6 @@ const REGISTERED_TOOLS: Tool[] = [
   { name: "Unicode Character Lookup", slug: "unicode-char-lookup", category: "reference", description: "Look up Unicode characters by code point", icon: Search },
   { name: "Invisible Char Detector", slug: "invisible-char-detector", category: "reference", description: "Detect zero-width and invisible Unicode characters", icon: Eye },
   { name: "Developer Cheatsheets", slug: "developer-cheatsheets", category: "reference", description: "Quick-reference cheatsheets for Git, Linux, Vim, Regex, Docker", icon: BookOpen, popular: true },
-  { name: "DNS Record Reference", slug: "dns-record-reference-ref", category: "reference", description: "Reference for A, AAAA, CNAME, MX, TXT, and other DNS records", icon: Network },
 
   // ── Image Tools ────────────────────────────────────────────────────────────
   { name: "EXIF Viewer", slug: "exif-viewer", category: "image", description: "View EXIF metadata from JPEG images in your browser", icon: Eye, popular: true },
@@ -381,3 +380,7 @@ const REGISTERED_TOOLS: Tool[] = [
 export const TOOLS: Tool[] = REGISTERED_TOOLS.filter(t => t.slug === "ai-document-intelligence" || t.category !== "ai" || import.meta.env.VITE_ENABLE_AI === "true");
 
 export const CATEGORIES: Category[] = REGISTERED_CATEGORIES.filter(c => TOOLS.some(t => t.category === c.slug));
+
+export function inToolCategory(tool: Tool, category: string | undefined) {
+  return tool.category === category || (category === "reference" && tool.slug === "dns-record-reference");
+}

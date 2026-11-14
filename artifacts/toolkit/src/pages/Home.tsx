@@ -2,7 +2,7 @@ import { WorkflowGuide } from "@/components/ToolGuide";
 import { searchTools } from '@/lib/tool-search';
 import { useState } from "react";
 import { Link } from "wouter";
-import { CATEGORIES, TOOLS } from "@/lib/tools-registry";
+import { CATEGORIES, TOOLS, inToolCategory } from "@/lib/tools-registry";
 import { ToolCard } from "@/components/ToolCard";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
@@ -16,8 +16,8 @@ export function Home() {
   const [category, setCategory] = useState("");
   const [expanded, setExpanded] = useState<string[]>([]);
   const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  const filtered = searchTools(TOOLS, query).filter(tool => !category || tool.category === category);
-  const groups = CATEGORIES.map(item => ({ ...item, tools: filtered.filter(tool => tool.category === item.slug) })).filter(item => item.tools.length);
+  const filtered = searchTools(TOOLS, query).filter(tool => !category || inToolCategory(tool, category));
+  const groups = CATEGORIES.map(item => ({ ...item, tools: filtered.filter(tool => inToolCategory(tool, item.slug)) })).filter(item => item.tools.length);
   const searching = terms.length > 0 || !!category;
   const allExpanded = groups.length > 0 && groups.every(group => expanded.includes(group.slug));
   function reset() { setQuery(""); setCategory(""); }

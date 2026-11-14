@@ -1,5 +1,5 @@
 import { useParams } from "wouter";
-import { CATEGORIES, TOOLS } from "@/lib/tools-registry";
+import { CATEGORIES, TOOLS, inToolCategory } from "@/lib/tools-registry";
 import { ToolCard } from "@/components/ToolCard";
 import NotFound from "@/pages/not-found";
 import { useScrollRestore } from "@/hooks/useScrollRestore";
@@ -12,7 +12,7 @@ export function CategoryPage() {
   const slug = requestedSlug === 'media' ? 'image' : requestedSlug === 'files' ? 'data' : requestedSlug;
   useScrollRestore(`category:${slug}`);
   const category = CATEGORIES.find(c => c.slug === slug);
-  const categoryTools = TOOLS.filter(t => t.category === slug);
+  const categoryTools = TOOLS.filter(t => inToolCategory(t, slug));
 
   if (!category) return <NotFound />;
 
