@@ -89,3 +89,13 @@ export const insertApiKeySchema = createInsertSchema(apiKeysTable).omit({
 });
 export type InsertApiKey = z.infer<typeof insertApiKeySchema>;
 export type ApiKey = typeof apiKeysTable.$inferSelect;
+
+export const backendTrialsTable = pgTable('backend_trials', {
+ userId: integer('user_id').primaryKey().references(()=>usersTable.id,{onDelete:'cascade'}),
+ attempts: integer('attempts').notNull().default(0),
+});
+export const subscriptionAccessTable = pgTable('subscription_access', {
+ userId: integer('user_id').primaryKey().references(()=>usersTable.id,{onDelete:'cascade'}),
+ paidUntil: timestamp('paid_until',{withTimezone:true}).notNull(),
+ revoked: boolean('revoked').notNull().default(false),
+});

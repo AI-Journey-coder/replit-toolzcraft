@@ -3,6 +3,10 @@
 export const KNOWN_TOOL_SLUGS = new Set<string>([
   "aes-encrypt-decrypt",
   "ai",
+  "ai-invoice-extractor",
+  "ai-table-extractor",
+  "ai-scan-assistant",
+  "ai-document-compare",
   "ai-document-qa",
   "ai-key-points",
   "ai-summarizer",

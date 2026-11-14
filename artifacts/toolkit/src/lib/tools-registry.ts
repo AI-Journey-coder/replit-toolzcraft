@@ -19,7 +19,7 @@ export type CategorySlug =
   | "finance" | "converters" | "code" | "text" | "math" | "security"
   | "webdev" | "data" | "devtools" | "formatters" | "sql"
   | "encoding" | "datetime" | "cssdesign" | "webstandards" | "reference" | "image"
-  | "pdf" | "ocr" | "ai";
+  | "pdf" | "ocr" | "ai" | "media" | "files";
 
 export interface Category {
   name: string;
@@ -37,7 +37,8 @@ export interface Tool {
   popular?: boolean;
 }
 
-export const CATEGORIES: Category[] = [
+const REGISTERED_CATEGORIES: Category[] = [
+  {name:"Files & Archives",slug:"files",icon:FileInput,description:"Compress and package files for sharing"},
   { name: "Finance", slug: "finance", icon: Coins, description: "Calculators for loans, investments, and more" },
   { name: "Converters", slug: "converters", icon: Scale, description: "Unit, currency, and measurement conversions" },
   { name: "Code Tools", slug: "code", icon: Code2, description: "Formatters, minifiers, and validators for code" },
@@ -45,7 +46,7 @@ export const CATEGORIES: Category[] = [
   { name: "Math Tools", slug: "math", icon: Calculator, description: "Percentage, scientific, and prime calculators" },
   { name: "Security", slug: "security", icon: Lock, description: "Hash generators, UUIDs, passwords, and encryption" },
   { name: "Web Dev", slug: "webdev", icon: AppWindow, description: "Color pickers, gradients, QR codes, and meta tags" },
-  { name: "Data Tools", slug: "data", icon: FileJson, description: "JSON, CSV, YAML, and XML converters & validators" },
+  { name: "Data & Files", slug: "data", icon: FileJson, description: "Contacts, ZIP archives, JSON, CSV, YAML and XML utilities" },
   { name: "Developer Tools", slug: "devtools", icon: Terminal, description: "JWT, cURL, CRON, semver, and API developer utilities" },
   { name: "Formatters & Codegen", slug: "formatters", icon: Paintbrush, description: "Language formatters and JSON-to-code generators" },
   { name: "SQL Tools", slug: "sql", icon: Database, description: "CSV to SQL, dialect converters, and data type references" },
@@ -54,13 +55,41 @@ export const CATEGORIES: Category[] = [
   { name: "CSS & Design", slug: "cssdesign", icon: Layers, description: "Box shadows, contrast checker, PX to REM, and more" },
   { name: "Web Standards", slug: "webstandards", icon: Globe, description: "robots.txt, CORS, CSP, .htaccess, and Open Graph generators" },
   { name: "Reference", slug: "reference", icon: BookOpen, description: "ASCII table, Unicode, ARIA roles, WCAG, and cheatsheets" },
-  { name: "Image Tools", slug: "image", icon: Image, description: "EXIF viewer, color picker from image, SVG to PNG, and resizer" },
+  { name: "Images & Media", slug: "image", icon: Image, description: "Image and video compression, resizing, backgrounds and image utilities" },
   { name: "PDF Tools", slug: "pdf", icon: FileInput, description: "Merge, split, rotate, watermark, and convert PDFs — all in your browser" },
   { name: "OCR & Documents", slug: "ocr", icon: ScanLine, description: "Extract text from images and scanned PDFs with in-browser OCR" },
   { name: "AI Tools", slug: "ai", icon: Sparkles, description: "AI-powered document analysis: summarize, extract, translate, and Q&A" },
 ];
 
-export const TOOLS: Tool[] = [
+const REGISTERED_TOOLS: Tool[] = [
+{name:'SQL Data Generator',slug:'sql-data-generator',category:'sql',description:'Generate sample INSERT statements from a table schema for database testing',icon:Database},
+{name:'Sample Customer Data Generator',slug:'sample-data-generator',category:'data',description:'Create repeatable fictional customer records as JSON or CSV for testing',icon:FileSpreadsheet},
+{name:'Boundary & Edge-Case Data Generator',slug:'boundary-data-generator',category:'data',description:'Generate empty, Unicode and length-limit examples for form testing',icon:FlaskConical},
+ {name:'Buy vs Rent Break-Even',slug:'buy-vs-rent',category:'finance',description:'Compare buying a home with renting and investing, including mortgage, expenses and resale',icon:TrendingUp},
+ {name:'EV vs Fuel Break-Even',slug:'ev-vs-fuel',category:'finance',description:'Compare electric and petrol or diesel vehicle costs and purchase-premium payback',icon:TrendingUp},
+ {name:'Advertising Break-Even ROAS & CPA',slug:'advertising-break-even',category:'finance',description:'Find profitable advertising thresholds from order contribution margin',icon:TrendingUp},
+ {name:'Freelancer & Service Break-Even',slug:'service-break-even',category:'finance',description:'Estimate billed hours needed to cover overhead and target income',icon:TrendingUp},
+ {name:'Loan Refinance Break-Even',slug:'refinance-break-even',category:'finance',description:'Find when monthly mortgage or loan payment savings recover upfront refinancing costs',icon:TrendingUp},
+ {name:'PDF Editor & Redaction',slug:'pdf-editor',category:'pdf',description:'Keep selected pages and mask unwanted information in a new image-only PDF',icon:FileText},
+ {name:'Time Add/Subtract',slug:'time-add-subtract',category:'datetime',description:'Add or subtract hours and minutes with midnight rollover',icon:Clock},
+ {name:'Working Hours Calculator',slug:'working-hours-calculator',category:'datetime',description:'Calculate work shifts, timesheets, unpaid breaks and overtime, including overnight shifts',icon:Clock},
+  { name: "CTC & Take-Home Salary Adjuster", slug: "ctc-calculator", category: "finance", description: "Build salary components, lock rules, and estimate CTC from take-home pay or vice versa", icon: Calculator },
+  { name: "PDF Page Organizer", slug: "pdf-page-organizer", category: "pdf", description: "Reorder, remove, duplicate and rotate PDF pages visually", icon: FileInput },
+  { name: "PDF Form Filler", slug: "pdf-form-filler", category: "pdf", description: "Fill existing interactive PDF forms and download locally", icon: FileInput },
+  { name: "PDF Compressor", slug: "pdf-compressor", category: "pdf", description: "Compress PDFs with lossless repacking or image-based compression", icon: FileInput },
+  { name: "Searchable PDF OCR", slug: "searchable-pdf", category: "ocr", description: "Turn scanned PDFs into searchable documents with an OCR text layer", icon: FileInput },
+  { name: "Batch Image Processor", slug: "batch-image-processor", category: "image", description: "Resize, compress, convert and rename multiple images into a ZIP", icon: FileInput },
+  {name:"Contact Duplicate Review & Merge",slug:"contact-duplicate-merger",category:"data",description:"Review contacts sharing phone numbers or emails and merge selected groups locally",icon:GitCompare},
+  {name:"Contacts Viewer & Converter",slug:"contacts-converter",category:"data",description:"Inspect VCF/CSV contacts and export names, phones, emails and companies locally",icon:FileInput},
+  {name:"WhatsApp Link & QR Generator",slug:"whatsapp-link-generator",category:"webdev",description:"Create click-to-chat links and downloadable QR codes without sending messages",icon:QrCode},
+  {name:"Remove a Solid Background",slug:"solid-background-remover",category:"image",description:"Make a selected background colour transparent in logos and simple artwork",icon:Image},
+  { name: "Image Compressor", slug: "image-compressor", category: "image", description: "Reduce JPG, PNG and WebP image sizes with quality controls", icon: FileInput },
+  { name: "CSV Cleaner", slug: "csv-cleaner", category: "data", description: "Clean CSV rows, remove duplicates and normalize date columns", icon: FileInput },
+  { name: "Video Compressor", slug: "video-compressor", category: "image", description: "Compress short videos to MP4 in your browser", icon: FileInput },
+  { name: "Compress Files to ZIP", slug: "file-compressor", category: "data", description: "Create a compressed ZIP archive from multiple files", icon: FileInput },
+  { name: "Past & Future Money Value", slug: "money-value-calculator", category: "finance", description: "Compare purchasing power across years using CPI or inflation scenarios", icon: FileInput },
+  { name: "Savings Goal Calculator", slug: "savings-goal-calculator", category: "finance", description: "Estimate monthly savings needed to reach your target", icon: FileInput },
+  { name: "Inflation-Adjusted Salary Raise", slug: "real-salary-raise", category: "finance", description: "Calculate whether a salary raise beats inflation", icon: FileInput },
   // ── Finance ──────────────────────────────────────────────────────────────
   { name: "EMI Calculator", slug: "emi-calculator", category: "finance", description: "Calculate equated monthly installments for loans", icon: Coins, popular: true },
   { name: "SIP Calculator", slug: "sip-calculator", category: "finance", description: "Estimate returns on systematic investment plans", icon: TrendingUp, popular: true },
@@ -72,7 +101,7 @@ export const TOOLS: Tool[] = [
   { name: "Commission Calculator", slug: "commission-calculator", category: "finance", description: "Calculate sales commission with tiered rates", icon: Percent },
   { name: "Group Expense Splitter", slug: "group-expense-splitter", category: "finance", description: "Split group expenses and calculate who owes whom", icon: DollarSign, popular: true },
   { name: "Startup Break-Even", slug: "startup-break-even", category: "finance", description: "Calculate break-even point for a startup", icon: TrendingUp },
-  { name: "SaaS Break-Even", slug: "saas-break-even", category: "finance", description: "Calculate SaaS break-even with MRR, CAC, and churn", icon: TrendingUp },
+  { name: "SaaS Break-Even", slug: "saas-break-even", category: "finance", description: "Find how many paying software subscribers cover your monthly costs", icon: TrendingUp },
   { name: "Ecommerce Break-Even", slug: "ecommerce-break-even", category: "finance", description: "Calculate ecommerce break-even including ad spend", icon: TrendingUp },
   { name: "Crypto Break-Even", slug: "crypto-break-even", category: "finance", description: "Calculate break-even price for crypto investments", icon: TrendingUp },
   { name: "Basic Break-Even", slug: "break-even-calculator", category: "finance", description: "Calculate break-even units, revenue, and margin", icon: TrendingUp },
@@ -151,7 +180,7 @@ export const TOOLS: Tool[] = [
   { name: "SRI Hash Generator", slug: "sri-hash-generator", category: "security", description: "Generate Subresource Integrity hashes for CDN assets", icon: ShieldCheck },
   { name: "TOTP Generator", slug: "totp-generator", category: "security", description: "Generate Time-based One-Time Passwords (TOTP/Google Authenticator)", icon: Timer, popular: true },
   { name: "RSA Key Generator", slug: "rsa-key-generator", category: "security", description: "Generate RSA public/private key pairs in the browser", icon: Key },
-  { name: "Hash Identifier", slug: "hash-identifier", category: "security", description: "Identify the algorithm used to create a hash string", icon: Search },
+  { name: "Hash Identifier", slug: "hash-identifier", category: "security", description: "Find candidate hash algorithms from a digest’s length and format", icon: Search },
   { name: "Checksum Calculator", slug: "checksum-calculator", category: "security", description: "Calculate CRC32 and SHA checksums for text", icon: Hash },
 
   // ── Web Dev ───────────────────────────────────────────────────────────────
@@ -164,7 +193,7 @@ export const TOOLS: Tool[] = [
   { name: "Heading Hierarchy Checker", slug: "heading-hierarchy-checker", category: "webdev", description: "Check H1-H6 nesting and accessibility of HTML headings", icon: List },
   { name: "Font Preview", slug: "font-preview", category: "webdev", description: "Preview text in web-safe and popular fonts", icon: Type },
   { name: "Placeholder Image Generator", slug: "placeholder-image-generator", category: "webdev", description: "Generate SVG placeholder images with custom size and text", icon: Image },
-  { name: "Barcode Generator", slug: "barcode-generator", category: "webdev", description: "Generate barcodes in CODE128, EAN13, QR, and more", icon: Barcode, popular: true },
+  { name: "Barcode Generator", slug: "barcode-generator", category: "webdev", description: "Generate linear barcodes including CODE128, CODE39, EAN13 and UPC", icon: Barcode, popular: true },
   { name: "Changelog Formatter", slug: "changelog-formatter", category: "webdev", description: "Format changelogs in Keep a Changelog style", icon: FileText },
   { name: "Favicon Generator", slug: "favicon-generator", category: "webdev", description: "Generate favicons from text or emoji at multiple sizes", icon: Star },
 
@@ -244,7 +273,7 @@ export const TOOLS: Tool[] = [
   { name: "Number Base Converter", slug: "number-base-converter", category: "encoding", description: "Convert between binary, octal, decimal, and hexadecimal", icon: Binary, popular: true },
   { name: "Arbitrary Base Converter", slug: "arbitrary-base-converter", category: "encoding", description: "Convert numbers between any base from 2 to 36", icon: Binary },
   { name: "Roman Numeral Converter", slug: "roman-numeral-converter", category: "encoding", description: "Convert between Roman numerals and Arabic numbers", icon: Languages },
-  { name: "Number to Words", slug: "number-to-words", category: "encoding", description: "Convert any number to English word representation", icon: Languages },
+  { name: "Number to Words", slug: "number-to-words", category: "encoding", description: "Render a numeric input as English words", icon: Languages },
   { name: "Unix Timestamp Converter", slug: "unix-timestamp-converter", category: "encoding", description: "Convert between Unix epoch timestamps and readable dates", icon: Clock, popular: true },
   { name: "ROT13 & Caesar Cipher", slug: "rot13-caesar", category: "encoding", description: "Classic letter-substitution ciphers for text encoding", icon: Shuffle },
   { name: "Morse Code Translator", slug: "morse-code", category: "encoding", description: "Convert text to and from Morse code", icon: Zap },
@@ -300,9 +329,9 @@ export const TOOLS: Tool[] = [
   { name: ".htaccess Generator", slug: "htaccess-generator", category: "webstandards", description: "Generate Apache .htaccess for redirects, caching, security", icon: Settings2 },
   { name: ".htpasswd Generator", slug: "htpasswd-generator", category: "webstandards", description: "Generate .htpasswd entries for HTTP Basic Authentication", icon: Lock },
   { name: "Sitemap Generator", slug: "sitemap-generator", category: "webstandards", description: "Generate XML sitemaps from URL lists", icon: Globe },
-  { name: "ARIA Roles Reference", slug: "aria-roles-reference", category: "webstandards", description: "Complete reference for ARIA roles and accessibility attributes", icon: Accessibility },
+  { name: "ARIA Roles Reference", slug: "aria-roles-reference", category: "webstandards", description: "Look up selected ARIA roles and accessibility attributes", icon: Accessibility },
   { name: "WCAG Reference", slug: "wcag-reference", category: "webstandards", description: "WCAG 2.1 guidelines reference with A, AA, AAA levels", icon: ShieldCheck },
-  { name: "HTTP Status Codes", slug: "http-status-codes-reference", category: "webstandards", description: "Complete reference for all HTTP status codes", icon: Globe },
+  { name: "HTTP Status Codes", slug: "http-status-codes-reference", category: "webstandards", description: "Search common HTTP status codes by number, name or description", icon: Globe },
 
   // ── Reference ─────────────────────────────────────────────────────────────
   { name: "ASCII Table", slug: "ascii-table", category: "reference", description: "Complete ASCII character code reference table", icon: Hash },
@@ -313,7 +342,6 @@ export const TOOLS: Tool[] = [
   { name: "Unicode Character Lookup", slug: "unicode-char-lookup", category: "reference", description: "Look up Unicode characters by code point", icon: Search },
   { name: "Invisible Char Detector", slug: "invisible-char-detector", category: "reference", description: "Detect zero-width and invisible Unicode characters", icon: Eye },
   { name: "Developer Cheatsheets", slug: "developer-cheatsheets", category: "reference", description: "Quick-reference cheatsheets for Git, Linux, Vim, Regex, Docker", icon: BookOpen, popular: true },
-  { name: "DNS Record Reference", slug: "dns-record-reference-ref", category: "reference", description: "Reference for A, AAAA, CNAME, MX, TXT, and other DNS records", icon: Network },
 
   // ── Image Tools ────────────────────────────────────────────────────────────
   { name: "EXIF Viewer", slug: "exif-viewer", category: "image", description: "View EXIF metadata from JPEG images in your browser", icon: Eye, popular: true },
@@ -333,13 +361,26 @@ export const TOOLS: Tool[] = [
   { name: "PDF Metadata Editor", slug: "pdf-metadata", category: "pdf", description: "View and edit PDF title, author, and keywords", icon: Tag },
   { name: "PDF Text Extractor", slug: "pdf-text-extract", category: "pdf", description: "Extract selectable text from PDFs page by page", icon: FileSearch },
 
+  { name: "Receipt & Invoice Extractor", slug: "ai-invoice-extractor", category: "ai", description: "Extract receipt and invoice fields into editable spreadsheet rows", icon: Sparkles },
+  { name: "Table to Spreadsheet", slug: "ai-table-extractor", category: "ai", description: "Extract tables from images, PDFs or text and export CSV", icon: Sparkles },
+  { name: "Scan to Summary or Translation", slug: "ai-scan-assistant", category: "ai", description: "Read scanned documents locally, then summarize or translate reviewed text", icon: Sparkles },
+  { name: "Compare Documents", slug: "ai-document-compare", category: "ai", description: "Compare two documents for changed wording, amounts and dates", icon: Sparkles },
   // ── OCR & Documents ────────────────────────────────────────────────────────
   { name: "Image to Text (OCR)", slug: "image-ocr", category: "ocr", description: "Extract text from photos and screenshots in 12 languages", icon: ScanLine, popular: true },
   { name: "PDF OCR", slug: "pdf-ocr", category: "ocr", description: "Recognize text in scanned PDFs, page by page", icon: FileSearch, popular: true },
 
   // ── AI Tools ───────────────────────────────────────────────────────────────
-  { name: "AI Document Summarizer", slug: "ai-summarizer", category: "ai", description: "Summarize any document text into a short overview with key bullets", icon: Sparkles, popular: true },
+  { name: "AI Document Intelligence", slug: "ai-document-intelligence", category: "ai", description: "Review documents, validate invoice amounts, compare text and explore AI findings with source evidence", icon: Sparkles, popular: true },
   { name: "AI Key Points Extractor", slug: "ai-key-points", category: "ai", description: "Extract names, dates, figures, and decisions from any text", icon: List },
   { name: "AI Document Q&A", slug: "ai-document-qa", category: "ai", description: "Ask questions about a document and get answers from its text", icon: FileSearch, popular: true },
   { name: "AI Document Translator", slug: "ai-translator", category: "ai", description: "Translate document text into 18 languages with AI", icon: Languages },
 ];
+
+// Do not advertise unavailable online tools in the public directory.
+export const TOOLS: Tool[] = REGISTERED_TOOLS.filter(t => t.slug === "ai-document-intelligence" || t.category !== "ai" || import.meta.env.VITE_ENABLE_AI === "true");
+
+export const CATEGORIES: Category[] = REGISTERED_CATEGORIES.filter(c => TOOLS.some(t => t.category === c.slug));
+
+export function inToolCategory(tool: Tool, category: string | undefined) {
+  return tool.category === category || (category === "reference" && tool.slug === "dns-record-reference");
+}

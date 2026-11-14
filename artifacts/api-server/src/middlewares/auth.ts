@@ -25,7 +25,7 @@ export async function requireAuth(
     req.firebaseUser = await verifyIdToken(token);
     next();
   } catch (err) {
-    req.log.warn({ err }, "token verification failed");
+    req.log.warn({name: (err as Error).name}, "token verification failed");
     res.status(401).json({ message: "Invalid or expired token" });
   }
 }

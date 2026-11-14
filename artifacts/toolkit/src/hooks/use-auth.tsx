@@ -3,6 +3,7 @@ import { watchAuth, signOut as fbSignOut, firebaseConfigured, type FirebaseUser 
 import { syncUser, type ApiUser } from "@/lib/api";
 
 interface AuthState {
+  error: string;
   firebaseUser: FirebaseUser | null;
   user: ApiUser | null;
   loading: boolean;
@@ -11,6 +12,7 @@ interface AuthState {
 }
 
 const AuthContext = createContext<AuthState>({
+  error: "",
   firebaseUser: null,
   user: null,
   loading: true,
@@ -20,6 +22,7 @@ const AuthContext = createContext<AuthState>({
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  const [error,setError]=useState("");
   const [user, setUser] = useState<ApiUser | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let version = 0;
     const unsubscribe = watchAuth(async (fb) => {
       const current = ++version;
-      setFirebaseUser(fb);
+      setFirebaseUser(fb);setError("");
       if (fb) {
         try {
           const token = await fb.getIdToken();
@@ -36,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(synced);
         } catch (err) {
           if (current !== version) return;
-          console.error("Failed to sync user", err);
+          setError("Sign-in could not be completed. The account may be disabled or the service unavailable. Try again or contact support.");
           setUser(null);
         }
       } else {
@@ -57,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ firebaseUser, user, loading, configured: firebaseConfigured, signOut }}
+      value={{ error, firebaseUser, user, loading, configured: firebaseConfigured, signOut }}
     >
       {children}
     </AuthContext.Provider>

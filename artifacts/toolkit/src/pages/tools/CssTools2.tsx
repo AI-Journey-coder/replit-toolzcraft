@@ -138,7 +138,7 @@ export function CssTriangleGenerator() {
           <div style={previewStyle} />
         </div>
         <div className="relative">
-          <pre className="bg-muted rounded p-3 text-xs">{css}</pre>
+          <pre className="bg-muted rounded p-3 text-xs whitespace-pre-wrap break-all">{css}</pre>
           <Button size="sm" className="absolute top-2 right-2" onClick={() => copyToClipboard(css)}>Copy</Button>
         </div>
       </CardContent>

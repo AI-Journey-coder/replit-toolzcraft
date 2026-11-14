@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Copy, CheckCheck, ShieldCheck, ShieldX } from "lucide-react";
-import forge from "node-forge";
+import { decodeCertificate, type CertInfo } from "@/lib/certificate";
 
 function useCopy(text: string) {
   const [copied, setCopied] = useState(false);
@@ -148,53 +148,17 @@ export function Sha256Generator() {
 
 // ─── SSL Certificate Decoder ────────────────────────────────────────────────
 
-interface CertInfo {
-  subject: string;
-  issuer: string;
-  validFrom: string;
-  validTo: string;
-  serialNumber: string;
-  signatureAlgorithm: string;
-  publicKeyAlgorithm: string;
-  fingerprintSha256: string;
-  san: string[];
-  isExpired: boolean;
-}
-
-function decodeCertificate(pem: string): CertInfo {
-  const cert = forge.pki.certificateFromPem(pem);
-  const subject = cert.subject.attributes.map(a => `${a.shortName}=${a.value}`).join(", ");
-  const issuer = cert.issuer.attributes.map(a => `${a.shortName}=${a.value}`).join(", ");
-  const der = forge.asn1.toDer(forge.pki.certificateToAsn1(cert)).getBytes();
-  const fingerprintSha256 = forge.md.sha256.create().update(der).digest().toHex().match(/../g)!.join(":").toUpperCase();
-  let san: string[] = [];
-  const ext = cert.getExtension("subjectAltName") as any;
-  if (ext?.altNames) san = ext.altNames.map((n: any) => n.value);
-
-  return {
-    subject,
-    issuer,
-    validFrom: cert.validity.notBefore.toISOString(),
-    validTo: cert.validity.notAfter.toISOString(),
-    serialNumber: cert.serialNumber,
-    signatureAlgorithm: cert.siginfo.algorithmOid,
-    publicKeyAlgorithm: (cert.publicKey as any).n ? "RSA" : "EC",
-    fingerprintSha256,
-    san,
-    isExpired: cert.validity.notAfter.getTime() < Date.now(),
-  };
-}
 
 export function SslCertDecoder() {
   const [pem, setPem] = useState("");
   const [info, setInfo] = useState<CertInfo | null>(null);
   const [error, setError] = useState("");
 
-  const decode = () => {
+  const decode = async () => {
     setError("");
     setInfo(null);
     try {
-      setInfo(decodeCertificate(pem.trim()));
+      setInfo(await decodeCertificate(pem.trim()));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to parse certificate. Make sure it's a valid PEM-encoded X.509 certificate.");
     }

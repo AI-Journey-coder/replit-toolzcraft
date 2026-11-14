@@ -12,7 +12,7 @@ const STATS = [
   { value: `${TOOLS.length}+`, label: "Browser tools" },
   { value: `${CATEGORIES.length}`, label: "Categories" },
   { value: "0", label: "Logins needed" },
-  { value: "100%", label: "Client-side" },
+  { value: "Optional", label: "Sign-in" },
 ];
 
 const FEATURED = [
@@ -87,7 +87,7 @@ const WHY = [
   {
     icon: Lock,
     title: "Private by design",
-    desc: "Your data never leaves your device. Zero retention, zero telemetry, zero account required.",
+    desc: "Most utilities process inputs in your browser. AI, exchange rates, optional sign-in and usage tracking use network services; see our privacy policy.",
   },
   {
     icon: Shield,
@@ -129,7 +129,7 @@ export function Promo() {
 
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
           ToolzCraft is a privacy-first utility platform — {TOOLS.length} browser tools across {CATEGORIES.length} categories.
-          No login. No ads. Just precision instruments at your fingertips.
+          Everyday utilities with optional sign-in and clear guidance on how your data is processed.
         </p>
 
         <div className="flex flex-wrap gap-4 justify-center">

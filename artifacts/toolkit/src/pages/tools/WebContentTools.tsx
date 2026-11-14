@@ -272,7 +272,7 @@ export function PlaceholderImageGenerator() {
         <div className="flex justify-center border rounded p-4 bg-muted/30">
           <img src={svgUrl} alt="Preview" style={{ maxWidth: "100%", maxHeight: 200 }} />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button onClick={download}>Download SVG</Button>
           <Button variant="outline" onClick={() => copyToClipboard(svgUrl)}>Copy URL</Button>
           <Button variant="outline" onClick={() => copyToClipboard(htmlSnippet)}>Copy HTML</Button>

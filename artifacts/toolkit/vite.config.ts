@@ -2,9 +2,10 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
+import { existsSync } from "node:fs";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
-const rawPort = process.env.PORT;
+const rawPort = process.env.PORT ?? "3000";
 
 if (!rawPort) {
   throw new Error(
@@ -18,7 +19,7 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-const basePath = process.env.BASE_PATH;
+const basePath = process.env.BASE_PATH ?? "/";
 
 if (!basePath) {
   throw new Error(
@@ -32,6 +33,19 @@ export default defineConfig({
     global: "globalThis",
   },
   plugins: [
+    {
+      name: "tool-route-entry-points",
+      configurePreviewServer(server) {
+        server.middlewares.use((req, _res, next) => {
+          const pathname = (req.url ?? "").split("?")[0];
+          if (/^\/(?:tools\/|category\/)?[a-z0-9-]+\/?$/.test(pathname)) {
+            const relative = pathname.replace(/^\//, "").replace(/\/$/, "") + "/index.html";
+            if (existsSync(path.resolve(import.meta.dirname, "dist/public", relative))) req.url = "/" + relative;
+          }
+          next();
+        });
+      },
+    },
     react(),
     tailwindcss(),
     runtimeErrorOverlay(),
@@ -64,6 +78,7 @@ export default defineConfig({
   server: {
     port,
     strictPort: true,
+    proxy: { "/api": { target: process.env.API_PROXY_TARGET ?? "http://127.0.0.1:5000", changeOrigin: true } },
     host: "0.0.0.0",
     allowedHosts: true,
     fs: {
@@ -72,6 +87,7 @@ export default defineConfig({
   },
   preview: {
     port,
+    strictPort: true,
     host: "0.0.0.0",
     allowedHosts: true,
   },

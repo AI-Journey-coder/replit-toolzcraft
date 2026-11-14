@@ -1,0 +1,8 @@
+export type EvInputs={evPrice:number;fuelPrice:number;battery:number;rangeKm:number;loss:number;tariff:number;fuelPerLitre:number;kmPerLitre:number;evMaintenance:number;fuelMaintenance:number};
+export function chargingCosts(v:EvInputs){
+ if(Object.values(v).some(n=>!Number.isFinite(n)||n<0)||v.battery<=0||v.rangeKm<=0||v.kmPerLitre<=0||v.loss>=100)throw Error('Enter positive battery capacity, full-charge range and fuel efficiency. Charging losses must be below 100%.');
+ const units=v.battery/(1-v.loss/100),charge=units*v.tariff,evPerKm=charge/v.rangeKm,fuelPerKm=v.fuelPerLitre/v.kmPerLitre;
+ return {units,charge,evPerKm,fuelPerKm,savingPerKm:fuelPerKm-evPerKm,premium:v.evPrice-v.fuelPrice,maintenanceSaving:v.fuelMaintenance-v.evMaintenance};
+}
+export function drivingComparison(v:EvInputs,dailyKm:number){if(!Number.isFinite(dailyKm)||dailyKm<0)throw Error('Enter a non-negative daily distance.');const c=chargingCosts(v);const annualSaving=dailyKm*365*c.savingPerKm+c.maintenanceSaving;return {...c,annualSaving,months:c.premium<=0&&annualSaving>=0?0:c.premium>0&&annualSaving>0?12*c.premium/annualSaving:null,evAnnual:dailyKm*365*c.evPerKm+v.evMaintenance,fuelAnnual:dailyKm*365*c.fuelPerKm+v.fuelMaintenance};}
+export function targetDailyKm(v:EvInputs,months:number){if(!Number.isFinite(months)||months<=0)throw Error('Choose a positive number of months.');const c=chargingCosts(v);if(c.premium<=0)throw Error('The electric vehicle has no extra purchase cost to recover. Use daily-distance mode to compare ongoing costs.');if(c.savingPerKm<=0)throw Error('Extra driving does not save energy costs with these prices. Use daily-distance mode to compare maintenance savings.');return Math.max(0,(c.premium*12/months-c.maintenanceSaving)/(365*c.savingPerKm));}
