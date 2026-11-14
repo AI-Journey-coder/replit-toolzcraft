@@ -180,7 +180,7 @@ const REGISTERED_TOOLS: Tool[] = [
   { name: "SRI Hash Generator", slug: "sri-hash-generator", category: "security", description: "Generate Subresource Integrity hashes for CDN assets", icon: ShieldCheck },
   { name: "TOTP Generator", slug: "totp-generator", category: "security", description: "Generate Time-based One-Time Passwords (TOTP/Google Authenticator)", icon: Timer, popular: true },
   { name: "RSA Key Generator", slug: "rsa-key-generator", category: "security", description: "Generate RSA public/private key pairs in the browser", icon: Key },
-  { name: "Hash Identifier", slug: "hash-identifier", category: "security", description: "Identify the algorithm used to create a hash string", icon: Search },
+  { name: "Hash Identifier", slug: "hash-identifier", category: "security", description: "Find candidate hash algorithms from a digest’s length and format", icon: Search },
   { name: "Checksum Calculator", slug: "checksum-calculator", category: "security", description: "Calculate CRC32 and SHA checksums for text", icon: Hash },
 
   // ── Web Dev ───────────────────────────────────────────────────────────────
@@ -193,7 +193,7 @@ const REGISTERED_TOOLS: Tool[] = [
   { name: "Heading Hierarchy Checker", slug: "heading-hierarchy-checker", category: "webdev", description: "Check H1-H6 nesting and accessibility of HTML headings", icon: List },
   { name: "Font Preview", slug: "font-preview", category: "webdev", description: "Preview text in web-safe and popular fonts", icon: Type },
   { name: "Placeholder Image Generator", slug: "placeholder-image-generator", category: "webdev", description: "Generate SVG placeholder images with custom size and text", icon: Image },
-  { name: "Barcode Generator", slug: "barcode-generator", category: "webdev", description: "Generate barcodes in CODE128, EAN13, QR, and more", icon: Barcode, popular: true },
+  { name: "Barcode Generator", slug: "barcode-generator", category: "webdev", description: "Generate linear barcodes including CODE128, CODE39, EAN13 and UPC", icon: Barcode, popular: true },
   { name: "Changelog Formatter", slug: "changelog-formatter", category: "webdev", description: "Format changelogs in Keep a Changelog style", icon: FileText },
   { name: "Favicon Generator", slug: "favicon-generator", category: "webdev", description: "Generate favicons from text or emoji at multiple sizes", icon: Star },
 
@@ -273,7 +273,7 @@ const REGISTERED_TOOLS: Tool[] = [
   { name: "Number Base Converter", slug: "number-base-converter", category: "encoding", description: "Convert between binary, octal, decimal, and hexadecimal", icon: Binary, popular: true },
   { name: "Arbitrary Base Converter", slug: "arbitrary-base-converter", category: "encoding", description: "Convert numbers between any base from 2 to 36", icon: Binary },
   { name: "Roman Numeral Converter", slug: "roman-numeral-converter", category: "encoding", description: "Convert between Roman numerals and Arabic numbers", icon: Languages },
-  { name: "Number to Words", slug: "number-to-words", category: "encoding", description: "Convert any number to English word representation", icon: Languages },
+  { name: "Number to Words", slug: "number-to-words", category: "encoding", description: "Render a numeric input as English words", icon: Languages },
   { name: "Unix Timestamp Converter", slug: "unix-timestamp-converter", category: "encoding", description: "Convert between Unix epoch timestamps and readable dates", icon: Clock, popular: true },
   { name: "ROT13 & Caesar Cipher", slug: "rot13-caesar", category: "encoding", description: "Classic letter-substitution ciphers for text encoding", icon: Shuffle },
   { name: "Morse Code Translator", slug: "morse-code", category: "encoding", description: "Convert text to and from Morse code", icon: Zap },
@@ -329,7 +329,7 @@ const REGISTERED_TOOLS: Tool[] = [
   { name: ".htaccess Generator", slug: "htaccess-generator", category: "webstandards", description: "Generate Apache .htaccess for redirects, caching, security", icon: Settings2 },
   { name: ".htpasswd Generator", slug: "htpasswd-generator", category: "webstandards", description: "Generate .htpasswd entries for HTTP Basic Authentication", icon: Lock },
   { name: "Sitemap Generator", slug: "sitemap-generator", category: "webstandards", description: "Generate XML sitemaps from URL lists", icon: Globe },
-  { name: "ARIA Roles Reference", slug: "aria-roles-reference", category: "webstandards", description: "Complete reference for ARIA roles and accessibility attributes", icon: Accessibility },
+  { name: "ARIA Roles Reference", slug: "aria-roles-reference", category: "webstandards", description: "Look up selected ARIA roles and accessibility attributes", icon: Accessibility },
   { name: "WCAG Reference", slug: "wcag-reference", category: "webstandards", description: "WCAG 2.1 guidelines reference with A, AA, AAA levels", icon: ShieldCheck },
   { name: "HTTP Status Codes", slug: "http-status-codes-reference", category: "webstandards", description: "Search common HTTP status codes by number, name or description", icon: Globe },
 
