@@ -37,6 +37,9 @@ jobs:
       - run: node scripts/database.cjs migrate
       - run: pnpm --filter @workspace/api-server build
       - run: pnpm build:local
+        env:
+          VITE_SITE_URL: https://toolzcraft.test
+          VITE_ENABLE_AI: "true"
       - run: node scripts/create-test-fixtures.cjs
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm exec playwright test
