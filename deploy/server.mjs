@@ -94,6 +94,18 @@ export function createServer({root=path.resolve('artifacts/toolkit/dist/public')
   let file=path.join(root,pathname);try{let stat=fs.statSync(file);if(stat.isDirectory()){file=path.join(file,'index.html');stat=fs.statSync(file);}if(!stat.isFile())return finish(404,'Not found');const real=fs.realpathSync(file);if(!real.startsWith(root+path.sep))return finish(404,'Not found');
    const extension=path.extname(file).toLowerCase();if(!MIME[extension])return finish(404,'Not found');
    res.setHeader('Content-Type',MIME[extension]);res.setHeader('Cache-Control',extension==='.html'?'no-cache, max-age=0, must-revalidate':pathname.startsWith('/assets/')?'public, max-age=31536000, immutable': 'no-cache, max-age=0, must-revalidate');
+   if(pathname.startsWith('/assets/') && ['.js','.css'].includes(extension)){
+    res.setHeader('Vary','Accept-Encoding');
+    const acceptsGzip=(req.headers['accept-encoding'] || '').split(',').some(entry=>{
+     const [encoding,quality]=entry.trim().toLowerCase().split(/\s*;\s*q=/);
+     return encoding==='gzip' && (quality===undefined || Number(quality)>0);
+    });
+    if(acceptsGzip && !req.headers.range && fs.existsSync(file+'.gz')){
+     const compressed=fs.realpathSync(file+'.gz');
+     if(!compressed.startsWith(root+path.sep))return finish(404,'Not found');
+     file=compressed;stat=fs.statSync(file);res.setHeader('Content-Encoding','gzip');
+    }
+   }
    let start=0,end=stat.size-1;res.setHeader('Accept-Ranges','bytes');if(req.headers.range){const m=/^bytes=(\d*)-(\d*)$/.exec(req.headers.range);if(!m||(!m[1]&&!m[2]))return finish(416,'Invalid byte range');if(!m[1])start=Math.max(0,stat.size-Number(m[2]));else start=Number(m[1]);if(m[1]&&m[2])end=Math.min(end,Number(m[2]));if(start>end||start>=stat.size){res.setHeader('Content-Range',`bytes */${stat.size}`);return finish(416,'Range not satisfiable');}res.statusCode=206;res.setHeader('Content-Range',`bytes ${start}-${end}/${stat.size}`);}
    res.setHeader('Content-Length',Math.max(0,end-start+1));if(req.method==='HEAD'||stat.size===0)return res.end();const stream=fs.createReadStream(file,{start,end});stream.on('error',()=>res.destroy());stream.pipe(res);
   }catch{return finish(404,'Not found');}

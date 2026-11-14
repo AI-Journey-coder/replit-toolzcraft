@@ -2,10 +2,16 @@
 import {Redirect} from 'wouter';
 import { Profile } from "@/pages/Profile";
 
-import {SqlDataGenerator,SampleDataGenerator,BoundaryDataGenerator} from '@/pages/tools/TestData';
-import {AdvertisingBreakEven,ServiceBreakEven,RefinanceBreakEven} from '@/pages/tools/BreakEvenExtra';
-import {BuyRentCalculator,EvFuelCalculator} from '@/pages/tools/OwnershipCalculator';
-import {TimeArithmetic,WorkingHours} from '@/pages/tools/TimeWork';
+const SqlDataGenerator = lazy(() => import("@/pages/tools/TestData").then(m => ({ default: m.SqlDataGenerator })));
+const SampleDataGenerator = lazy(() => import("@/pages/tools/TestData").then(m => ({ default: m.SampleDataGenerator })));
+const BoundaryDataGenerator = lazy(() => import("@/pages/tools/TestData").then(m => ({ default: m.BoundaryDataGenerator })));
+const AdvertisingBreakEven = lazy(() => import("@/pages/tools/BreakEvenExtra").then(m => ({ default: m.AdvertisingBreakEven })));
+const ServiceBreakEven = lazy(() => import("@/pages/tools/BreakEvenExtra").then(m => ({ default: m.ServiceBreakEven })));
+const RefinanceBreakEven = lazy(() => import("@/pages/tools/BreakEvenExtra").then(m => ({ default: m.RefinanceBreakEven })));
+const BuyRentCalculator = lazy(() => import("@/pages/tools/OwnershipCalculator").then(m => ({ default: m.BuyRentCalculator })));
+const EvFuelCalculator = lazy(() => import("@/pages/tools/OwnershipCalculator").then(m => ({ default: m.EvFuelCalculator })));
+const TimeArithmetic = lazy(() => import("@/pages/tools/TimeWork").then(m => ({ default: m.TimeArithmetic })));
+const WorkingHours = lazy(() => import("@/pages/tools/TimeWork").then(m => ({ default: m.WorkingHours })));
 import {Subscriptions} from '@/pages/Subscriptions';
 import { AppErrorBoundary } from '@/components/AppErrorBoundary';
 import { PolicyPage, POLICY_KEYS } from '@/pages/Policies';
@@ -30,111 +36,246 @@ import NotFound from "@/pages/not-found";
 import { AuthProvider } from "@/hooks/use-auth";
 
 // Finance
-import { EmiCalculator, SipCalculator, CompoundInterestCalculator, RoiCalculator, TipCalculator, GstCalculator } from "@/pages/tools/FinanceTools";
-import { MortgageCalculator, StartupBreakEven, SaasBreakEven, EcommerceBreakEven, CryptoBreakEven, TimeFormatConverter, ExpenseCategorizer, ChecksumCalculator } from "@/pages/tools/FinanceTools2";
-import { BreakEvenCalculator, CommissionCalculator, GroupExpenseSplitter } from "@/pages/tools/CalcTools2";
+const EmiCalculator = lazy(() => import("@/pages/tools/FinanceTools").then(m => ({ default: m.EmiCalculator })));
+const SipCalculator = lazy(() => import("@/pages/tools/FinanceTools").then(m => ({ default: m.SipCalculator })));
+const CompoundInterestCalculator = lazy(() => import("@/pages/tools/FinanceTools").then(m => ({ default: m.CompoundInterestCalculator })));
+const RoiCalculator = lazy(() => import("@/pages/tools/FinanceTools").then(m => ({ default: m.RoiCalculator })));
+const TipCalculator = lazy(() => import("@/pages/tools/FinanceTools").then(m => ({ default: m.TipCalculator })));
+const GstCalculator = lazy(() => import("@/pages/tools/FinanceTools").then(m => ({ default: m.GstCalculator })));
+const MortgageCalculator = lazy(() => import("@/pages/tools/FinanceTools2").then(m => ({ default: m.MortgageCalculator })));
+const StartupBreakEven = lazy(() => import("@/pages/tools/FinanceTools2").then(m => ({ default: m.StartupBreakEven })));
+const SaasBreakEven = lazy(() => import("@/pages/tools/FinanceTools2").then(m => ({ default: m.SaasBreakEven })));
+const EcommerceBreakEven = lazy(() => import("@/pages/tools/FinanceTools2").then(m => ({ default: m.EcommerceBreakEven })));
+const CryptoBreakEven = lazy(() => import("@/pages/tools/FinanceTools2").then(m => ({ default: m.CryptoBreakEven })));
+const TimeFormatConverter = lazy(() => import("@/pages/tools/FinanceTools2").then(m => ({ default: m.TimeFormatConverter })));
+const ExpenseCategorizer = lazy(() => import("@/pages/tools/FinanceTools2").then(m => ({ default: m.ExpenseCategorizer })));
+const ChecksumCalculator = lazy(() => import("@/pages/tools/FinanceTools2").then(m => ({ default: m.ChecksumCalculator })));
+const BreakEvenCalculator = lazy(() => import("@/pages/tools/CalcTools2").then(m => ({ default: m.BreakEvenCalculator })));
+const CommissionCalculator = lazy(() => import("@/pages/tools/CalcTools2").then(m => ({ default: m.CommissionCalculator })));
+const GroupExpenseSplitter = lazy(() => import("@/pages/tools/CalcTools2").then(m => ({ default: m.GroupExpenseSplitter })));
 
 // Converters
-import {
-  LengthConverter, WeightConverter, TemperatureConverter,
-  SpeedConverter, AreaConverter, VolumeConverter,
-  DataStorageConverter, EnergyConverter, PressureConverter,
-} from "@/pages/tools/ConverterTools";
-import { CurrencyConverter } from "@/pages/tools/CurrencyConverter";
+const LengthConverter = lazy(() => import("@/pages/tools/ConverterTools").then(m => ({ default: m.LengthConverter })));
+const WeightConverter = lazy(() => import("@/pages/tools/ConverterTools").then(m => ({ default: m.WeightConverter })));
+const TemperatureConverter = lazy(() => import("@/pages/tools/ConverterTools").then(m => ({ default: m.TemperatureConverter })));
+const SpeedConverter = lazy(() => import("@/pages/tools/ConverterTools").then(m => ({ default: m.SpeedConverter })));
+const AreaConverter = lazy(() => import("@/pages/tools/ConverterTools").then(m => ({ default: m.AreaConverter })));
+const VolumeConverter = lazy(() => import("@/pages/tools/ConverterTools").then(m => ({ default: m.VolumeConverter })));
+const DataStorageConverter = lazy(() => import("@/pages/tools/ConverterTools").then(m => ({ default: m.DataStorageConverter })));
+const EnergyConverter = lazy(() => import("@/pages/tools/ConverterTools").then(m => ({ default: m.EnergyConverter })));
+const PressureConverter = lazy(() => import("@/pages/tools/ConverterTools").then(m => ({ default: m.PressureConverter })));
+const CurrencyConverter = lazy(() => import("@/pages/tools/CurrencyConverter").then(m => ({ default: m.CurrencyConverter })));
 
 // Code
-import { JsonFormatter, Base64Tool, UrlEncodeTool, RegexTester, CodeDiff, JsMinifier, SqlFormatter } from "@/pages/tools/CodeTools";
+const JsonFormatter = lazy(() => import("@/pages/tools/CodeTools").then(m => ({ default: m.JsonFormatter })));
+const Base64Tool = lazy(() => import("@/pages/tools/CodeTools").then(m => ({ default: m.Base64Tool })));
+const UrlEncodeTool = lazy(() => import("@/pages/tools/CodeTools").then(m => ({ default: m.UrlEncodeTool })));
+const RegexTester = lazy(() => import("@/pages/tools/CodeTools").then(m => ({ default: m.RegexTester })));
+const CodeDiff = lazy(() => import("@/pages/tools/CodeTools").then(m => ({ default: m.CodeDiff })));
+const JsMinifier = lazy(() => import("@/pages/tools/CodeTools").then(m => ({ default: m.JsMinifier })));
+const SqlFormatter = lazy(() => import("@/pages/tools/CodeTools").then(m => ({ default: m.SqlFormatter })));
 
 // Text
-import { WordCounter, CaseConverter, LoremIpsum, MarkdownPreview } from "@/pages/tools/TextTools";
-import { TextDiff, FindReplace, LineSorter, SlugGenerator, ExtractEmailsUrls, UrlParser, TokenCounter, NatoPhonetic, TextTransform } from "@/pages/tools/TextTools2";
+const WordCounter = lazy(() => import("@/pages/tools/TextTools").then(m => ({ default: m.WordCounter })));
+const CaseConverter = lazy(() => import("@/pages/tools/TextTools").then(m => ({ default: m.CaseConverter })));
+const LoremIpsum = lazy(() => import("@/pages/tools/TextTools").then(m => ({ default: m.LoremIpsum })));
+const MarkdownPreview = lazy(() => import("@/pages/tools/TextTools").then(m => ({ default: m.MarkdownPreview })));
+const TextDiff = lazy(() => import("@/pages/tools/TextTools2").then(m => ({ default: m.TextDiff })));
+const FindReplace = lazy(() => import("@/pages/tools/TextTools2").then(m => ({ default: m.FindReplace })));
+const LineSorter = lazy(() => import("@/pages/tools/TextTools2").then(m => ({ default: m.LineSorter })));
+const SlugGenerator = lazy(() => import("@/pages/tools/TextTools2").then(m => ({ default: m.SlugGenerator })));
+const ExtractEmailsUrls = lazy(() => import("@/pages/tools/TextTools2").then(m => ({ default: m.ExtractEmailsUrls })));
+const UrlParser = lazy(() => import("@/pages/tools/TextTools2").then(m => ({ default: m.UrlParser })));
+const TokenCounter = lazy(() => import("@/pages/tools/TextTools2").then(m => ({ default: m.TokenCounter })));
+const NatoPhonetic = lazy(() => import("@/pages/tools/TextTools2").then(m => ({ default: m.NatoPhonetic })));
+const TextTransform = lazy(() => import("@/pages/tools/TextTools2").then(m => ({ default: m.TextTransform })));
 
-import { TextToHandwriting, PromptToJson, MarkdownReadmeGuide, PunycodeTool } from "@/pages/tools/TextTools4";
+const TextToHandwriting = lazy(() => import("@/pages/tools/TextTools4").then(m => ({ default: m.TextToHandwriting })));
+const PromptToJson = lazy(() => import("@/pages/tools/TextTools4").then(m => ({ default: m.PromptToJson })));
+const MarkdownReadmeGuide = lazy(() => import("@/pages/tools/TextTools4").then(m => ({ default: m.MarkdownReadmeGuide })));
+const PunycodeTool = lazy(() => import("@/pages/tools/TextTools4").then(m => ({ default: m.PunycodeTool })));
 
 // Math
-import { PercentageCalculator, ScientificCalculator, PrimeChecker } from "@/pages/tools/MathTools";
-import { MolecularWeightCalculator, DateAddSubtract } from "@/pages/tools/CalcTools2";
+const PercentageCalculator = lazy(() => import("@/pages/tools/MathTools").then(m => ({ default: m.PercentageCalculator })));
+const ScientificCalculator = lazy(() => import("@/pages/tools/MathTools").then(m => ({ default: m.ScientificCalculator })));
+const PrimeChecker = lazy(() => import("@/pages/tools/MathTools").then(m => ({ default: m.PrimeChecker })));
+const MolecularWeightCalculator = lazy(() => import("@/pages/tools/CalcTools2").then(m => ({ default: m.MolecularWeightCalculator })));
+const DateAddSubtract = lazy(() => import("@/pages/tools/CalcTools2").then(m => ({ default: m.DateAddSubtract })));
 
 // Security
-import { PasswordGenerator, UuidGenerator, HashGenerator } from "@/pages/tools/SecurityTools";
-import { Md5Generator, Sha256Generator, SslCertDecoder, SamlDecoder, ImeiValidator } from "@/pages/tools/SecurityTools2";
-import { PasswordStrengthChecker, AesEncryptDecrypt, HmacGenerator, RandomNumberGenerator, PassphraseGenerator } from "@/pages/tools/SecurityTools3";
-import { BcryptGenerator, SriHashGenerator, TotpGenerator, RsaKeyGenerator, HashIdentifier } from "@/pages/tools/SecurityTools4";
+const PasswordGenerator = lazy(() => import("@/pages/tools/SecurityTools").then(m => ({ default: m.PasswordGenerator })));
+const UuidGenerator = lazy(() => import("@/pages/tools/SecurityTools").then(m => ({ default: m.UuidGenerator })));
+const HashGenerator = lazy(() => import("@/pages/tools/SecurityTools").then(m => ({ default: m.HashGenerator })));
+const Md5Generator = lazy(() => import("@/pages/tools/SecurityTools2").then(m => ({ default: m.Md5Generator })));
+const Sha256Generator = lazy(() => import("@/pages/tools/SecurityTools2").then(m => ({ default: m.Sha256Generator })));
+const SslCertDecoder = lazy(() => import("@/pages/tools/SecurityTools2").then(m => ({ default: m.SslCertDecoder })));
+const SamlDecoder = lazy(() => import("@/pages/tools/SecurityTools2").then(m => ({ default: m.SamlDecoder })));
+const ImeiValidator = lazy(() => import("@/pages/tools/SecurityTools2").then(m => ({ default: m.ImeiValidator })));
+const PasswordStrengthChecker = lazy(() => import("@/pages/tools/SecurityTools3").then(m => ({ default: m.PasswordStrengthChecker })));
+const AesEncryptDecrypt = lazy(() => import("@/pages/tools/SecurityTools3").then(m => ({ default: m.AesEncryptDecrypt })));
+const HmacGenerator = lazy(() => import("@/pages/tools/SecurityTools3").then(m => ({ default: m.HmacGenerator })));
+const RandomNumberGenerator = lazy(() => import("@/pages/tools/SecurityTools3").then(m => ({ default: m.RandomNumberGenerator })));
+const PassphraseGenerator = lazy(() => import("@/pages/tools/SecurityTools3").then(m => ({ default: m.PassphraseGenerator })));
+const BcryptGenerator = lazy(() => import("@/pages/tools/SecurityTools4").then(m => ({ default: m.BcryptGenerator })));
+const SriHashGenerator = lazy(() => import("@/pages/tools/SecurityTools4").then(m => ({ default: m.SriHashGenerator })));
+const TotpGenerator = lazy(() => import("@/pages/tools/SecurityTools4").then(m => ({ default: m.TotpGenerator })));
+const RsaKeyGenerator = lazy(() => import("@/pages/tools/SecurityTools4").then(m => ({ default: m.RsaKeyGenerator })));
+const HashIdentifier = lazy(() => import("@/pages/tools/SecurityTools4").then(m => ({ default: m.HashIdentifier })));
 
 // Web Dev
-import { ColorPicker, CssGradient, ImageToBase64, MetaTagGenerator } from "@/pages/tools/WebDevTools";
+const ColorPicker = lazy(() => import("@/pages/tools/WebDevTools").then(m => ({ default: m.ColorPicker })));
+const CssGradient = lazy(() => import("@/pages/tools/WebDevTools").then(m => ({ default: m.CssGradient })));
+const ImageToBase64 = lazy(() => import("@/pages/tools/WebDevTools").then(m => ({ default: m.ImageToBase64 })));
+const MetaTagGenerator = lazy(() => import("@/pages/tools/WebDevTools").then(m => ({ default: m.MetaTagGenerator })));
 
 
 // Data Tools
 
-import {
-  TomlToJson, JsonToToml, IniToJson, YamlToXml, CsvToXml,
-  JsonMinifier, JsonTableViewer, PropertiesToJson, StructuredDataGenerator,
-} from "@/pages/tools/MoreDataTools";
-import {
-  JsonSchemaValidator, JsonToTomlConverter, YamlDiff, YamlToProperties,
-  TomlToYamlConverter, XmlToCsvConverter, PropertiesToYaml, JsonMockGenerator, SoapXmlToJson,
-} from "@/pages/tools/DataTools2";
+const TomlToJson = lazy(() => import("@/pages/tools/MoreDataTools").then(m => ({ default: m.TomlToJson })));
+const JsonToToml = lazy(() => import("@/pages/tools/MoreDataTools").then(m => ({ default: m.JsonToToml })));
+const IniToJson = lazy(() => import("@/pages/tools/MoreDataTools").then(m => ({ default: m.IniToJson })));
+const YamlToXml = lazy(() => import("@/pages/tools/MoreDataTools").then(m => ({ default: m.YamlToXml })));
+const CsvToXml = lazy(() => import("@/pages/tools/MoreDataTools").then(m => ({ default: m.CsvToXml })));
+const JsonMinifier = lazy(() => import("@/pages/tools/MoreDataTools").then(m => ({ default: m.JsonMinifier })));
+const JsonTableViewer = lazy(() => import("@/pages/tools/MoreDataTools").then(m => ({ default: m.JsonTableViewer })));
+const PropertiesToJson = lazy(() => import("@/pages/tools/MoreDataTools").then(m => ({ default: m.PropertiesToJson })));
+const StructuredDataGenerator = lazy(() => import("@/pages/tools/MoreDataTools").then(m => ({ default: m.StructuredDataGenerator })));
+const JsonSchemaValidator = lazy(() => import("@/pages/tools/DataTools2").then(m => ({ default: m.JsonSchemaValidator })));
+const JsonToTomlConverter = lazy(() => import("@/pages/tools/DataTools2").then(m => ({ default: m.JsonToTomlConverter })));
+const YamlDiff = lazy(() => import("@/pages/tools/DataTools2").then(m => ({ default: m.YamlDiff })));
+const YamlToProperties = lazy(() => import("@/pages/tools/DataTools2").then(m => ({ default: m.YamlToProperties })));
+const TomlToYamlConverter = lazy(() => import("@/pages/tools/DataTools2").then(m => ({ default: m.TomlToYamlConverter })));
+const XmlToCsvConverter = lazy(() => import("@/pages/tools/DataTools2").then(m => ({ default: m.XmlToCsvConverter })));
+const PropertiesToYaml = lazy(() => import("@/pages/tools/DataTools2").then(m => ({ default: m.PropertiesToYaml })));
+const JsonMockGenerator = lazy(() => import("@/pages/tools/DataTools2").then(m => ({ default: m.JsonMockGenerator })));
+const SoapXmlToJson = lazy(() => import("@/pages/tools/DataTools2").then(m => ({ default: m.SoapXmlToJson })));
 
 // Developer Tools
-import {
-  JwtDecoder, JwtBuilder, HttpStatusLookup, UserAgentParser,
-  CronParser, SemverCalculator, NanoIdGenerator, CurlConverter,
-} from "@/pages/tools/DevTools";
-import { ApiResponseViewer, JsonPathTester, GraphqlFormatter, DockerfileBuilder, DnsRecordReference, OpenApiValidator } from "@/pages/tools/DevTools2";
+const JwtDecoder = lazy(() => import("@/pages/tools/DevTools").then(m => ({ default: m.JwtDecoder })));
+const JwtBuilder = lazy(() => import("@/pages/tools/DevTools").then(m => ({ default: m.JwtBuilder })));
+const HttpStatusLookup = lazy(() => import("@/pages/tools/DevTools").then(m => ({ default: m.HttpStatusLookup })));
+const UserAgentParser = lazy(() => import("@/pages/tools/DevTools").then(m => ({ default: m.UserAgentParser })));
+const CronParser = lazy(() => import("@/pages/tools/DevTools").then(m => ({ default: m.CronParser })));
+const SemverCalculator = lazy(() => import("@/pages/tools/DevTools").then(m => ({ default: m.SemverCalculator })));
+const NanoIdGenerator = lazy(() => import("@/pages/tools/DevTools").then(m => ({ default: m.NanoIdGenerator })));
+const CurlConverter = lazy(() => import("@/pages/tools/DevTools").then(m => ({ default: m.CurlConverter })));
+const ApiResponseViewer = lazy(() => import("@/pages/tools/DevTools2").then(m => ({ default: m.ApiResponseViewer })));
+const JsonPathTester = lazy(() => import("@/pages/tools/DevTools2").then(m => ({ default: m.JsonPathTester })));
+const GraphqlFormatter = lazy(() => import("@/pages/tools/DevTools2").then(m => ({ default: m.GraphqlFormatter })));
+const DockerfileBuilder = lazy(() => import("@/pages/tools/DevTools2").then(m => ({ default: m.DockerfileBuilder })));
+const DnsRecordReference = lazy(() => import("@/pages/tools/DevTools2").then(m => ({ default: m.DnsRecordReference })));
+const OpenApiValidator = lazy(() => import("@/pages/tools/DevTools2").then(m => ({ default: m.OpenApiValidator })));
 
 // Formatters & Codegen
-import {
-  HtmlFormatter, CssFormatter, XmlFormatter, YamlFormatter, TomlFormatter,
-  Json5Formatter, JsonToPythonDict, JsonToGoStruct, JsonToJavaClass, RegexVisualizer,
-} from "@/pages/tools/FormatterTools";
+const HtmlFormatter = lazy(() => import("@/pages/tools/FormatterTools").then(m => ({ default: m.HtmlFormatter })));
+const CssFormatter = lazy(() => import("@/pages/tools/FormatterTools").then(m => ({ default: m.CssFormatter })));
+const XmlFormatter = lazy(() => import("@/pages/tools/FormatterTools").then(m => ({ default: m.XmlFormatter })));
+const YamlFormatter = lazy(() => import("@/pages/tools/FormatterTools").then(m => ({ default: m.YamlFormatter })));
+const TomlFormatter = lazy(() => import("@/pages/tools/FormatterTools").then(m => ({ default: m.TomlFormatter })));
+const Json5Formatter = lazy(() => import("@/pages/tools/FormatterTools").then(m => ({ default: m.Json5Formatter })));
+const JsonToPythonDict = lazy(() => import("@/pages/tools/FormatterTools").then(m => ({ default: m.JsonToPythonDict })));
+const JsonToGoStruct = lazy(() => import("@/pages/tools/FormatterTools").then(m => ({ default: m.JsonToGoStruct })));
+const JsonToJavaClass = lazy(() => import("@/pages/tools/FormatterTools").then(m => ({ default: m.JsonToJavaClass })));
+const RegexVisualizer = lazy(() => import("@/pages/tools/FormatterTools").then(m => ({ default: m.RegexVisualizer })));
 
 
 // SQL Tools
-import { CsvToSql, SqlDialectConverter, SqlColumnMapper } from "@/pages/tools/SqlTools";
+const CsvToSql = lazy(() => import("@/pages/tools/SqlTools").then(m => ({ default: m.CsvToSql })));
+const SqlDialectConverter = lazy(() => import("@/pages/tools/SqlTools").then(m => ({ default: m.SqlDialectConverter })));
+const SqlColumnMapper = lazy(() => import("@/pages/tools/SqlTools").then(m => ({ default: m.SqlColumnMapper })));
 
 // Encoding & Ciphers
-import {
-  NumberBaseConverter, ArbitraryBaseConverter, RomanNumeralConverter, NumberToWords,
-  UnixTimestampConverter, Rot13Caesar, MorseCodeTranslator, IpAddressConverter,
-} from "@/pages/tools/EncodingTools";
-import { Base32Codec, Base58Codec, HtmlEntityCodec, AsciiHexConverter, BinaryTextConverter, Utf8ByteViewer, BrailleTranslator, UnicodeEscape } from "@/pages/tools/EncodingTools2";
+const NumberBaseConverter = lazy(() => import("@/pages/tools/EncodingTools").then(m => ({ default: m.NumberBaseConverter })));
+const ArbitraryBaseConverter = lazy(() => import("@/pages/tools/EncodingTools").then(m => ({ default: m.ArbitraryBaseConverter })));
+const RomanNumeralConverter = lazy(() => import("@/pages/tools/EncodingTools").then(m => ({ default: m.RomanNumeralConverter })));
+const NumberToWords = lazy(() => import("@/pages/tools/EncodingTools").then(m => ({ default: m.NumberToWords })));
+const UnixTimestampConverter = lazy(() => import("@/pages/tools/EncodingTools").then(m => ({ default: m.UnixTimestampConverter })));
+const Rot13Caesar = lazy(() => import("@/pages/tools/EncodingTools").then(m => ({ default: m.Rot13Caesar })));
+const MorseCodeTranslator = lazy(() => import("@/pages/tools/EncodingTools").then(m => ({ default: m.MorseCodeTranslator })));
+const IpAddressConverter = lazy(() => import("@/pages/tools/EncodingTools").then(m => ({ default: m.IpAddressConverter })));
+const Base32Codec = lazy(() => import("@/pages/tools/EncodingTools2").then(m => ({ default: m.Base32Codec })));
+const Base58Codec = lazy(() => import("@/pages/tools/EncodingTools2").then(m => ({ default: m.Base58Codec })));
+const HtmlEntityCodec = lazy(() => import("@/pages/tools/EncodingTools2").then(m => ({ default: m.HtmlEntityCodec })));
+const AsciiHexConverter = lazy(() => import("@/pages/tools/EncodingTools2").then(m => ({ default: m.AsciiHexConverter })));
+const BinaryTextConverter = lazy(() => import("@/pages/tools/EncodingTools2").then(m => ({ default: m.BinaryTextConverter })));
+const Utf8ByteViewer = lazy(() => import("@/pages/tools/EncodingTools2").then(m => ({ default: m.Utf8ByteViewer })));
+const BrailleTranslator = lazy(() => import("@/pages/tools/EncodingTools2").then(m => ({ default: m.BrailleTranslator })));
+const UnicodeEscape = lazy(() => import("@/pages/tools/EncodingTools2").then(m => ({ default: m.UnicodeEscape })));
 
 // Date & Time
-import {
-  DateDifferenceCalculator, TimezoneConverter, WorkdaysCalculator,
-  LeapYearChecker, CountdownTimer, ChmodCalculator, CidrCalculator,
-} from "@/pages/tools/DateTimeTools";
+const DateDifferenceCalculator = lazy(() => import("@/pages/tools/DateTimeTools").then(m => ({ default: m.DateDifferenceCalculator })));
+const TimezoneConverter = lazy(() => import("@/pages/tools/DateTimeTools").then(m => ({ default: m.TimezoneConverter })));
+const WorkdaysCalculator = lazy(() => import("@/pages/tools/DateTimeTools").then(m => ({ default: m.WorkdaysCalculator })));
+const LeapYearChecker = lazy(() => import("@/pages/tools/DateTimeTools").then(m => ({ default: m.LeapYearChecker })));
+const CountdownTimer = lazy(() => import("@/pages/tools/DateTimeTools").then(m => ({ default: m.CountdownTimer })));
+const ChmodCalculator = lazy(() => import("@/pages/tools/DateTimeTools").then(m => ({ default: m.ChmodCalculator })));
+const CidrCalculator = lazy(() => import("@/pages/tools/DateTimeTools").then(m => ({ default: m.CidrCalculator })));
 
 // CSS & Design + Web Standards
-import { QrCodeGenerator, CssBoxShadow, WcagContrastChecker, PxToRem, HtmlTableGenerator, OpenGraphGenerator } from "@/pages/tools/WebTools2";
-import { RobotsTxtGenerator, CorsHeaderGenerator, CspHeaderGenerator, HtaccessGenerator, GcdLcmCalculator, BandwidthCalculator } from "@/pages/tools/WebTools3";
-import {
-  CssBorderRadius, CssTextShadow, CssGlassmorphism, CssTransform,
-  CssFlexbox, CssGrid, CssFilter, CssClipPath, CssAnimationBuilder,
-} from "@/pages/tools/CssTools";
-import {
-  CssScrollbarGenerator, CssTriangleGenerator, ColorConverter, ColorMath,
-  ColorBlindnessSimulator, MeshGradientGenerator, TailwindColorPicker,
-  ColorPaletteGenerator, SvgToCss, ColorSafePaletteGenerator,
-} from "@/pages/tools/CssTools2";
+const QrCodeGenerator = lazy(() => import("@/pages/tools/WebTools2").then(m => ({ default: m.QrCodeGenerator })));
+const CssBoxShadow = lazy(() => import("@/pages/tools/WebTools2").then(m => ({ default: m.CssBoxShadow })));
+const WcagContrastChecker = lazy(() => import("@/pages/tools/WebTools2").then(m => ({ default: m.WcagContrastChecker })));
+const PxToRem = lazy(() => import("@/pages/tools/WebTools2").then(m => ({ default: m.PxToRem })));
+const HtmlTableGenerator = lazy(() => import("@/pages/tools/WebTools2").then(m => ({ default: m.HtmlTableGenerator })));
+const OpenGraphGenerator = lazy(() => import("@/pages/tools/WebTools2").then(m => ({ default: m.OpenGraphGenerator })));
+const RobotsTxtGenerator = lazy(() => import("@/pages/tools/WebTools3").then(m => ({ default: m.RobotsTxtGenerator })));
+const CorsHeaderGenerator = lazy(() => import("@/pages/tools/WebTools3").then(m => ({ default: m.CorsHeaderGenerator })));
+const CspHeaderGenerator = lazy(() => import("@/pages/tools/WebTools3").then(m => ({ default: m.CspHeaderGenerator })));
+const HtaccessGenerator = lazy(() => import("@/pages/tools/WebTools3").then(m => ({ default: m.HtaccessGenerator })));
+const GcdLcmCalculator = lazy(() => import("@/pages/tools/WebTools3").then(m => ({ default: m.GcdLcmCalculator })));
+const BandwidthCalculator = lazy(() => import("@/pages/tools/WebTools3").then(m => ({ default: m.BandwidthCalculator })));
+const CssBorderRadius = lazy(() => import("@/pages/tools/CssTools").then(m => ({ default: m.CssBorderRadius })));
+const CssTextShadow = lazy(() => import("@/pages/tools/CssTools").then(m => ({ default: m.CssTextShadow })));
+const CssGlassmorphism = lazy(() => import("@/pages/tools/CssTools").then(m => ({ default: m.CssGlassmorphism })));
+const CssTransform = lazy(() => import("@/pages/tools/CssTools").then(m => ({ default: m.CssTransform })));
+const CssFlexbox = lazy(() => import("@/pages/tools/CssTools").then(m => ({ default: m.CssFlexbox })));
+const CssGrid = lazy(() => import("@/pages/tools/CssTools").then(m => ({ default: m.CssGrid })));
+const CssFilter = lazy(() => import("@/pages/tools/CssTools").then(m => ({ default: m.CssFilter })));
+const CssClipPath = lazy(() => import("@/pages/tools/CssTools").then(m => ({ default: m.CssClipPath })));
+const CssAnimationBuilder = lazy(() => import("@/pages/tools/CssTools").then(m => ({ default: m.CssAnimationBuilder })));
+const CssScrollbarGenerator = lazy(() => import("@/pages/tools/CssTools2").then(m => ({ default: m.CssScrollbarGenerator })));
+const CssTriangleGenerator = lazy(() => import("@/pages/tools/CssTools2").then(m => ({ default: m.CssTriangleGenerator })));
+const ColorConverter = lazy(() => import("@/pages/tools/CssTools2").then(m => ({ default: m.ColorConverter })));
+const ColorMath = lazy(() => import("@/pages/tools/CssTools2").then(m => ({ default: m.ColorMath })));
+const ColorBlindnessSimulator = lazy(() => import("@/pages/tools/CssTools2").then(m => ({ default: m.ColorBlindnessSimulator })));
+const MeshGradientGenerator = lazy(() => import("@/pages/tools/CssTools2").then(m => ({ default: m.MeshGradientGenerator })));
+const TailwindColorPicker = lazy(() => import("@/pages/tools/CssTools2").then(m => ({ default: m.TailwindColorPicker })));
+const ColorPaletteGenerator = lazy(() => import("@/pages/tools/CssTools2").then(m => ({ default: m.ColorPaletteGenerator })));
+const SvgToCss = lazy(() => import("@/pages/tools/CssTools2").then(m => ({ default: m.SvgToCss })));
+const ColorSafePaletteGenerator = lazy(() => import("@/pages/tools/CssTools2").then(m => ({ default: m.ColorSafePaletteGenerator })));
 
 // Web Standards
-import { HtpasswdGenerator, SitemapGenerator, AriaRolesReference, WcagReference, HttpStatusCodesReference } from "@/pages/tools/WebStandardsTools2";
+const HtpasswdGenerator = lazy(() => import("@/pages/tools/WebStandardsTools2").then(m => ({ default: m.HtpasswdGenerator })));
+const SitemapGenerator = lazy(() => import("@/pages/tools/WebStandardsTools2").then(m => ({ default: m.SitemapGenerator })));
+const AriaRolesReference = lazy(() => import("@/pages/tools/WebStandardsTools2").then(m => ({ default: m.AriaRolesReference })));
+const WcagReference = lazy(() => import("@/pages/tools/WebStandardsTools2").then(m => ({ default: m.WcagReference })));
+const HttpStatusCodesReference = lazy(() => import("@/pages/tools/WebStandardsTools2").then(m => ({ default: m.HttpStatusCodesReference })));
 
 // Reference
-import { AsciiTable, HtmlEntitiesReference, HttpHeadersReference, MimeTypesReference } from "@/pages/tools/ReferenceTools";
-import { UnicodeTableBrowser, UnicodeCharLookup, InvisibleCharDetector, DeveloperCheatsheets } from "@/pages/tools/ReferenceTools2";
+const AsciiTable = lazy(() => import("@/pages/tools/ReferenceTools").then(m => ({ default: m.AsciiTable })));
+const HtmlEntitiesReference = lazy(() => import("@/pages/tools/ReferenceTools").then(m => ({ default: m.HtmlEntitiesReference })));
+const HttpHeadersReference = lazy(() => import("@/pages/tools/ReferenceTools").then(m => ({ default: m.HttpHeadersReference })));
+const MimeTypesReference = lazy(() => import("@/pages/tools/ReferenceTools").then(m => ({ default: m.MimeTypesReference })));
+const UnicodeTableBrowser = lazy(() => import("@/pages/tools/ReferenceTools2").then(m => ({ default: m.UnicodeTableBrowser })));
+const UnicodeCharLookup = lazy(() => import("@/pages/tools/ReferenceTools2").then(m => ({ default: m.UnicodeCharLookup })));
+const InvisibleCharDetector = lazy(() => import("@/pages/tools/ReferenceTools2").then(m => ({ default: m.InvisibleCharDetector })));
+const DeveloperCheatsheets = lazy(() => import("@/pages/tools/ReferenceTools2").then(m => ({ default: m.DeveloperCheatsheets })));
 
 // Image Tools
-import { ExifViewer, ColorPickerFromImage, ColorPaletteFromImage, SvgToPngConverter, ImageResizer } from "@/pages/tools/ImageTools";
+const ExifViewer = lazy(() => import("@/pages/tools/ImageTools").then(m => ({ default: m.ExifViewer })));
+const ColorPickerFromImage = lazy(() => import("@/pages/tools/ImageTools").then(m => ({ default: m.ColorPickerFromImage })));
+const ColorPaletteFromImage = lazy(() => import("@/pages/tools/ImageTools").then(m => ({ default: m.ColorPaletteFromImage })));
+const SvgToPngConverter = lazy(() => import("@/pages/tools/ImageTools").then(m => ({ default: m.SvgToPngConverter })));
+const ImageResizer = lazy(() => import("@/pages/tools/ImageTools").then(m => ({ default: m.ImageResizer })));
 // PDF Tools
 
 
 // OCR & Documents
 
 // AI Tools
-import { AiKeyPoints, AiDocumentQa, AiTranslator } from "@/pages/tools/AiTools";
+const AiKeyPoints = lazy(() => import("@/pages/tools/AiTools").then(m => ({ default: m.AiKeyPoints })));
+const AiDocumentQa = lazy(() => import("@/pages/tools/AiTools").then(m => ({ default: m.AiDocumentQa })));
+const AiTranslator = lazy(() => import("@/pages/tools/AiTools").then(m => ({ default: m.AiTranslator })));
 
 const DocumentIntelligence = lazy(() => import("@/pages/tools/DocumentIntelligence").then(m => ({ default: m.DocumentIntelligence })));
 

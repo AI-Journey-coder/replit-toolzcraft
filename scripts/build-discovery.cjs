@@ -32,7 +32,17 @@ const req=name=>require(require.resolve(name,{paths:[root]}));
  for(const [slug,title] of Object.entries({about:'About ToolzCraft',contact:'Contact',privacy:'Privacy policy',terms:'Terms of use'}))emit('/'+slug,title,title+' for ToolzCraft.',renderToStaticMarkup(React.createElement(InformationPage,{page:slug})));
  for(const [slug,p] of Object.entries(policies))emit('/'+slug,p.title,p.description,`<h1>${escape(p.title)}</h1>`+p.sections.map(s=>`<section><h2>${escape(s.heading)}</h2><p>${escape(s.text)}</p></section>`).join(''));
  for(const [slug,title] of Object.entries({profile:'My profile',subscriptions:'Subscriptions','my-tools':'My tools','logo-gallery':'Logo gallery',promo:'Explore ToolzCraft',login:'Sign in',admin:'Administration',...env.VITE_ENABLE_AI!=='true'?{'tools/ai-key-points':'AI unavailable','tools/ai-document-qa':'AI unavailable','tools/ai-translator':'AI unavailable'}:{}}))emit('/'+slug,title,title,`<h1>${title}</h1><p>Enable JavaScript to use this page.</p>`,true);
- emit('/','Browser tools','Practical tools for files, code, calculations and conversions.',`<h1>ToolzCraft browser tools</h1><p>Browse ${tools.length} tools with guidance and examples.</p><ul>`+categories.map(c=>`<li><a href="/category/${c.slug}">${escape(c.name)}</a></li>`).join('')+'</ul>'+renderToStaticMarkup(React.createElement(WorkflowGuide)));
+ const {HomeHero}=load('components/HomeHero.tsx');
+ const hero=renderToStaticMarkup(React.createElement(HomeHero,{toolCount:tools.length,categoryCount:categories.length,query:'',onQuery:()=>{},onExplore:()=>{}}));
+ emit('/','Browser tools','Practical tools for files, code, calculations and conversions.',`<div class="min-h-[99px] sm:min-h-[57px] border-b flex items-center px-4 md:px-6 font-bold">ToolzCraft</div><div class="lg:ml-64 xl:ml-72 px-4 md:px-6 py-5">${hero}<h2 class="mt-9 text-2xl font-bold">Everyday essentials</h2><p>Browse ${tools.length} tools with guidance and examples.</p><ul>`+categories.map(c=>`<li><a href="/category/${c.slug}">${escape(c.name)}</a></li>`).join('')+'</ul>'+renderToStaticMarkup(React.createElement(WorkflowGuide))+'</div>');
+ // Compress immutable text assets once during build, outside the request path.
+ const {gzipSync}=require('node:zlib');
+ const assets=path.join(out,'assets');
+ for(const name of fs.readdirSync(assets)){
+   if(!/\.(js|css)$/.test(name))continue;
+   const file=path.join(assets,name);
+   fs.writeFileSync(file+'.gz',gzipSync(fs.readFileSync(file),{level:6}));
+ }
  if(origin)fs.writeFileSync(path.join(out,'sitemap.xml'),'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+routes.map(r=>`<url><loc>${escape(origin+r)}</loc></url>`).join('')+'</urlset>');
  fs.writeFileSync(path.join(out,'robots.txt'),`User-agent: *\nAllow: /\n${origin?`Sitemap: ${origin}/sitemap.xml\nSitemap: ${origin}/guides-sitemap.xml\n`:''}`);
  for(const [oldSlug,newSlug] of Object.entries({media:'image',files:'data'})){fs.mkdirSync(path.join(out,'category',oldSlug),{recursive:true});fs.copyFileSync(path.join(out,'category',newSlug,'index.html'),path.join(out,'category',oldSlug,'index.html'));}
